@@ -3,459 +3,477 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Burger Control – Gestão de Despesas</title>
+<title>Burger Control</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f8f7f3;
+  --border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.17);
+  --text:#1a1a18;--muted:#6b6b67;--hint:#9b9b96;
+  --accent:#d85a30;--accent-d:#993c1d;--accent-bg:rgba(216,90,48,.08);
+  --green:#3b6d11;--green-bg:#eaf3de;--green-border:#c0dd97;
+  --red:#a32d2d;--red-bg:#fcebeb;
+  --yellow:#854f0b;--yellow-bg:#faeeda;
+  --r:10px;--rs:7px;
+  --shadow:0 1px 4px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.06);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--surface:#252523;--surface2:#2e2e2b;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+  --text:#f0ede8;--muted:#9b9b96;--hint:#6b6b67;
+  --accent:#e06a3d;--accent-d:#f07a4d;--accent-bg:rgba(216,90,48,.15);
+  --green:#6ab832;--green-bg:rgba(58,109,17,.2);--green-border:rgba(106,184,50,.3);
+  --red-bg:rgba(163,45,45,.2);--yellow-bg:rgba(133,79,11,.2);
+  --shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 .5px rgba(255,255,255,.04);
+}}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
 
-  :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f8f7f3;
-    --border: rgba(0,0,0,0.10);
-    --border2: rgba(0,0,0,0.18);
-    --text: #1a1a18;
-    --muted: #6b6b67;
-    --hint: #9b9b96;
-    --accent: #d85a30;
-    --accent-dark: #993c1d;
-    --accent-bg: rgba(216,90,48,0.08);
-    --radius: 10px;
-    --radius-sm: 7px;
-    --shadow: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 0.5px rgba(0,0,0,0.06);
-  }
+/* ── AUTH SCREEN ── */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg)}
+.auth-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:36px;width:100%;max-width:400px}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.auth-logo-icon{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.auth-logo-name{font-size:18px;font-weight:700;letter-spacing:-.4px}
+.auth-logo-sub{font-size:12px;color:var(--muted)}
+.auth-title{font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:-.3px}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+.auth-err{background:var(--red-bg);color:var(--red);border:.5px solid rgba(163,45,45,.3);border-radius:var(--rs);padding:10px 13px;font-size:13px;margin-bottom:16px;display:none}
+.auth-err.show{display:block}
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1c1c1a; --surface: #252523; --surface2: #2e2e2b;
-      --border: rgba(255,255,255,0.09); --border2: rgba(255,255,255,0.15);
-      --text: #f0ede8; --muted: #9b9b96; --hint: #6b6b67;
-      --accent: #e06a3d; --accent-dark: #f07a4d;
-      --accent-bg: rgba(216,90,48,0.15);
-      --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.05);
-    }
-  }
+/* ── SHELL ── */
+.shell{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;transition:transform .25s;z-index:50}
+.logo{padding:18px 16px 14px;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-name{font-size:14px;font-weight:700;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--muted)}
+.nav{flex:1;padding:8px;overflow-y:auto}
+.nav-sec{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.07em;padding:10px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;font-size:13px;color:var(--muted);margin-bottom:1px;transition:background .12s,color .12s;user-select:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-bg);color:var(--accent);font-weight:600}
+.nav-item svg{flex-shrink:0;opacity:.75}
+.nav-item.active svg{opacity:1}
+.sidebar-footer{padding:12px 16px;border-top:.5px solid var(--border)}
+.sf-user{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sf-role{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-bottom:8px}
+.sf-role.admin{background:var(--accent-bg);color:var(--accent)}
+.sf-role.operador{background:var(--green-bg);color:var(--green)}
+.sf-amount{font-size:18px;font-weight:700;color:var(--accent)}
+.sf-period{font-size:11px;color:var(--hint);margin-top:2px}
+.btn-logout{width:100%;margin-top:10px;padding:7px;border-radius:var(--rs);border:.5px solid var(--border2);background:none;color:var(--muted);font-size:12px;cursor:pointer;transition:background .12s}
+.btn-logout:hover{background:var(--surface2);color:var(--text)}
 
-  html, body { height: 100%; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:52px;background:var(--surface);border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.hamburger{display:none;background:none;border:none;cursor:pointer;color:var(--text);padding:4px}
+.topbar-title{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.content{flex:1;overflow-y:auto;padding:22px 20px}
+.page{display:none}
+.page.active{display:block;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-  .shell { display: flex; height: 100vh; overflow: hidden; }
+/* ── COMPONENTS ── */
+.btn{padding:7px 16px;border-radius:var(--rs);border:.5px solid var(--border2);background:var(--surface);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:background .12s;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-d);border-color:var(--accent-d)}
+.btn-danger{color:var(--red);border-color:var(--red)}
+.btn-danger:hover{background:var(--red-bg)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-xs{padding:3px 8px;font-size:11px}
 
-  .sidebar { width: 220px; min-width: 220px; background: var(--surface); border-right: 0.5px solid var(--border); display: flex; flex-direction: column; transition: transform 0.25s; z-index: 50; }
-  .logo { padding: 20px 18px 16px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 10px; }
-  .logo-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .logo-name { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
-  .logo-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:22px}
+.metric{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:15px}
+.metric-label{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.metric-value{font-size:24px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.metric-value.accent{color:var(--accent)}
+.metric-value.green{color:var(--green)}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.sec-title{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
 
-  .nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
-  .nav-section { font-size: 10px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: 0.07em; padding: 10px 10px 4px; }
-  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--muted); margin-bottom: 1px; transition: background 0.12s, color 0.12s; user-select: none; }
-  .nav-item:hover { background: var(--surface2); color: var(--text); }
-  .nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
-  .nav-item svg { flex-shrink: 0; opacity: 0.8; }
-  .nav-item.active svg { opacity: 1; }
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 11px;color:var(--hint);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.05em;border-bottom:.5px solid var(--border);background:var(--surface2)}
+td{padding:10px 11px;border-bottom:.5px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface2)}
+.table-wrap{border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
 
-  .sidebar-footer { padding: 14px 18px; border-top: 0.5px solid var(--border); }
-  .sf-label { font-size: 11px; color: var(--hint); }
-  .sf-value { font-size: 13px; font-weight: 500; margin-top: 2px; }
-  .sf-total { font-size: 11px; color: var(--muted); margin-top: 6px; }
-  .sf-amount { font-size: 16px; font-weight: 600; color: var(--accent); }
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-ai{background:var(--green-bg);color:var(--green)}
+.badge-gray{background:var(--surface2);color:var(--muted);border:.5px solid var(--border)}
+.badge-admin{background:var(--accent-bg);color:var(--accent)}
+.badge-op{background:var(--green-bg);color:var(--green)}
 
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-  .topbar { height: 54px; background: var(--surface); border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 22px; flex-shrink: 0; }
-  .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .hamburger { display: none; background: none; border: none; cursor: pointer; color: var(--text); padding: 4px; }
-  .topbar-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
-  .topbar-right { display: flex; gap: 8px; align-items: center; }
+.alert{padding:10px 13px;border-radius:var(--rs);font-size:13px;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px}
+.alert-info{background:#e6f1fb;color:#185fa5;border:.5px solid #b5d4f4}
+.alert-warn{background:var(--yellow-bg);color:var(--yellow);border:.5px solid rgba(133,79,11,.3)}
+.alert-success{background:var(--green-bg);color:var(--green);border:.5px solid var(--green-border)}
 
-  .btn { padding: 7px 16px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.12s; white-space: nowrap; }
-  .btn:hover { background: var(--surface2); }
-  .btn:active { transform: scale(0.98); }
-  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
-  .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
-  .btn-danger { color: #a32d2d; border-color: #a32d2d; }
-  .btn-danger:hover { background: #fcebeb; }
-  .btn-sm { padding: 4px 10px; font-size: 12px; }
+.tabs{display:flex;border-bottom:.5px solid var(--border);margin-bottom:18px}
+.tab{padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-.5px;transition:color .12s}
+.tab:hover:not(.active){color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
 
-  .content { flex: 1; overflow-y: auto; padding: 24px 22px; }
-  .page { display: none; }
-  .page.active { display: block; animation: fadeIn 0.18s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:12px;font-weight:700;color:var(--muted)}
+.form-label span{color:var(--accent)}
+.form-control{padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(216,90,48,.12)}
 
-  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
-  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
-  .metric { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
-  .metric-label { font-size: 11px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-  .metric-value { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; line-height: 1; }
-  .metric-value.accent { color: var(--accent); }
-  .metric-value.green { color: #3b6d11; }
-  .metric-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
-  .section-title { font-size: 11px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+.scan-zone{border:1.5px dashed var(--border2);border-radius:var(--r);padding:32px 20px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:16px;background:var(--surface)}
+.scan-zone:hover,.scan-zone.over{border-color:var(--accent);background:var(--accent-bg)}
+.scan-zone-icon{font-size:32px;margin-bottom:8px}
+.scan-zone-title{font-size:14px;font-weight:700;margin-bottom:3px}
+.scan-zone-sub{font-size:12px;color:var(--muted)}
 
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; padding: 9px 12px; color: var(--hint); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 0.5px solid var(--border); background: var(--surface2); }
-  td { padding: 11px 12px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--surface2); }
-  .table-wrap { border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:14px;display:none}
+.progress-bar.show{display:block}
+.progress-fill{height:100%;background:var(--accent);width:0;border-radius:2px;transition:width .25s ease}
+.preview-img{width:100%;max-height:180px;object-fit:contain;border-radius:var(--rs);border:.5px solid var(--border);margin-bottom:14px;display:none;background:var(--surface2)}
+.preview-img.show{display:block}
+.ai-box{background:var(--green-bg);border:.5px solid var(--green-border);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;display:none}
+.ai-box.show{display:block}
+.ai-box-header{font-size:12px;font-weight:700;color:var(--green);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.ai-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px;border-bottom:.5px solid rgba(60,111,17,.1)}
+.ai-row:last-child{border-bottom:none}
+.ai-row-label{color:var(--green);font-weight:600}
+.ai-row-value{color:#27500a;font-weight:700;text-align:right;max-width:60%}
 
-  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-  .badge-ai { background: #eaf3de; color: #3b6d11; }
-  .badge-gray { background: var(--surface2); color: var(--muted); border: 0.5px solid var(--border); }
+.cc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:22px}
+.cc-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:14px}
+.cc-header{display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:13px;font-weight:700}
+.cc-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cc-track{height:5px;background:var(--border);border-radius:3px;margin-bottom:8px;overflow:hidden}
+.cc-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.cc-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.cc-meta strong{color:var(--text);font-weight:700}
 
-  .alert { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 18px; display: flex; align-items: flex-start; gap: 9px; }
-  .alert-info { background: #e6f1fb; color: #185fa5; border: 0.5px solid #b5d4f4; }
-  .alert-warn { background: #faeeda; color: #854f0b; border: 0.5px solid #fac775; }
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.bar-label{width:140px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.bar-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.bar-value{font-size:12px;font-weight:700;min-width:84px;text-align:right}
 
-  .tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; }
-  .tab { padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: color 0.12s; }
-  .tab:hover:not(.active) { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:var(--r);padding:22px;width:100%;max-width:500px;border:.5px solid var(--border);box-shadow:0 8px 40px rgba(0,0,0,.25);position:relative;animation:slideUp .18s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:14px;padding-right:26px}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted)}
+.modal-close:hover{color:var(--text)}
 
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group.full { grid-column: 1/-1; }
-  .form-label { font-size: 12px; font-weight: 600; color: var(--muted); }
-  .form-label span { color: var(--accent); }
-  .form-control { padding: 9px 11px; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%; }
-  .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(216,90,48,0.12); }
+.report-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.report-out{font-size:13px;line-height:1.8;white-space:pre-wrap;padding:16px;background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);display:none}
+.report-out.show{display:block}
+.report-loading{display:none;align-items:center;gap:8px;color:var(--muted);font-size:13px;padding:14px 0}
+.report-loading.show{display:flex}
+.spinner{width:15px;height:15px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  .scan-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 36px 24px; text-align: center; cursor: pointer; transition: all 0.15s; margin-bottom: 18px; background: var(--surface); }
-  .scan-zone:hover, .scan-zone.over { border-color: var(--accent); background: var(--accent-bg); }
-  .scan-zone-icon { font-size: 36px; margin-bottom: 10px; }
-  .scan-zone-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .scan-zone-sub { font-size: 13px; color: var(--muted); }
+.empty{text-align:center;padding:44px 20px;color:var(--muted);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:8px;opacity:.35}
+.empty-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px}
+.link{color:var(--accent);cursor:pointer}
 
-  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 18px; display: none; }
-  .progress-bar.show { display: block; }
-  .progress-fill { height: 100%; background: var(--accent); width: 0; border-radius: 2px; transition: width 0.25s ease; }
+.toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:var(--bg);padding:11px 16px;border-radius:var(--rs);font-size:13px;font-weight:600;z-index:300;animation:toastIn .2s ease;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-  .preview-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: var(--radius-sm); border: 0.5px solid var(--border); margin-bottom: 16px; display: none; background: var(--surface2); }
-  .preview-img.show { display: block; }
+/* USUARIOS */
+.user-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.user-avatar{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:700}
+.user-email{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-actions{display:flex;gap:6px;align-items:center}
 
-  .ai-box { background: #eaf3de; border: 0.5px solid #c0dd97; border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 18px; display: none; }
-  .ai-box.show { display: block; }
-  .ai-box-header { font-size: 12px; font-weight: 600; color: #3b6d11; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-  .ai-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; font-size: 13px; border-bottom: 0.5px solid rgba(60,111,17,0.12); }
-  .ai-row:last-child { border-bottom: none; }
-  .ai-row-label { color: #639922; font-weight: 500; }
-  .ai-row-value { color: #27500a; font-weight: 600; text-align: right; max-width: 60%; }
+/* STATUS */
+.s-ap{background:var(--green-bg);color:var(--green)}
+.s-pe{background:var(--yellow-bg);color:var(--yellow)}
+.s-re{background:var(--red-bg);color:var(--red)}
 
-  .cc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
-  .cc-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
-  .cc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 600; }
-  .cc-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .cc-track { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 10px; overflow: hidden; }
-  .cc-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
-  .cc-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
-  .cc-meta strong { color: var(--text); font-weight: 600; }
-
-  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
-  .overlay.show { display: flex; }
-  .modal { background: var(--surface); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 480px; border: 0.5px solid var(--border); box-shadow: 0 8px 40px rgba(0,0,0,0.25); position: relative; animation: slideUp 0.18s ease; }
-  @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
-  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-right: 28px; }
-  .modal-close { position: absolute; top: 18px; right: 18px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); }
-  .modal-close:hover { color: var(--text); }
-
-  .report-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-  .report-out { font-size: 13px; color: var(--text); line-height: 1.8; white-space: pre-wrap; padding: 18px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); display: none; }
-  .report-out.show { display: block; }
-  .report-loading { display: none; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; padding: 18px 0; }
-  .report-loading.show { display: flex; }
-  .spinner { width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; flex-shrink: 0; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .empty { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 13px; }
-  .empty-icon { font-size: 36px; margin-bottom: 10px; opacity: 0.4; }
-  .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-  .link { color: var(--accent); cursor: pointer; }
-
-  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; z-index: 300; animation: toastIn 0.2s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
-  @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
-
-  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .bar-label { width: 140px; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
-  .bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-  .bar-value { font-size: 12px; font-weight: 600; min-width: 88px; text-align: right; }
-
-  .STATUS_AP { background:#eaf3de; color:#3b6d11; }
-  .STATUS_PE { background:#faeeda; color:#854f0b; }
-  .STATUS_RE { background:#fcebeb; color:#a32d2d; }
-
-  @media (max-width: 720px) {
-    .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
-    .sidebar.open { transform: none; box-shadow: 4px 0 20px rgba(0,0,0,0.2); }
-    .hamburger { display: flex; }
-    .overlay-sidebar { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 49; display: none; }
-    .overlay-sidebar.show { display: block; }
-    .form-grid { grid-template-columns: 1fr; }
-    .form-group.full { grid-column: 1; }
-    .metrics { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 480px) {
-    .content { padding: 16px 14px; }
-    .topbar { padding: 0 14px; }
-    .metrics { grid-template-columns: 1fr; }
-  }
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+@media(max-width:720px){
+  .sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%)}
+  .sidebar.open{transform:none;box-shadow:4px 0 20px rgba(0,0,0,.2)}
+  .hamburger{display:flex}
+  .overlay-sb{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49;display:none}
+  .overlay-sb.show{display:block}
+  .form-grid{grid-template-columns:1fr}
+  .form-group.full{grid-column:1}
+  .metrics{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .content{padding:14px 12px}
+  .topbar{padding:0 12px}
+  .metrics{grid-template-columns:1fr}
+}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 </style>
 </head>
 <body>
 
-<div id="overlay-sidebar" class="overlay-sidebar" onclick="closeSidebar()"></div>
-
-<div class="shell">
-  <aside class="sidebar" id="sidebar">
-    <div class="logo">
-      <div class="logo-icon">
+<!-- ══ AUTH ══ -->
+<div id="auth-screen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
       </div>
       <div>
-        <div class="logo-name">Burger Control</div>
-        <div class="logo-sub">Gestão de Despesas</div>
+        <div class="auth-logo-name">Burger Control</div>
+        <div class="auth-logo-sub">Gestão de Despesas</div>
       </div>
     </div>
-    <nav class="nav">
-      <div class="nav-section">Principal</div>
-      <div class="nav-item active" onclick="showPage('dashboard',this)" id="nav-dashboard">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Dashboard
+
+    <!-- LOGIN -->
+    <div id="view-login">
+      <div class="auth-title">Entrar</div>
+      <div class="auth-sub">Acesse sua conta para continuar</div>
+      <div class="auth-err" id="login-err"></div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">E-mail</label>
+        <input type="email" class="form-control" id="login-email" placeholder="seu@email.com">
       </div>
-      <div class="nav-item" onclick="showPage('lancar',this)" id="nav-lancar">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-        Lançar Despesa
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Senha</label>
+        <input type="password" class="form-control" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <div class="nav-section">Análise</div>
-      <div class="nav-item" onclick="showPage('despesas',this)" id="nav-despesas">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        Despesas
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()" id="btn-login">Entrar</button>
+      <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
+        Não tem conta? <span class="link" onclick="showView('signup')">Criar conta</span>
       </div>
-      <div class="nav-item" onclick="showPage('centros',this)" id="nav-centros">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-        Centros de Custo
-      </div>
-      <div class="nav-item" onclick="showPage('relatorio',this)" id="nav-relatorio">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-        Relatórios IA
-      </div>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="sf-label">Período atual</div>
-      <div class="sf-value" id="sf-period">—</div>
-      <div class="sf-total">Total lançado</div>
-      <div class="sf-amount" id="sf-amount">R$ 0,00</div>
     </div>
-  </aside>
 
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-        </button>
-        <span class="topbar-title" id="page-title">Dashboard</span>
+    <!-- SIGNUP -->
+    <div id="view-signup" style="display:none">
+      <div class="auth-title">Criar conta</div>
+      <div class="auth-sub">Preencha os dados para se cadastrar</div>
+      <div class="auth-err" id="signup-err"></div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Nome completo</label>
+        <input type="text" class="form-control" id="signup-name" placeholder="Seu nome">
       </div>
-      <div class="topbar-right">
-        <button class="btn btn-primary" onclick="showPage('lancar',document.getElementById('nav-lancar'))">+ Lançar</button>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">E-mail</label>
+        <input type="email" class="form-control" id="signup-email" placeholder="seu@email.com">
       </div>
-    </header>
-
-    <main class="content">
-
-      <!-- DASHBOARD -->
-      <div class="page active" id="page-dashboard">
-        <div class="metrics" id="dash-metrics"></div>
-        <div style="margin-bottom:24px;">
-          <div class="section-title">Despesas por Centro de Custo</div>
-          <div class="card" style="padding:18px;"><div id="dash-bars"></div></div>
-        </div>
-        <div>
-          <div class="section-title">Últimos Lançamentos</div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Fornecedor</th><th>Centro de Custo</th><th>Categoria</th><th>Data</th><th style="text-align:right">Valor</th></tr></thead>
-              <tbody id="dash-tbody"></tbody>
-            </table>
-          </div>
-        </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Senha</label>
+        <input type="password" class="form-control" id="signup-pass" placeholder="Mínimo 6 caracteres">
       </div>
-
-      <!-- LANÇAR -->
-      <div class="page" id="page-lancar">
-        <div class="alert alert-info">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          Escaneie ou fotografe o cupom/nota fiscal para preenchimento automático via IA. Você também pode preencher manualmente.
-        </div>
-        <div class="tabs">
-          <div class="tab active" onclick="switchTab('scan',this)">📷 Escanear Documento</div>
-          <div class="tab" onclick="switchTab('manual',this)">✏️ Preencher Manualmente</div>
-        </div>
-        <div id="tab-scan">
-          <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="handleFile(event)">
-          <div class="scan-zone" id="scan-zone"
-            onclick="document.getElementById('file-input').click()"
-            ondragover="event.preventDefault();this.classList.add('over')"
-            ondragleave="this.classList.remove('over')"
-            ondrop="event.preventDefault();this.classList.remove('over');handleDrop(event)">
-            <div class="scan-zone-icon">📄</div>
-            <div class="scan-zone-title">Clique ou arraste o documento aqui</div>
-            <div class="scan-zone-sub">Cupom Fiscal, NF-e, NFC-e · JPG, PNG ou PDF</div>
-          </div>
-          <div class="progress-bar" id="progress"><div class="progress-fill" id="progress-fill"></div></div>
-          <img class="preview-img" id="preview-img" src="" alt="">
-          <div class="ai-box" id="ai-box">
-            <div class="ai-box-header">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="#639922"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
-              Dados extraídos pela IA — revise e confirme
-            </div>
-            <div id="ai-fields"></div>
-          </div>
-        </div>
-        <div id="tab-manual" style="display:none">
-          <div class="alert alert-warn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Lançamento manual: guarde o documento original para fins de auditoria.
-          </div>
-        </div>
-        <div class="card" style="padding:20px;">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">Fornecedor <span>*</span></label>
-              <input type="text" class="form-control" id="f-fornecedor" placeholder="Razão social ou nome fantasia">
-            </div>
-            <div class="form-group">
-              <label class="form-label">CNPJ / CPF</label>
-              <input type="text" class="form-control" id="f-cnpj" placeholder="00.000.000/0000-00">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Centro de Custo <span>*</span></label>
-              <select class="form-control" id="f-cc">
-                <option value="">Selecionar...</option>
-                <option>Cozinha</option><option>Salão / Atendimento</option><option>Delivery</option>
-                <option>Administrativo</option><option>Marketing</option><option>Manutenção</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Categoria</label>
-              <select class="form-control" id="f-cat">
-                <option value="">Selecionar...</option>
-                <option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option>
-                <option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option>
-                <option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Valor Total <span>*</span></label>
-              <input type="text" class="form-control" id="f-valor" placeholder="R$ 0,00">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Data do Documento <span>*</span></label>
-              <input type="date" class="form-control" id="f-data">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Nº do Documento</label>
-              <input type="text" class="form-control" id="f-ndoc" placeholder="Número do cupom / NF">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Tipo de Documento</label>
-              <select class="form-control" id="f-tipo">
-                <option>Cupom Fiscal</option><option>NF-e</option><option>NFC-e</option>
-                <option>SAT</option><option>Recibo</option><option>Outro</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Forma de Pagamento</label>
-              <select class="form-control" id="f-pagto">
-                <option value="">—</option>
-                <option>Dinheiro</option><option>Cartão de Débito</option><option>Cartão de Crédito</option>
-                <option>PIX</option><option>Boleto</option><option>Transferência</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Status</label>
-              <select class="form-control" id="f-status">
-                <option>Aprovado</option><option>Pendente</option><option>Rejeitado</option>
-              </select>
-            </div>
-            <div class="form-group full">
-              <label class="form-label">Observações</label>
-              <input type="text" class="form-control" id="f-obs" placeholder="Observações adicionais (opcional)">
-            </div>
-          </div>
-          <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button class="btn" onclick="clearForm()">Limpar</button>
-            <button class="btn btn-primary" onclick="salvarDespesa()">💾 Salvar Lançamento</button>
-          </div>
-        </div>
+      <button class="btn btn-primary" style="width:100%" onclick="doSignup()" id="btn-signup">Criar conta</button>
+      <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
+        Já tem conta? <span class="link" onclick="showView('login')">Entrar</span>
       </div>
-
-      <!-- DESPESAS -->
-      <div class="page" id="page-despesas">
-        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;">
-          <select class="form-control" id="filtro-cc" style="width:180px;" onchange="renderDespesas()">
-            <option value="">Todos os centros</option>
-            <option>Cozinha</option><option>Salão / Atendimento</option><option>Delivery</option>
-            <option>Administrativo</option><option>Marketing</option><option>Manutenção</option>
-          </select>
-          <select class="form-control" id="filtro-cat" style="width:200px;" onchange="renderDespesas()">
-            <option value="">Todas as categorias</option>
-            <option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option>
-            <option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option>
-            <option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option>
-          </select>
-          <select class="form-control" id="filtro-status" style="width:150px;" onchange="renderDespesas()">
-            <option value="">Todos os status</option>
-            <option>Aprovado</option><option>Pendente</option><option>Rejeitado</option>
-          </select>
-          <button class="btn btn-sm" onclick="exportCSV()">⬇ Exportar CSV</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr>
-              <th>Fornecedor</th><th>Centro de Custo</th><th>Categoria</th><th>Tipo</th>
-              <th>Pagamento</th><th>Data</th><th>Status</th><th style="text-align:right">Valor</th><th></th>
-            </tr></thead>
-            <tbody id="desp-tbody"></tbody>
-          </table>
-        </div>
-        <div id="desp-total-row" style="display:none;text-align:right;padding:12px 4px;font-size:13px;font-weight:600;"></div>
-      </div>
-
-      <!-- CENTROS -->
-      <div class="page" id="page-centros">
-        <div class="cc-grid" id="cc-grid"></div>
-        <div class="section-title">Detalhamento por Categoria e Centro</div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Categoria</th><th>Centro de Custo</th><th>Qtd</th><th style="text-align:right">Total</th><th style="text-align:right">%</th></tr></thead>
-            <tbody id="cc-cat-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- RELATÓRIOS -->
-      <div class="page" id="page-relatorio">
-        <div class="alert alert-info">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-          Análises inteligentes geradas por IA com base nos seus lançamentos.
-        </div>
-        <div class="report-btns">
-          <button class="btn" onclick="gerarRelatorio('resumo')">📋 Resumo Executivo</button>
-          <button class="btn" onclick="gerarRelatorio('anomalias')">🔍 Detectar Anomalias</button>
-          <button class="btn" onclick="gerarRelatorio('tendencias')">📈 Tendências</button>
-          <button class="btn" onclick="gerarRelatorio('economia')">💡 Sugestões de Economia</button>
-          <button class="btn" onclick="gerarRelatorio('dre')">📄 DRE Simplificado</button>
-        </div>
-        <div class="report-loading" id="report-loading"><div class="spinner"></div>Gerando análise com IA...</div>
-        <div class="report-out" id="report-out"></div>
-      </div>
-
-    </main>
+    </div>
   </div>
 </div>
 
+<!-- ══ APP ══ -->
+<div id="app-screen" style="display:none">
+  <div id="overlay-sb" class="overlay-sb" onclick="closeSidebar()"></div>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></div>
+        <div><div class="logo-name">Burger Control</div><div class="logo-sub">Gestão de Despesas</div></div>
+      </div>
+      <nav class="nav">
+        <div class="nav-sec">Principal</div>
+        <div class="nav-item active" onclick="showPage('dashboard',this)" id="nav-dashboard">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item" onclick="showPage('lancar',this)" id="nav-lancar">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Lançar Despesa
+        </div>
+        <div class="nav-sec">Análise</div>
+        <div class="nav-item" onclick="showPage('despesas',this)" id="nav-despesas">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Despesas
+        </div>
+        <div class="nav-item" onclick="showPage('centros',this)" id="nav-centros">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          Centros de Custo
+        </div>
+        <div class="nav-item" onclick="showPage('relatorio',this)" id="nav-relatorio">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          Relatórios IA
+        </div>
+        <div class="nav-item" id="nav-usuarios" onclick="showPage('usuarios',this)" style="display:none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          Usuários
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sf-user" id="sf-user">—</div>
+        <div class="sf-role" id="sf-role">—</div>
+        <div class="sf-period" id="sf-period">—</div>
+        <div class="sf-amount" id="sf-amount">R$ 0,00</div>
+        <button class="btn-logout" onclick="doLogout()">Sair da conta</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger" onclick="toggleSidebar()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+          <span class="topbar-title" id="page-title">Dashboard</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="showPage('lancar',document.getElementById('nav-lancar'))">+ Lançar</button>
+        </div>
+      </header>
+
+      <main class="content">
+
+        <!-- DASHBOARD -->
+        <div class="page active" id="page-dashboard">
+          <div class="metrics" id="dash-metrics"></div>
+          <div style="margin-bottom:22px">
+            <div class="sec-title">Despesas por Centro de Custo</div>
+            <div class="card" style="padding:16px"><div id="dash-bars"></div></div>
+          </div>
+          <div>
+            <div class="sec-title">Últimos Lançamentos</div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Fornecedor</th><th>Centro de Custo</th><th>Categoria</th><th>Data</th><th style="text-align:right">Valor</th></tr></thead>
+              <tbody id="dash-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- LANÇAR -->
+        <div class="page" id="page-lancar">
+          <div class="alert alert-info">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Escaneie ou fotografe o cupom/nota fiscal para preenchimento automático via IA.
+          </div>
+          <div class="tabs">
+            <div class="tab active" onclick="switchTab('scan',this)">📷 Escanear Documento</div>
+            <div class="tab" onclick="switchTab('manual',this)">✏️ Preencher Manualmente</div>
+          </div>
+          <div id="tab-scan">
+            <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="handleFile(event)">
+            <div class="scan-zone" id="scan-zone" onclick="document.getElementById('file-input').click()"
+              ondragover="event.preventDefault();this.classList.add('over')"
+              ondragleave="this.classList.remove('over')"
+              ondrop="event.preventDefault();this.classList.remove('over');handleDrop(event)">
+              <div class="scan-zone-icon">📄</div>
+              <div class="scan-zone-title">Clique ou arraste o documento aqui</div>
+              <div class="scan-zone-sub">Cupom Fiscal, NF-e, NFC-e · JPG, PNG ou PDF</div>
+            </div>
+            <div class="progress-bar" id="progress"><div class="progress-fill" id="progress-fill"></div></div>
+            <img class="preview-img" id="preview-img" src="" alt="">
+            <div class="ai-box" id="ai-box">
+              <div class="ai-box-header">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+                Dados extraídos pela IA — revise e confirme
+              </div>
+              <div id="ai-fields"></div>
+            </div>
+          </div>
+          <div id="tab-manual" style="display:none">
+            <div class="alert alert-warn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Lançamento manual: guarde o documento original para auditoria.
+            </div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">Fornecedor <span>*</span></label><input type="text" class="form-control" id="f-fornecedor" placeholder="Razão social ou nome fantasia"></div>
+              <div class="form-group"><label class="form-label">CNPJ / CPF</label><input type="text" class="form-control" id="f-cnpj" placeholder="00.000.000/0000-00"></div>
+              <div class="form-group"><label class="form-label">Centro de Custo <span>*</span></label>
+                <select class="form-control" id="f-cc"><option value="">Selecionar...</option><option>Cozinha</option><option>Salão / Atendimento</option><option>Delivery</option><option>Administrativo</option><option>Marketing</option><option>Manutenção</option></select></div>
+              <div class="form-group"><label class="form-label">Categoria</label>
+                <select class="form-control" id="f-cat"><option value="">Selecionar...</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select></div>
+              <div class="form-group"><label class="form-label">Valor Total <span>*</span></label><input type="text" class="form-control" id="f-valor" placeholder="R$ 0,00"></div>
+              <div class="form-group"><label class="form-label">Data <span>*</span></label><input type="date" class="form-control" id="f-data"></div>
+              <div class="form-group"><label class="form-label">Nº Documento</label><input type="text" class="form-control" id="f-ndoc" placeholder="Número do cupom / NF"></div>
+              <div class="form-group"><label class="form-label">Tipo</label>
+                <select class="form-control" id="f-tipo"><option>Cupom Fiscal</option><option>NF-e</option><option>NFC-e</option><option>SAT</option><option>Recibo</option><option>Outro</option></select></div>
+              <div class="form-group"><label class="form-label">Pagamento</label>
+                <select class="form-control" id="f-pagto"><option value="">—</option><option>Dinheiro</option><option>Cartão de Débito</option><option>Cartão de Crédito</option><option>PIX</option><option>Boleto</option><option>Transferência</option></select></div>
+              <div class="form-group"><label class="form-label">Status</label>
+                <select class="form-control" id="f-status"><option>Aprovado</option><option>Pendente</option><option>Rejeitado</option></select></div>
+              <div class="form-group full"><label class="form-label">Observações</label><input type="text" class="form-control" id="f-obs" placeholder="Opcional"></div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn" onclick="clearForm()">Limpar</button>
+              <button class="btn btn-primary" onclick="salvarDespesa()">💾 Salvar Lançamento</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DESPESAS -->
+        <div class="page" id="page-despesas">
+          <div id="despesas-aviso-op" class="alert alert-info" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Você está visualizando apenas os seus próprios lançamentos.
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+            <select class="form-control" id="filtro-cc" style="width:175px" onchange="renderDespesas()"><option value="">Todos os centros</option><option>Cozinha</option><option>Salão / Atendimento</option><option>Delivery</option><option>Administrativo</option><option>Marketing</option><option>Manutenção</option></select>
+            <select class="form-control" id="filtro-cat" style="width:195px" onchange="renderDespesas()"><option value="">Todas as categorias</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select>
+            <select class="form-control" id="filtro-status" style="width:145px" onchange="renderDespesas()"><option value="">Todos os status</option><option>Aprovado</option><option>Pendente</option><option>Rejeitado</option></select>
+            <button class="btn btn-sm" onclick="exportCSV()">⬇ CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Fornecedor</th><th>CC</th><th>Categoria</th><th>Tipo</th><th>Pagamento</th><th>Data</th><th>Status</th><th>Usuário</th><th style="text-align:right">Valor</th><th></th></tr></thead>
+            <tbody id="desp-tbody"></tbody></table>
+          </div>
+          <div id="desp-total" style="display:none;text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
+        </div>
+
+        <!-- CENTROS -->
+        <div class="page" id="page-centros">
+          <div class="cc-grid" id="cc-grid"></div>
+          <div class="sec-title">Detalhamento por Categoria</div>
+          <div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Centro de Custo</th><th>Qtd</th><th style="text-align:right">Total</th><th style="text-align:right">%</th></tr></thead><tbody id="cc-tbody"></tbody></table></div>
+        </div>
+
+        <!-- RELATÓRIOS -->
+        <div class="page" id="page-relatorio">
+          <div class="alert alert-info" style="margin-bottom:18px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Análises inteligentes geradas por IA com base nos lançamentos.
+          </div>
+          <div class="report-btns">
+            <button class="btn" onclick="gerarRelatorio('resumo')">📋 Resumo Executivo</button>
+            <button class="btn" onclick="gerarRelatorio('anomalias')">🔍 Anomalias</button>
+            <button class="btn" onclick="gerarRelatorio('tendencias')">📈 Tendências</button>
+            <button class="btn" onclick="gerarRelatorio('economia')">💡 Economia</button>
+            <button class="btn" onclick="gerarRelatorio('dre')">📄 DRE</button>
+          </div>
+          <div class="report-loading" id="report-loading"><div class="spinner"></div>Gerando análise...</div>
+          <div class="report-out" id="report-out"></div>
+        </div>
+
+        <!-- USUÁRIOS (só admin) -->
+        <div class="page" id="page-usuarios">
+          <div class="alert alert-warn" style="margin-bottom:18px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Apenas Administradores podem gerenciar usuários e alterar perfis de acesso.
+          </div>
+          <div id="usuarios-list"></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
 <div class="overlay" id="modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">×</button>
@@ -465,68 +483,151 @@
 </div>
 
 <script>
-// ── STATE ──
-let despesas = JSON.parse(localStorage.getItem('bc_despesas') || '[]');
+// ══ CONFIGURAÇÃO SUPABASE ══
+// ⚠️ Substitua pelos seus valores do Supabase (veja INSTRUCOES_V2.md)
+const SUPABASE_URL = 'https://wxmkjnfiggwxefyhccqv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bWtqbmZpZ2d3eGVmeWhjY3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTczMTksImV4cCI6MjA5MjEzMzMxOX0.3TWRrufebRD6ZAIVOgSoY3Uv5RiXxpOGIYchCrNVwHo';
 
-const CC_COLORS = {
-  'Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922',
-  'Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'
-};
-const STATUS_STYLE = {
-  'Aprovado':'background:#eaf3de;color:#3b6d11',
-  'Pendente':'background:#faeeda;color:#854f0b',
-  'Rejeitado':'background:#fcebeb;color:#a32d2d'
-};
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── UTILS ──
+// ══ STATE ══
+let currentUser = null;
+let currentProfile = null;
+let despesas = [];
+
+const CC_COLORS = {'Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922','Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'};
+const STATUS_STYLE = {'Aprovado':'background:#eaf3de;color:#3b6d11','Pendente':'background:#faeeda;color:#854f0b','Rejeitado':'background:#fcebeb;color:#a32d2d'};
+
+// ══ UTILS ══
 const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtDate = d => { if(!d) return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; };
-const save = () => localStorage.setItem('bc_despesas', JSON.stringify(despesas));
-function toast(msg, dur=2800) {
-  const el = document.createElement('div');
-  el.className='toast'; el.textContent=msg;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), dur);
+function toast(msg, dur=2800){ const el=document.createElement('div'); el.className='toast'; el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(),dur); }
+function isAdmin(){ return currentProfile?.role === 'admin'; }
+
+// ══ AUTH ══
+function showView(v){
+  document.getElementById('view-login').style.display = v==='login'?'block':'none';
+  document.getElementById('view-signup').style.display = v==='signup'?'block':'none';
 }
 
-// ── API ──
-// Chama /api/claude (serverless function local) em vez de direto à Anthropic
-async function callAI(body) {
-  const resp = await fetch('/api/claude', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!resp.ok) {
-    const err = await resp.json();
-    throw new Error(err.error || 'Erro na API');
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-err');
+  errEl.classList.remove('show');
+  document.getElementById('btn-login').textContent = 'Entrando...';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  document.getElementById('btn-login').textContent = 'Entrar';
+  if(error){ errEl.textContent = traduzirErro(error.message); errEl.classList.add('show'); }
+}
+
+async function doSignup(){
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-pass').value;
+  const errEl = document.getElementById('signup-err');
+  errEl.classList.remove('show');
+  if(!name){ errEl.textContent='Informe seu nome.'; errEl.classList.add('show'); return; }
+  if(pass.length < 6){ errEl.textContent='Senha deve ter pelo menos 6 caracteres.'; errEl.classList.add('show'); return; }
+  document.getElementById('btn-signup').textContent = 'Criando...';
+  const { data, error } = await sb.auth.signUp({ email, password: pass, options:{ data:{ full_name: name } } });
+  document.getElementById('btn-signup').textContent = 'Criar conta';
+  if(error){ errEl.textContent = traduzirErro(error.message); errEl.classList.add('show'); return; }
+  if(data.user){
+    // Criar perfil
+    await sb.from('profiles').upsert({ id: data.user.id, email, full_name: name, role: 'operador' });
+    toast('✅ Conta criada! Verifique seu e-mail se necessário.');
+    showView('login');
   }
-  return resp.json();
 }
 
-// ── NAVIGATION ──
-function showPage(id, navEl) {
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser = null; currentProfile = null; despesas = [];
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+function traduzirErro(msg){
+  if(msg.includes('Invalid login')) return 'E-mail ou senha incorretos.';
+  if(msg.includes('Email not confirmed')) return 'Confirme seu e-mail antes de entrar.';
+  if(msg.includes('already registered')) return 'Este e-mail já está cadastrado.';
+  return msg;
+}
+
+// ══ SESSION ══
+sb.auth.onAuthStateChange(async (event, session) => {
+  if(session?.user){
+    currentUser = session.user;
+    await loadProfile();
+    await loadDespesas();
+    initApp();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+  }
+});
+
+async function loadProfile(){
+  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  if(data) currentProfile = data;
+  else {
+    // Criar perfil se não existir
+    const name = currentUser.user_metadata?.full_name || currentUser.email;
+    await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador' });
+    currentProfile = { id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador' };
+  }
+}
+
+async function loadDespesas(){
+  let query = sb.from('despesas').select('*, profiles(full_name)').order('created_at', { ascending: false });
+  // Operador vê apenas os próprios
+  if(!isAdmin()) query = query.eq('user_id', currentUser.id);
+  const { data, error } = await query;
+  if(!error) despesas = data || [];
+}
+
+function initApp(){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  // Sidebar footer
+  document.getElementById('sf-user').textContent = currentProfile?.full_name || currentUser.email;
+  const roleEl = document.getElementById('sf-role');
+  roleEl.textContent = isAdmin() ? 'Admin' : 'Operador';
+  roleEl.className = 'sf-role ' + (isAdmin() ? 'admin' : 'operador');
+  // Menu usuários apenas para admin
+  document.getElementById('nav-usuarios').style.display = isAdmin() ? 'flex' : 'none';
+  // Aviso operador na tela de despesas
+  document.getElementById('despesas-aviso-op').style.display = isAdmin() ? 'none' : 'flex';
+  document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
+  updateFooter();
+  updateDashboard();
+}
+
+// ══ NAVIGATION ══
+function showPage(id, navEl){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',centros:'Centros de Custo',relatorio:'Relatórios IA'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',centros:'Centros de Custo',relatorio:'Relatórios IA',usuarios:'Gerenciar Usuários'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
   if(id==='despesas') renderDespesas();
   if(id==='centros') renderCentros();
-  updateFooter();
+  if(id==='usuarios') renderUsuarios();
 }
-function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay-sidebar').classList.toggle('show'); }
-function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay-sidebar').classList.remove('show'); }
+
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay-sb').classList.toggle('show'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay-sb').classList.remove('show'); }
 function switchTab(tab, el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
   document.getElementById('tab-scan').style.display = tab==='scan'?'block':'none';
   document.getElementById('tab-manual').style.display = tab==='manual'?'block':'none';
 }
 
-// ── FILE ──
+// ══ FILE / AI ══
 function handleFile(e){ if(e.target.files[0]) processFile(e.target.files[0]); }
 function handleDrop(e){ if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); }
 function processFile(file){
@@ -549,34 +650,32 @@ function stopProgress(){
   document.getElementById('progress-fill').style.width='100%';
   setTimeout(()=>bar.classList.remove('show'),700);
 }
-
 async function extractWithAI(base64, mimeType, isImg){
-  const PROMPT = `Você é um extrator de dados fiscais brasileiro especializado em documentos de restaurantes.
-Analise este documento fiscal e extraia APENAS um JSON puro, sem markdown, sem explicação.
-Formato: {"fornecedor":"","cnpj":"","valor_total":"","data":"DD/MM/AAAA","numero_documento":"","tipo_documento":"Cupom Fiscal|NF-e|NFC-e|SAT|Recibo","forma_pagamento":"","itens_resumo":""}
-Regras: valor_total apenas números com ponto decimal (ex: "147.50"). Se não encontrar algum campo, deixe como string vazia.`;
+  const PROMPT=`Você é um extrator de dados fiscais brasileiro. Analise o documento e retorne APENAS JSON puro sem markdown:
+{"fornecedor":"","cnpj":"","valor_total":"","data":"DD/MM/AAAA","numero_documento":"","tipo_documento":"Cupom Fiscal|NF-e|NFC-e|SAT|Recibo","forma_pagamento":"","itens_resumo":""}
+valor_total: apenas números com ponto decimal. Campos não encontrados: string vazia.`;
   try {
     const content = isImg
       ? [{type:'image',source:{type:'base64',media_type:mimeType,data:base64.split(',')[1]}},{type:'text',text:PROMPT}]
-      : [{type:'text',text:PROMPT+'\n\nDocumento não é imagem — retorne um JSON de exemplo vazio com campos em branco.'}];
-    const data = await callAI({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content}]});
+      : [{type:'text',text:PROMPT+'\n\nDocumento não é imagem — retorne JSON com campos vazios.'}];
+    const resp = await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content}]})});
+    const data = await resp.json();
     stopProgress();
+    if(data.error) throw new Error(data.error);
     const text = data.content.map(c=>c.text||'').join('');
     const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
     showAIResult(parsed); fillFormFromAI(parsed);
-  } catch(err) {
+  } catch(err){
     stopProgress();
     document.getElementById('ai-box').classList.add('show');
-    document.getElementById('ai-fields').innerHTML = `<div style="color:#a32d2d;font-size:13px;">⚠ Não foi possível extrair automaticamente. Preencha manualmente.<br><small>${err.message}</small></div>`;
+    document.getElementById('ai-fields').innerHTML=`<div style="color:var(--red);font-size:13px">⚠ Não foi possível extrair. Preencha manualmente.</div>`;
   }
 }
-
 function showAIResult(d){
   document.getElementById('ai-box').classList.add('show');
   const map=[['Fornecedor',d.fornecedor],['CNPJ/CPF',d.cnpj],['Valor Total',d.valor_total?fmt(d.valor_total):''],['Data',d.data],['Nº Documento',d.numero_documento],['Tipo',d.tipo_documento],['Pagamento',d.forma_pagamento],['Itens',d.itens_resumo]];
-  document.getElementById('ai-fields').innerHTML = map.filter(([,v])=>v).map(([l,v])=>`<div class="ai-row"><span class="ai-row-label">${l}</span><span class="ai-row-value">${v}</span></div>`).join('');
+  document.getElementById('ai-fields').innerHTML=map.filter(([,v])=>v).map(([l,v])=>`<div class="ai-row"><span class="ai-row-label">${l}</span><span class="ai-row-value">${v}</span></div>`).join('');
 }
-
 function fillFormFromAI(d){
   if(d.fornecedor) document.getElementById('f-fornecedor').value=d.fornecedor;
   if(d.cnpj) document.getElementById('f-cnpj').value=d.cnpj;
@@ -587,7 +686,7 @@ function fillFormFromAI(d){
   if(d.forma_pagamento){ const s=document.getElementById('f-pagto'); for(const o of s.options) if(o.text===d.forma_pagamento){s.value=o.value;break;} }
 }
 
-// ── FORM ──
+// ══ FORM ══
 function clearForm(){
   ['f-fornecedor','f-cnpj','f-cc','f-cat','f-valor','f-data','f-ndoc','f-obs','f-pagto'].forEach(id=>{
     const el=document.getElementById(id); if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
@@ -599,7 +698,7 @@ function clearForm(){
   document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
 }
 
-function salvarDespesa(){
+async function salvarDespesa(){
   const fornecedor=document.getElementById('f-fornecedor').value.trim();
   const cc=document.getElementById('f-cc').value;
   const valorRaw=document.getElementById('f-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
@@ -609,20 +708,26 @@ function salvarDespesa(){
   if(!cc){toast('⚠ Selecione o centro de custo.');return;}
   if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
   if(!data){toast('⚠ Informe a data.');return;}
-  despesas.unshift({
-    id:Date.now(), fornecedor, cnpj:document.getElementById('f-cnpj').value.trim(), cc,
-    categoria:document.getElementById('f-cat').value||'Outros', valor, data,
-    ndoc:document.getElementById('f-ndoc').value.trim(), tipo:document.getElementById('f-tipo').value,
-    pagto:document.getElementById('f-pagto').value, status:document.getElementById('f-status').value,
-    obs:document.getElementById('f-obs').value.trim(),
-    ia:document.getElementById('ai-box').classList.contains('show'),
-    criadoEm:new Date().toISOString()
-  });
-  save(); clearForm(); toast('✅ Lançamento salvo!');
-  showPage('dashboard',document.getElementById('nav-dashboard'));
+
+  const item = {
+    user_id: currentUser.id,
+    fornecedor, cnpj: document.getElementById('f-cnpj').value.trim(), cc,
+    categoria: document.getElementById('f-cat').value||'Outros', valor, data,
+    ndoc: document.getElementById('f-ndoc').value.trim(), tipo: document.getElementById('f-tipo').value,
+    pagto: document.getElementById('f-pagto').value, status: document.getElementById('f-status').value,
+    obs: document.getElementById('f-obs').value.trim(),
+    ia: document.getElementById('ai-box').classList.contains('show'),
+  };
+
+  const { data: saved, error } = await sb.from('despesas').insert(item).select('*, profiles(full_name)').single();
+  if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
+  despesas.unshift(saved);
+  clearForm(); toast('✅ Lançamento salvo!');
+  showPage('dashboard', document.getElementById('nav-dashboard'));
+  updateFooter();
 }
 
-// ── DASHBOARD ──
+// ══ DASHBOARD ══
 function updateDashboard(){
   const total=despesas.reduce((s,d)=>s+d.valor,0);
   const byCC={}; despesas.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
@@ -632,17 +737,17 @@ function updateDashboard(){
   document.getElementById('dash-metrics').innerHTML=`
     <div class="metric"><div class="metric-label">Total do Mês</div><div class="metric-value accent">${fmt(total)}</div><div class="metric-sub">${despesas.length} lançamento(s)</div></div>
     <div class="metric"><div class="metric-label">Maior CC</div><div class="metric-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div><div class="metric-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div></div>
-    <div class="metric"><div class="metric-label">Extraídos pela IA</div><div class="metric-value green">${ia}</div><div class="metric-sub">de ${despesas.length} lançamentos</div></div>
+    <div class="metric"><div class="metric-label">Extraídos pela IA</div><div class="metric-value green">${ia}</div><div class="metric-sub">de ${despesas.length}</div></div>
     <div class="metric"><div class="metric-label">Pendentes</div><div class="metric-value" style="${pend>0?'color:#ba7517':''}">${pend}</div><div class="metric-sub">aguardando aprovação</div></div>`;
   const barsEl=document.getElementById('dash-bars');
-  if(!sorted.length){ barsEl.innerHTML=`<div class="empty" style="padding:20px 0;"><div class="empty-icon">📊</div><div class="empty-title">Sem lançamentos</div><span class="link" onclick="showPage('lancar',document.getElementById('nav-lancar'))">Lançar primeira despesa →</span></div>`; }
+  if(!sorted.length){ barsEl.innerHTML=`<div class="empty" style="padding:16px 0"><div class="empty-icon">📊</div><div class="empty-title">Sem lançamentos</div><span class="link" onclick="showPage('lancar',document.getElementById('nav-lancar'))">Lançar →</span></div>`; }
   else { const max=sorted[0][1]; barsEl.innerHTML=sorted.map(([cc,val])=>`<div class="bar-row"><div class="bar-label">${cc}</div><div class="bar-track"><div class="bar-fill" style="background:${CC_COLORS[cc]||'#888'};width:${Math.round(val/max*100)}%"></div></div><div class="bar-value">${fmt(val)}</div></div>`).join(''); }
   const tbody=document.getElementById('dash-tbody');
-  if(!despesas.length){ tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum lançamento ainda</div><span class="link" onclick="showPage('lancar',document.getElementById('nav-lancar'))">Lançar despesa →</span></div></td></tr>`; }
-  else { tbody.innerHTML=despesas.slice(0,10).map(d=>`<tr><td>${d.fornecedor}</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td><td style="color:var(--muted)">${d.categoria}</td><td style="color:var(--muted)">${fmtDate(d.data)}</td><td style="text-align:right;font-weight:600">${fmt(d.valor)}</td></tr>`).join(''); }
+  if(!despesas.length){ tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum lançamento</div><span class="link" onclick="showPage('lancar',document.getElementById('nav-lancar'))">Lançar →</span></div></td></tr>`; }
+  else { tbody.innerHTML=despesas.slice(0,8).map(d=>`<tr><td>${d.fornecedor}</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td><td style="color:var(--muted)">${d.categoria}</td><td style="color:var(--muted)">${fmtDate(d.data)}</td><td style="text-align:right;font-weight:700">${fmt(d.valor)}</td></tr>`).join(''); }
 }
 
-// ── DESPESAS ──
+// ══ DESPESAS ══
 function renderDespesas(){
   let list=despesas;
   const fCC=document.getElementById('filtro-cc').value;
@@ -651,74 +756,143 @@ function renderDespesas(){
   if(fCC) list=list.filter(d=>d.cc===fCC);
   if(fCat) list=list.filter(d=>d.categoria===fCat);
   if(fSt) list=list.filter(d=>d.status===fSt);
-  const tbody=document.getElementById('desp-tbody'), tr=document.getElementById('desp-total-row');
-  if(!list.length){ tbody.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum lançamento encontrado</div></div></td></tr>`; tr.style.display='none'; return; }
-  tr.style.display='block'; tr.textContent=`Total filtrado: ${fmt(list.reduce((s,d)=>s+d.valor,0))} (${list.length} lançamento${list.length>1?'s':''})`;
-  tbody.innerHTML=list.map(d=>`<tr><td><div style="font-weight:500">${d.fornecedor}</div>${d.cnpj?`<div style="font-size:11px;color:var(--hint)">${d.cnpj}</div>`:''}</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td><td style="color:var(--muted)">${d.categoria}</td><td><span class="badge badge-gray">${d.tipo}</span>${d.ia?' <span class="badge badge-ai">IA</span>':''}</td><td style="color:var(--muted)">${d.pagto||'—'}</td><td style="color:var(--muted)">${fmtDate(d.data)}</td><td><span class="badge" style="${STATUS_STYLE[d.status]||''}">${d.status}</span></td><td style="text-align:right;font-weight:600">${fmt(d.valor)}</td><td><button class="btn btn-sm" onclick="openModal(${d.id})">Ver</button></td></tr>`).join('');
+  const tbody=document.getElementById('desp-tbody'), tr=document.getElementById('desp-total');
+  if(!list.length){ tbody.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum lançamento encontrado</div></div></td></tr>`; tr.style.display='none'; return; }
+  tr.style.display='block'; tr.textContent=`Total: ${fmt(list.reduce((s,d)=>s+d.valor,0))} (${list.length} lançamento${list.length>1?'s':''})`;
+  tbody.innerHTML=list.map(d=>{
+    const meu = d.user_id === currentUser.id;
+    const podEdit = isAdmin() || meu;
+    return `<tr>
+      <td><div style="font-weight:600">${d.fornecedor}</div>${d.cnpj?`<div style="font-size:11px;color:var(--hint)">${d.cnpj}</div>`:''}</td>
+      <td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td>
+      <td style="color:var(--muted)">${d.categoria}</td>
+      <td><span class="badge badge-gray">${d.tipo}</span>${d.ia?' <span class="badge badge-ai">IA</span>':''}</td>
+      <td style="color:var(--muted)">${d.pagto||'—'}</td>
+      <td style="color:var(--muted)">${fmtDate(d.data)}</td>
+      <td><span class="badge" style="${STATUS_STYLE[d.status]||''}">${d.status}</span></td>
+      <td style="color:var(--muted);font-size:12px">${d.profiles?.full_name||'—'}</td>
+      <td style="text-align:right;font-weight:700">${fmt(d.valor)}</td>
+      <td>${podEdit?`<button class="btn btn-xs" onclick="openModal(${d.id})">Ver</button>`:''}</td>
+    </tr>`;
+  }).join('');
 }
 
-// ── CENTROS ──
+// ══ CENTROS ══
 function renderCentros(){
   const byCC={}; despesas.forEach(d=>{ if(!byCC[d.cc]) byCC[d.cc]={total:0,count:0}; byCC[d.cc].total+=d.valor; byCC[d.cc].count++; });
   const total=despesas.reduce((s,d)=>s+d.valor,0);
-  document.getElementById('cc-grid').innerHTML=Object.keys(CC_COLORS).map(cc=>{ const i=byCC[cc]||{total:0,count:0}; const p=total?Math.round(i.total/total*100):0; return `<div class="cc-card"><div class="cc-header"><div class="cc-dot" style="background:${CC_COLORS[cc]}"></div>${cc}</div><div class="cc-track"><div class="cc-fill" style="background:${CC_COLORS[cc]};width:${p}%"></div></div><div class="cc-meta"><span>${i.count} lançamento(s)</span><span><strong>${fmt(i.total)}</strong> &nbsp;${p}%</span></div></div>`; }).join('');
+  document.getElementById('cc-grid').innerHTML=Object.keys(CC_COLORS).map(cc=>{ const i=byCC[cc]||{total:0,count:0}; const p=total?Math.round(i.total/total*100):0; return `<div class="cc-card"><div class="cc-header"><div class="cc-dot" style="background:${CC_COLORS[cc]}"></div>${cc}</div><div class="cc-track"><div class="cc-fill" style="background:${CC_COLORS[cc]};width:${p}%"></div></div><div class="cc-meta"><span>${i.count} lançamento(s)</span><span><strong>${fmt(i.total)}</strong> ${p}%</span></div></div>`; }).join('');
   const byCat={}; despesas.forEach(d=>{ const k=d.categoria+'§'+d.cc; if(!byCat[k]) byCat[k]={cat:d.categoria,cc:d.cc,total:0,count:0}; byCat[k].total+=d.valor; byCat[k].count++; });
   const rows=Object.values(byCat).sort((a,b)=>b.total-a.total);
-  document.getElementById('cc-cat-tbody').innerHTML=!rows.length?`<tr><td colspan="5"><div class="empty">Sem dados.</div></td></tr>`:rows.map(r=>`<tr><td>${r.cat}</td><td><span class="badge" style="background:${CC_COLORS[r.cc]||'#888'}20;color:${CC_COLORS[r.cc]||'#888'}">${r.cc}</span></td><td style="color:var(--muted)">${r.count}</td><td style="text-align:right;font-weight:600">${fmt(r.total)}</td><td style="text-align:right;color:var(--muted)">${total?Math.round(r.total/total*100):0}%</td></tr>`).join('');
+  document.getElementById('cc-tbody').innerHTML=!rows.length?`<tr><td colspan="5"><div class="empty">Sem dados.</div></td></tr>`:rows.map(r=>`<tr><td>${r.cat}</td><td><span class="badge" style="background:${CC_COLORS[r.cc]||'#888'}20;color:${CC_COLORS[r.cc]||'#888'}">${r.cc}</span></td><td style="color:var(--muted)">${r.count}</td><td style="text-align:right;font-weight:700">${fmt(r.total)}</td><td style="text-align:right;color:var(--muted)">${total?Math.round(r.total/total*100):0}%</td></tr>`).join('');
 }
 
-// ── MODAL ──
+// ══ USUÁRIOS (admin) ══
+async function renderUsuarios(){
+  if(!isAdmin()){ document.getElementById('usuarios-list').innerHTML='<div class="alert alert-warn">Acesso negado.</div>'; return; }
+  const { data: users } = await sb.from('profiles').select('*').order('full_name');
+  if(!users?.length){ document.getElementById('usuarios-list').innerHTML='<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">Nenhum usuário cadastrado</div></div>'; return; }
+  document.getElementById('usuarios-list').innerHTML = users.map(u => {
+    const initials = u.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) || '?';
+    const isMe = u.id === currentUser.id;
+    return `<div class="user-card">
+      <div class="user-avatar">${initials}</div>
+      <div class="user-info">
+        <div class="user-name">${u.full_name||'—'} ${isMe?'<span style="font-size:11px;color:var(--muted)">(você)</span>':''}</div>
+        <div class="user-email">${u.email}</div>
+      </div>
+      <div class="user-actions">
+        <span class="badge ${u.role==='admin'?'badge-admin':'badge-op'}">${u.role==='admin'?'Admin':'Operador'}</span>
+        ${!isMe?`<button class="btn btn-xs" onclick="alterarRole('${u.id}','${u.role}','${u.full_name}')">${u.role==='admin'?'→ Operador':'→ Admin'}</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function alterarRole(uid, roleAtual, nome){
+  const novoRole = roleAtual === 'admin' ? 'operador' : 'admin';
+  if(!confirm(`Alterar ${nome} para ${novoRole}?`)) return;
+  const { error } = await sb.from('profiles').update({ role: novoRole }).eq('id', uid);
+  if(error){ toast('❌ Erro: '+error.message); return; }
+  toast(`✅ ${nome} agora é ${novoRole}.`);
+  renderUsuarios();
+}
+
+// ══ MODAL ══
 function openModal(id){
   const d=despesas.find(x=>x.id===id); if(!d) return;
+  const meu = d.user_id === currentUser.id;
+  const podExcluir = isAdmin() || meu;
   document.getElementById('modal-title').textContent=d.fornecedor;
-  document.getElementById('modal-body').innerHTML=`<table style="width:100%;font-size:13px;margin-bottom:16px;"><tr><td style="color:var(--muted);padding:6px 0;width:40%">Centro de Custo</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td></tr><tr><td style="color:var(--muted);padding:6px 0">Categoria</td><td>${d.categoria}</td></tr><tr><td style="color:var(--muted);padding:6px 0">CNPJ/CPF</td><td>${d.cnpj||'—'}</td></tr><tr><td style="color:var(--muted);padding:6px 0">Tipo</td><td>${d.tipo}</td></tr><tr><td style="color:var(--muted);padding:6px 0">Nº Documento</td><td>${d.ndoc||'—'}</td></tr><tr><td style="color:var(--muted);padding:6px 0">Data</td><td>${fmtDate(d.data)}</td></tr><tr><td style="color:var(--muted);padding:6px 0">Pagamento</td><td>${d.pagto||'—'}</td></tr><tr><td style="color:var(--muted);padding:6px 0">Status</td><td><span class="badge" style="${STATUS_STYLE[d.status]||''}">${d.status}</span></td></tr><tr><td style="color:var(--muted);padding:6px 0">Valor</td><td style="font-weight:700;font-size:16px;color:var(--accent)">${fmt(d.valor)}</td></tr>${d.obs?`<tr><td style="color:var(--muted);padding:6px 0">Obs.</td><td>${d.obs}</td></tr>`:''}<tr><td style="color:var(--muted);padding:6px 0">Extraído pela IA</td><td>${d.ia?'<span class="badge badge-ai">Sim</span>':'Não'}</td></tr></table><div style="display:flex;gap:10px;justify-content:flex-end;"><button class="btn btn-danger btn-sm" onclick="deletarDespesa(${d.id})">🗑 Excluir</button><button class="btn btn-sm" onclick="closeModal()">Fechar</button></div>`;
+  document.getElementById('modal-body').innerHTML=`
+    <table style="width:100%;font-size:13px;margin-bottom:14px">
+      <tr><td style="color:var(--muted);padding:5px 0;width:40%">Lançado por</td><td style="font-weight:600">${d.profiles?.full_name||'—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Centro de Custo</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Categoria</td><td>${d.categoria}</td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">CNPJ/CPF</td><td>${d.cnpj||'—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Tipo</td><td>${d.tipo}</td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Nº Documento</td><td>${d.ndoc||'—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Data</td><td>${fmtDate(d.data)}</td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Pagamento</td><td>${d.pagto||'—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Status</td><td><span class="badge" style="${STATUS_STYLE[d.status]||''}">${d.status}</span></td></tr>
+      <tr><td style="color:var(--muted);padding:5px 0">Valor</td><td style="font-weight:700;font-size:16px;color:var(--accent)">${fmt(d.valor)}</td></tr>
+      ${d.obs?`<tr><td style="color:var(--muted);padding:5px 0">Obs.</td><td>${d.obs}</td></tr>`:''}
+      <tr><td style="color:var(--muted);padding:5px 0">Extraído por IA</td><td>${d.ia?'<span class="badge badge-ai">Sim</span>':'Não'}</td></tr>
+    </table>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      ${podExcluir?`<button class="btn btn-danger btn-sm" onclick="deletarDespesa(${d.id})">🗑 Excluir</button>`:''}
+      <button class="btn btn-sm" onclick="closeModal()">Fechar</button>
+    </div>`;
   document.getElementById('modal').classList.add('show');
 }
 function closeModal(){ document.getElementById('modal').classList.remove('show'); }
-function deletarDespesa(id){ if(!confirm('Excluir este lançamento?')) return; despesas=despesas.filter(d=>d.id!==id); save(); closeModal(); renderDespesas(); updateFooter(); toast('🗑 Lançamento excluído.'); }
 
-// ── RELATÓRIOS ──
+async function deletarDespesa(id){
+  if(!confirm('Excluir este lançamento?')) return;
+  const { error } = await sb.from('despesas').delete().eq('id', id);
+  if(error){ toast('❌ Erro: '+error.message); return; }
+  despesas=despesas.filter(d=>d.id!==id);
+  closeModal(); renderDespesas(); updateFooter(); toast('🗑 Lançamento excluído.');
+}
+
+// ══ RELATÓRIOS ══
 async function gerarRelatorio(tipo){
   const out=document.getElementById('report-out'), loading=document.getElementById('report-loading');
   out.classList.remove('show'); out.textContent=''; loading.classList.add('show');
-  const resumo=JSON.stringify(despesas.map(d=>({fornecedor:d.fornecedor,cc:d.cc,categoria:d.categoria,valor:d.valor,data:d.data,tipo:d.tipo})));
+  const resumo=JSON.stringify(despesas.map(d=>({fornecedor:d.fornecedor,cc:d.cc,categoria:d.categoria,valor:d.valor,data:d.data,usuario:d.profiles?.full_name})));
   const prompts={
-    resumo:`Você é analista financeiro especialista em food service. Dados de despesas de uma hamburgueria: ${resumo}\n\nGere um resumo executivo em português com: total gasto, principal CC e categoria, distribuição percentual entre CCs e 3 observações estratégicas. Seja objetivo e profissional.`,
-    anomalias:`Você é auditor financeiro especializado em food service. Dados: ${resumo}\n\nIdentifique anomalias, duplicidades, valores atípicos ou despesas suspeitas. Pontue riscos por nível de atenção. Responda em português.`,
-    tendencias:`Analista de dados financeiros para restaurantes. Dados: ${resumo}\n\nAnalise distribuição de gastos, concentração por CC, equilíbrio entre categorias operacionais vs fixas. Use benchmarks do setor. Português.`,
-    economia:`Consultor de redução de custos para hamburguerias. Dados: ${resumo}\n\nSugira 5 ações concretas e priorizadas para otimização de custos com estimativa de impacto. Português, lista estruturada.`,
-    dre:`Contador especializado em food service. Dados: ${resumo}\n\nMonte um DRE simplificado agrupando despesas por natureza (CMV, Desp. Operacionais, Desp. Fixas etc). Formato de tabela textual. Português.`
+    resumo:`Analista financeiro de food service. Dados de despesas: ${resumo}\n\nGere resumo executivo em português: total, principal CC e categoria, distribuição % e 3 observações estratégicas.`,
+    anomalias:`Auditor financeiro. Dados: ${resumo}\n\nIdentifique anomalias, duplicidades e valores atípicos. Pontue por nível de atenção. Português.`,
+    tendencias:`Analista de dados para restaurantes. Dados: ${resumo}\n\nAnalise tendências, concentração por CC e equilíbrio operacional vs fixo. Português.`,
+    economia:`Consultor de custos para hamburguerias. Dados: ${resumo}\n\nSugira 5 ações concretas de redução de custos com estimativa de impacto. Português.`,
+    dre:`Contador especializado em food service. Dados: ${resumo}\n\nMonte DRE simplificado agrupando despesas por natureza em formato de tabela textual. Português.`
   };
-  const noData=`Informe que não há dados de despesas lançados e oriente o usuário a realizar lançamentos primeiro. Responda em português.`;
   try {
-    const data=await callAI({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:despesas.length?prompts[tipo]:noData}]});
+    const resp=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:despesas.length?prompts[tipo]:'Informe que não há dados de despesas ainda. Português.'}]})});
+    const data=await resp.json();
     loading.classList.remove('show');
     out.textContent=data.content.map(c=>c.text||'').join(''); out.classList.add('show');
-  } catch(e){ loading.classList.remove('show'); out.textContent='Erro ao gerar relatório: '+e.message; out.classList.add('show'); }
+  } catch(e){ loading.classList.remove('show'); out.textContent='Erro: '+e.message; out.classList.add('show'); }
 }
 
-// ── EXPORT CSV ──
+// ══ CSV ══
 function exportCSV(){
-  if(!despesas.length){toast('Sem dados para exportar.');return;}
-  const headers=['ID','Fornecedor','CNPJ','Centro de Custo','Categoria','Tipo','Nº Documento','Data','Valor','Pagamento','Status','IA','Observações'];
-  const rows=despesas.map(d=>[d.id,d.fornecedor,d.cnpj,d.cc,d.categoria,d.tipo,d.ndoc,fmtDate(d.data),d.valor.toFixed(2).replace('.',','),d.pagto,d.status,d.ia?'Sim':'Não',d.obs].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
+  if(!despesas.length){toast('Sem dados.');return;}
+  const headers=['ID','Fornecedor','CNPJ','CC','Categoria','Tipo','Nº Doc','Data','Valor','Pagamento','Status','IA','Usuário','Obs'];
+  const rows=despesas.map(d=>[d.id,d.fornecedor,d.cnpj,d.cc,d.categoria,d.tipo,d.ndoc,fmtDate(d.data),d.valor.toFixed(2).replace('.',','),d.pagto,d.status,d.ia?'Sim':'Não',d.profiles?.full_name,d.obs].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
   const csv=[headers,...rows].map(r=>r.join(';')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download=`despesas_${new Date().toISOString().slice(0,10)}.csv`; a.click();
   toast('✅ CSV exportado!');
 }
 
-// ── FOOTER ──
+// ══ FOOTER ══
 function updateFooter(){
   const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const now=new Date();
   document.getElementById('sf-period').textContent=meses[now.getMonth()]+' '+now.getFullYear();
   document.getElementById('sf-amount').textContent=fmt(despesas.reduce((s,d)=>s+d.valor,0));
 }
-
-// ── INIT ──
-document.getElementById('f-data').value=new Date().toISOString().split('T')[0];
-updateDashboard(); updateFooter();
 </script>
 </body>
 </html>
