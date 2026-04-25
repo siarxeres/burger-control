@@ -514,11 +514,25 @@ async function doLogin(){
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-err');
+  const btnEl = document.getElementById('btn-login');
   errEl.classList.remove('show');
-  document.getElementById('btn-login').textContent = 'Entrando...';
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-  document.getElementById('btn-login').textContent = 'Entrar';
-  if(error){ errEl.textContent = traduzirErro(error.message); errEl.classList.add('show'); }
+  btnEl.textContent = 'Entrando...';
+  btnEl.disabled = true;
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if(error){ errEl.textContent = traduzirErro(error.message); errEl.classList.add('show'); btnEl.textContent='Entrar'; btnEl.disabled=false; return; }
+    if(data?.user){
+      currentUser = data.user;
+      await loadProfile();
+      await loadDespesas();
+      initApp();
+    }
+  } catch(e) {
+    errEl.textContent = 'Erro de conexão: ' + e.message;
+    errEl.classList.add('show');
+  }
+  btnEl.textContent = 'Entrar';
+  btnEl.disabled = false;
 }
 
 async function doSignup(){
@@ -555,18 +569,16 @@ function traduzirErro(msg){
   return msg;
 }
 
-// ══ SESSION ══
-sb.auth.onAuthStateChange(async (event, session) => {
+// ══ SESSION — verifica sessão existente ao carregar a página ══
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
   if(session?.user){
     currentUser = session.user;
     await loadProfile();
     await loadDespesas();
     initApp();
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app-screen').style.display = 'none';
   }
-});
+})();
 
 async function loadProfile(){
   const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
