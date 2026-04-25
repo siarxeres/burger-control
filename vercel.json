@@ -1,7 +1,8 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/pricing", "destination": "/public/pricing.html" },
-    { "source": "/(.*)", "destination": "/public/index.html" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/pricing", "dest": "/public/pricing.html" },
+    { "src": "/pricing.html", "dest": "/public/pricing.html" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }
