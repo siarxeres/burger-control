@@ -313,12 +313,17 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
           Usuários
         </div>
+        <div class="nav-item" id="nav-planos" onclick="showPage('planos',this)" style="display:none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Planos
+        </div>
       </nav>
       <div class="sidebar-footer">
         <div class="sf-user" id="sf-user">—</div>
         <div class="sf-role" id="sf-role">—</div>
         <div class="sf-period" id="sf-period">—</div>
         <div class="sf-amount" id="sf-amount">R$ 0,00</div>
+        <div id="sf-plano-uso"></div>
         <button class="btn-logout" onclick="doLogout()">Sair da conta</button>
       </div>
     </aside>
@@ -459,6 +464,15 @@ tbody tr:hover td{background:var(--surface2)}
           <div class="report-out" id="report-out"></div>
         </div>
 
+        <!-- PLANOS (só admin) -->
+        <div class="page" id="page-planos">
+          <div class="alert alert-info" style="margin-bottom:18px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Edite os parâmetros de cada plano. As alterações entram em vigor imediatamente para todos os usuários.
+          </div>
+          <div id="planos-list"></div>
+        </div>
+
         <!-- USUÁRIOS (só admin) -->
         <div class="page" id="page-usuarios">
           <div class="alert alert-warn" style="margin-bottom:18px">
@@ -493,7 +507,9 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ══ STATE ══
 let currentUser = null;
 let currentProfile = null;
+let currentPlano = null;
 let despesas = [];
+let todosPlanos = [];
 
 const CC_COLORS = {'Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922','Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'};
 const STATUS_STYLE = {'Aprovado':'background:#eaf3de;color:#3b6d11','Pendente':'background:#faeeda;color:#854f0b','Rejeitado':'background:#fcebeb;color:#a32d2d'};
@@ -503,6 +519,28 @@ const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits
 const fmtDate = d => { if(!d) return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; };
 function toast(msg, dur=2800){ const el=document.createElement('div'); el.className='toast'; el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(),dur); }
 function isAdmin(){ return currentProfile?.role === 'admin'; }
+function ilimitado(v){ return !v || v >= 999999; }
+
+// ══ VERIFICAÇÕES DE PLANO ══
+function podeLancar(){
+  if(isAdmin() || !currentPlano) return true;
+  if(ilimitado(currentPlano.max_lancamentos)) return true;
+  const meusLanc = despesas.filter(d=>d.user_id===currentUser.id).length;
+  return meusLanc < currentPlano.max_lancamentos;
+}
+function podeUsarCC(cc){
+  if(isAdmin() || !currentPlano || ilimitado(currentPlano.max_cc)) return true;
+  const ccsUsados = [...new Set(despesas.map(d=>d.cc))];
+  if(ccsUsados.includes(cc)) return true;
+  return ccsUsados.length < currentPlano.max_cc;
+}
+function podeScanIA(){
+  if(isAdmin() || !currentPlano || ilimitado(currentPlano.max_scans_ia)) return true;
+  return (currentProfile?.scans_mes||0) < currentPlano.max_scans_ia;
+}
+function podeVerRelatorios(){ return isAdmin() || currentPlano?.tem_relatorios_ia; }
+function podeExportarCSV(){ return isAdmin() || currentPlano?.tem_export_csv; }
+function alertPlano(recurso){ toast(`🔒 "${recurso}" requer upgrade de plano. Acesse /pricing.html para conhecer os planos!`); }
 
 // ══ AUTH ══
 function showView(v){
@@ -524,6 +562,7 @@ async function doLogin(){
     if(data?.user){
       currentUser = data.user;
       await loadProfile();
+      await loadPlanos();
       await loadDespesas();
       initApp();
     }
@@ -575,6 +614,7 @@ function traduzirErro(msg){
   if(session?.user){
     currentUser = session.user;
     await loadProfile();
+    await loadPlanos();
     await loadDespesas();
     initApp();
   }
@@ -584,16 +624,21 @@ async function loadProfile(){
   const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
   if(data) currentProfile = data;
   else {
-    // Criar perfil se não existir
     const name = currentUser.user_metadata?.full_name || currentUser.email;
-    await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador' });
-    currentProfile = { id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador' };
+    await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'starter' });
+    currentProfile = { id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'starter', scans_mes: 0 };
   }
+}
+
+async function loadPlanos(){
+  const { data } = await sb.from('planos').select('*').order('ordem');
+  if(data) todosPlanos = data;
+  const planoId = currentProfile?.plano || 'starter';
+  currentPlano = todosPlanos.find(p=>p.id===planoId) || null;
 }
 
 async function loadDespesas(){
   let query = sb.from('despesas').select('*, profiles(full_name)').order('created_at', { ascending: false });
-  // Operador vê apenas os próprios
   if(!isAdmin()) query = query.eq('user_id', currentUser.id);
   const { data, error } = await query;
   if(!error) despesas = data || [];
@@ -602,14 +647,12 @@ async function loadDespesas(){
 function initApp(){
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
-  // Sidebar footer
   document.getElementById('sf-user').textContent = currentProfile?.full_name || currentUser.email;
   const roleEl = document.getElementById('sf-role');
-  roleEl.textContent = isAdmin() ? 'Admin' : 'Operador';
+  roleEl.textContent = isAdmin() ? 'Admin' : (currentPlano?.nome || 'Starter');
   roleEl.className = 'sf-role ' + (isAdmin() ? 'admin' : 'operador');
-  // Menu usuários apenas para admin
   document.getElementById('nav-usuarios').style.display = isAdmin() ? 'flex' : 'none';
-  // Aviso operador na tela de despesas
+  document.getElementById('nav-planos').style.display = isAdmin() ? 'flex' : 'none';
   document.getElementById('despesas-aviso-op').style.display = isAdmin() ? 'none' : 'flex';
   document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
   updateFooter();
@@ -622,13 +665,14 @@ function showPage(id, navEl){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',centros:'Centros de Custo',relatorio:'Relatórios IA',usuarios:'Gerenciar Usuários'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',centros:'Centros de Custo',relatorio:'Relatórios IA',usuarios:'Gerenciar Usuários',planos:'Configurar Planos'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
   if(id==='despesas') renderDespesas();
   if(id==='centros') renderCentros();
   if(id==='usuarios') renderUsuarios();
+  if(id==='planos') renderPlanos();
 }
 
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay-sb').classList.toggle('show'); }
@@ -663,6 +707,11 @@ function stopProgress(){
   setTimeout(()=>bar.classList.remove('show'),700);
 }
 async function extractWithAI(base64, mimeType, isImg){
+  if(!podeScanIA()){ 
+    stopProgress();
+    alertPlano(`Limite de ${currentPlano?.max_scans_ia} scans por IA/mês atingido`);
+    return;
+  }
   const PROMPT=`Você é um extrator de dados fiscais brasileiro. Analise o documento e retorne APENAS JSON puro sem markdown:
 {"fornecedor":"","cnpj":"","valor_total":"","data":"DD/MM/AAAA","numero_documento":"","tipo_documento":"Cupom Fiscal|NF-e|NFC-e|SAT|Recibo","forma_pagamento":"","itens_resumo":""}
 valor_total: apenas números com ponto decimal. Campos não encontrados: string vazia.`;
@@ -720,6 +769,9 @@ async function salvarDespesa(){
   if(!cc){toast('⚠ Selecione o centro de custo.');return;}
   if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
   if(!data){toast('⚠ Informe a data.');return;}
+  // Verificações de plano
+  if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
+  if(!podeUsarCC(cc)){ alertPlano(`Limite de ${currentPlano?.max_cc} centros de custo atingido`); return; }
 
   const item = {
     user_id: currentUser.id,
@@ -800,6 +852,67 @@ function renderCentros(){
 }
 
 // ══ USUÁRIOS (admin) ══
+// ══ PLANOS (admin) ══
+async function renderPlanos(){
+  if(!isAdmin()){ document.getElementById('planos-list').innerHTML='<div class="alert alert-warn">Acesso negado.</div>'; return; }
+  await loadPlanos();
+  const CAMPOS = [
+    {key:'max_lancamentos', label:'Lançamentos/mês', tipo:'numero', dica:'999999 = ilimitado'},
+    {key:'max_cc', label:'Centros de custo', tipo:'numero', dica:'999999 = ilimitado'},
+    {key:'max_scans_ia', label:'Scans IA/mês', tipo:'numero', dica:'999999 = ilimitado'},
+    {key:'max_usuarios', label:'Usuários', tipo:'numero', dica:'999999 = ilimitado'},
+    {key:'preco_mensal', label:'Preço mensal (R$)', tipo:'numero', dica:'0 = gratuito'},
+    {key:'preco_anual', label:'Preço anual (R$)', tipo:'numero', dica:'0 = gratuito'},
+    {key:'tem_receitas', label:'Lançar receitas', tipo:'bool'},
+    {key:'tem_dre', label:'DRE', tipo:'bool'},
+    {key:'tem_relatorios_ia', label:'Relatórios IA', tipo:'bool'},
+    {key:'tem_export_csv', label:'Exportar CSV', tipo:'bool'},
+    {key:'tem_multiplas_unidades', label:'Múltiplas unidades', tipo:'bool'},
+    {key:'tem_suporte_wpp', label:'Suporte WhatsApp', tipo:'bool'},
+  ];
+  document.getElementById('planos-list').innerHTML = todosPlanos.map(p => `
+    <div class="card" style="margin-bottom:16px;overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:15px;font-weight:700">${p.nome}</div>
+          <div style="font-size:12px;color:var(--muted)">${p.descricao||''}</div>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="salvarPlano('${p.id}')">💾 Salvar</button>
+      </div>
+      <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        ${CAMPOS.map(c => {
+          if(c.tipo==='bool') return `
+            <div class="form-group">
+              <label class="form-label">${c.label}</label>
+              <select class="form-control" id="plano_${p.id}_${c.key}">
+                <option value="true" ${p[c.key]?'selected':''}>✅ Sim</option>
+                <option value="false" ${!p[c.key]?'selected':''}>❌ Não</option>
+              </select>
+            </div>`;
+          return `
+            <div class="form-group">
+              <label class="form-label">${c.label} <span style="font-weight:400;color:var(--hint)">${c.dica||''}</span></label>
+              <input type="number" class="form-control" id="plano_${p.id}_${c.key}" value="${p[c.key]||0}">
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+async function salvarPlano(planoId){
+  const CAMPOS_NUM = ['max_lancamentos','max_cc','max_scans_ia','max_usuarios','preco_mensal','preco_anual'];
+  const CAMPOS_BOOL = ['tem_receitas','tem_dre','tem_relatorios_ia','tem_export_csv','tem_multiplas_unidades','tem_suporte_wpp'];
+  const updates = {};
+  CAMPOS_NUM.forEach(k => { updates[k] = parseInt(document.getElementById(`plano_${planoId}_${k}`)?.value||0); });
+  CAMPOS_BOOL.forEach(k => { updates[k] = document.getElementById(`plano_${planoId}_${k}`)?.value === 'true'; });
+  updates.updated_at = new Date().toISOString();
+  const { error } = await sb.from('planos').update(updates).eq('id', planoId);
+  if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
+  toast(`✅ Plano ${planoId} atualizado com sucesso!`);
+  await loadPlanos();
+}
+
+// ══ USUÁRIOS (admin) ══
 async function renderUsuarios(){
   if(!isAdmin()){ document.getElementById('usuarios-list').innerHTML='<div class="alert alert-warn">Acesso negado.</div>'; return; }
   const { data: users } = await sb.from('profiles').select('*').order('full_name');
@@ -807,15 +920,17 @@ async function renderUsuarios(){
   document.getElementById('usuarios-list').innerHTML = users.map(u => {
     const initials = u.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) || '?';
     const isMe = u.id === currentUser.id;
+    const planoOpts = todosPlanos.map(p=>`<option value="${p.id}" ${u.plano===p.id?'selected':''}>${p.nome}</option>`).join('');
     return `<div class="user-card">
       <div class="user-avatar">${initials}</div>
       <div class="user-info">
         <div class="user-name">${u.full_name||'—'} ${isMe?'<span style="font-size:11px;color:var(--muted)">(você)</span>':''}</div>
         <div class="user-email">${u.email}</div>
       </div>
-      <div class="user-actions">
+      <div class="user-actions" style="gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <select class="form-control" style="width:120px;padding:4px 8px;font-size:12px" onchange="alterarPlano('${u.id}','${u.full_name}',this.value)">${planoOpts}</select>
         <span class="badge ${u.role==='admin'?'badge-admin':'badge-op'}">${u.role==='admin'?'Admin':'Operador'}</span>
-        ${!isMe?`<button class="btn btn-xs" onclick="alterarRole('${u.id}','${u.role}','${u.full_name}')">${u.role==='admin'?'→ Operador':'→ Admin'}</button>`:''}
+        ${!isMe?`<button class="btn btn-xs" onclick="alterarRole('${u.id}','${u.role}','${u.full_name}')">${u.role==='admin'?'→ Op':'→ Admin'}</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -827,6 +942,13 @@ async function alterarRole(uid, roleAtual, nome){
   const { error } = await sb.from('profiles').update({ role: novoRole }).eq('id', uid);
   if(error){ toast('❌ Erro: '+error.message); return; }
   toast(`✅ ${nome} agora é ${novoRole}.`);
+  renderUsuarios();
+}
+
+async function alterarPlano(uid, nome, novoPlano){
+  const { error } = await sb.from('profiles').update({ plano: novoPlano }).eq('id', uid);
+  if(error){ toast('❌ Erro: '+error.message); return; }
+  toast(`✅ Plano de ${nome} alterado para ${nomePlano(novoPlano)}.`);
   renderUsuarios();
 }
 
@@ -869,6 +991,7 @@ async function deletarDespesa(id){
 
 // ══ RELATÓRIOS ══
 async function gerarRelatorio(tipo){
+  if(!podeVerRelatorios()){ alertPlano('Relatórios IA'); return; }
   const out=document.getElementById('report-out'), loading=document.getElementById('report-loading');
   out.classList.remove('show'); out.textContent=''; loading.classList.add('show');
   const resumo=JSON.stringify(despesas.map(d=>({fornecedor:d.fornecedor,cc:d.cc,categoria:d.categoria,valor:d.valor,data:d.data,usuario:d.profiles?.full_name})));
@@ -889,6 +1012,7 @@ async function gerarRelatorio(tipo){
 
 // ══ CSV ══
 function exportCSV(){
+  if(!podeExportarCSV()){ alertPlano('Exportação CSV'); return; }
   if(!despesas.length){toast('Sem dados.');return;}
   const headers=['ID','Fornecedor','CNPJ','CC','Categoria','Tipo','Nº Doc','Data','Valor','Pagamento','Status','IA','Usuário','Obs'];
   const rows=despesas.map(d=>[d.id,d.fornecedor,d.cnpj,d.cc,d.categoria,d.tipo,d.ndoc,fmtDate(d.data),d.valor.toFixed(2).replace('.',','),d.pagto,d.status,d.ia?'Sim':'Não',d.profiles?.full_name,d.obs].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
@@ -904,6 +1028,21 @@ function updateFooter(){
   const now=new Date();
   document.getElementById('sf-period').textContent=meses[now.getMonth()]+' '+now.getFullYear();
   document.getElementById('sf-amount').textContent=fmt(despesas.reduce((s,d)=>s+d.valor,0));
+  // Mostrar uso do plano no sidebar
+  if(currentPlano && !isAdmin()){
+    const meusLanc = despesas.filter(d=>d.user_id===currentUser?.id).length;
+    const maxLanc = currentPlano.max_lancamentos;
+    const pct = ilimitado(maxLanc) ? 0 : Math.min(100, Math.round(meusLanc/maxLanc*100));
+    const sfEl = document.getElementById('sf-plano-uso');
+    if(sfEl){
+      sfEl.innerHTML = ilimitado(maxLanc)
+        ? `<div style="font-size:11px;color:var(--hint);margin-top:6px">Plano ${currentPlano.nome} · Ilimitado</div>`
+        : `<div style="font-size:11px;color:var(--hint);margin-top:6px">Plano ${currentPlano.nome} · ${meusLanc}/${maxLanc} lançamentos</div>
+           <div style="height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden">
+             <div style="height:100%;width:${pct}%;background:${pct>80?'#d85a30':'#639922'};border-radius:2px;transition:width .3s"></div>
+           </div>`;
+    }
+  }
 }
 </script>
 </body>
