@@ -694,10 +694,16 @@ async function loadPlanos(){
 }
 
 async function loadDespesas(){
-  let query = sb.from('despesas').select('*, profiles(full_name)').order('created_at', { ascending: false });
+  let query = sb.from('despesas').select('*').order('created_at', { ascending: false });
   if(!isAdmin()) query = query.eq('user_id', currentUser.id);
   const { data, error } = await query;
-  if(!error) despesas = data || [];
+  if(!error){
+    // Buscar nomes dos usuários separadamente
+    const { data: profs } = await sb.from('profiles').select('id, full_name');
+    const profMap = {};
+    (profs||[]).forEach(p => profMap[p.id] = p.full_name);
+    despesas = (data||[]).map(d => ({ ...d, profiles: { full_name: profMap[d.user_id] || '—' } }));
+  }
 }
 
 async function loadReceitas(){
@@ -848,7 +854,8 @@ async function salvarDespesa(){
     ia: document.getElementById('ai-box').classList.contains('show'),
   };
 
-  const { data: saved, error } = await sb.from('despesas').insert(item).select('*, profiles(full_name)').single();
+  const { data: saved, error } = await sb.from('despesas').insert(item).select('*').single();
+  if(saved) saved.profiles = { full_name: currentProfile?.full_name || '—' };
   if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
   despesas.unshift(saved);
   clearForm(); toast('✅ Lançamento salvo!');
