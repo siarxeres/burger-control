@@ -1202,9 +1202,8 @@ function exportCSVReceitas(){
   if(!receitas.length){toast('Sem receitas para exportar.');return;}
   const headers=['ID','Descrição','Categoria','Canal','Valor','Data','Pagamento','Obs'];
   const rows=receitas.map(r=>[r.id,r.descricao,r.categoria,r.canal,r.valor.toFixed(2).replace('.',','),fmtDate(r.data),r.forma_pagamento,r.obs].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
-  const csv=[headers,...rows].map(r=>r.join(';')).join('
-');
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+  const csv=[headers,...rows].map(r=>r.join(';')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download=`receitas_${new Date().toISOString().slice(0,10)}.csv`; a.click();
   toast('✅ CSV exportado!');
 }
@@ -1360,8 +1359,7 @@ function exportDRE(ini, fim){
     ['6. IMPOSTOS',impostos.toFixed(2).replace('.',','),pct(impostos)],
     ['7. RESULTADO LÍQUIDO',liquido.toFixed(2).replace('.',','),pct(liquido)],
   ];
-  const csv = rows.map(r=>r.map(v=>`"${v}"`).join(';')).join('
-');
+  const csv = rows.map(r=>r.map(v=>`"${v}"`).join(';')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download=`DRE_${ini}_${fim}.csv`; a.click();
   toast('✅ DRE exportado!');
