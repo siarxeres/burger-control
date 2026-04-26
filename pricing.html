@@ -1,1 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Food Control — Planos e Preços</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0d0b;
+  --surface:#161512;
+  --surface2:#1e1c18;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.13);
+  --text:#f2ede6;
+  --muted:#8a8680;
+  --hint:#5a5753;
+  --accent:#e8672a;
+  --accent2:#f59044;
+  --gold:#c9a84c;
+  --gold-bg:rgba(201,168,76,0.10);
+  --gold-border:rgba(201,168,76,0.25);
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+
+/* GRAIN OVERLAY */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
+
+/* HEADER */
+header{position:relative;z-index:10;padding:20px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--border)}
+.header-logo{display:flex;align-items:center;gap:10px}
+.header-logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.header-logo-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.header-nav{display:flex;align-items:center;gap:24px}
+.header-nav a{font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s}
+.header-nav a:hover{color:var(--text)}
+.btn-header{padding:8px 18px;border-radius:8px;background:var(--surface2);border:.5px solid var(--border2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s}
+.btn-header:hover{background:var(--surface);border-color:var(--muted)}
+
+/* HERO */
+.hero{position:relative;z-index:10;text-align:center;padding:90px 40px 70px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-bg);border:.5px solid var(--gold-border);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--gold);margin-bottom:28px;letter-spacing:.03em}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+h1{font-family:'Syne',sans-serif;font-size:clamp(38px,6vw,68px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;color:var(--text)}
+h1 em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:520px;margin:0 auto 36px;font-weight:300;line-height:1.7}
+.toggle-wrap{display:inline-flex;align-items:center;gap:12px;background:var(--surface2);border:.5px solid var(--border2);border-radius:999px;padding:4px;margin-bottom:60px}
+.toggle-btn{padding:7px 20px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--muted);transition:all .2s}
+.toggle-btn.active{background:var(--accent);color:#fff}
+.toggle-save{background:var(--gold-bg);color:var(--gold);border:.5px solid var(--gold-border);border-radius:999px;font-size:11px;font-weight:600;padding:3px 10px;margin-left:-4px}
+
+/* PLANS */
+.plans-wrap{position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+
+.plan{background:var(--surface);border:.5px solid var(--border2);border-radius:20px;padding:28px;position:relative;transition:border-color .2s}
+.plan:hover{border-color:rgba(255,255,255,0.2)}
+.plan.featured{border-color:var(--accent);border-width:1.5px;background:linear-gradient(145deg,#1a1410 0%,#161210 100%)}
+.plan.featured::before{content:'Mais popular';position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:999px;letter-spacing:.05em;white-space:nowrap}
+
+.plan-tier{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.plan-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px}
+.plan-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;min-height:40px}
+
+.plan-price{margin-bottom:24px}
+.plan-amount{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;letter-spacing:-2px;line-height:1}
+.plan-amount sup{font-size:20px;font-weight:600;letter-spacing:0;vertical-align:super;margin-right:2px;opacity:.7}
+.plan-amount.free{font-size:36px;color:var(--muted)}
+.plan-period{font-size:13px;color:var(--muted);margin-top:4px}
+.plan-annual{font-size:12px;color:var(--gold);margin-top:3px;min-height:18px}
+
+.plan-cta{display:block;width:100%;padding:13px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;transition:all .2s;margin-bottom:24px;border:none}
+.cta-ghost{background:none;border:.5px solid var(--border2);color:var(--text)}
+.cta-ghost:hover{background:var(--surface2);border-color:var(--muted)}
+.cta-primary{background:var(--accent);color:#fff}
+.cta-primary:hover{background:#d05820;transform:translateY(-1px)}
+.cta-gold{background:var(--gold-bg);border:.5px solid var(--gold-border);color:var(--gold)}
+.cta-gold:hover{background:rgba(201,168,76,0.18)}
+
+.divider{border:none;border-top:.5px solid var(--border);margin-bottom:20px}
+
+.feat-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--hint);margin-bottom:12px}
+.feat-list{list-style:none;display:flex;flex-direction:column;gap:9px}
+.feat-list li{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--muted);line-height:1.4}
+.feat-list li.yes{color:var(--text)}
+.feat-list li.yes .feat-icon{color:var(--accent)}
+.feat-list li.no .feat-icon{color:var(--hint)}
+.feat-icon{flex-shrink:0;width:16px;height:16px;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.feat-badge{display:inline-block;background:var(--gold-bg);color:var(--gold);border:.5px solid var(--gold-border);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:5px;vertical-align:middle}
+
+/* COMPARISON */
+.compare-wrap{position:relative;z-index:10;max-width:900px;margin:0 auto;padding:0 24px 100px}
+.compare-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;text-align:center;margin-bottom:8px;letter-spacing:-.5px}
+.compare-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:40px}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th{padding:10px 16px;text-align:center;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;border-bottom:.5px solid var(--border)}
+.compare-table th:first-child{text-align:left}
+.compare-table th.hl{color:var(--accent)}
+.compare-table td{padding:12px 16px;border-bottom:.5px solid var(--border);text-align:center;color:var(--muted)}
+.compare-table td:first-child{text-align:left;color:var(--text);font-weight:500}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--surface2)}
+.check{color:#4ade80;font-size:16px}
+.cross{color:var(--hint);font-size:16px}
+.hl-col{background:rgba(232,103,42,0.04)}
+
+/* FAQ */
+.faq-wrap{position:relative;z-index:10;max-width:700px;margin:0 auto;padding:0 24px 100px}
+.faq-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;text-align:center;margin-bottom:40px;letter-spacing:-.5px}
+.faq-item{border-bottom:.5px solid var(--border);padding:20px 0}
+.faq-q{font-size:15px;font-weight:500;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.faq-q:hover{color:var(--accent)}
+.faq-icon{font-size:20px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.faq-a{font-size:14px;color:var(--muted);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.faq-item.open .faq-a{max-height:200px;padding-top:12px}
+
+/* CTA BANNER */
+.cta-banner{position:relative;z-index:10;max-width:900px;margin:0 auto 100px;padding:0 24px}
+.cta-inner{background:var(--surface2);border:.5px solid var(--border2);border-radius:20px;padding:50px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-inner::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:300px;height:300px;background:radial-gradient(ellipse,rgba(232,103,42,.12) 0%,transparent 70%);pointer-events:none}
+.cta-inner h2{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-.8px;margin-bottom:12px}
+.cta-inner p{font-size:15px;color:var(--muted);margin-bottom:28px}
+.btn-wpp{display:inline-flex;align-items:center;gap:10px;background:#25D366;color:#fff;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+.btn-wpp:hover{background:#1ebe5d;transform:translateY(-2px)}
+.btn-wpp svg{width:20px;height:20px;fill:currentColor}
+
+/* FOOTER */
+footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:28px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--muted)}
+.footer-copy{font-size:12px;color:var(--hint)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .plans-wrap{grid-template-columns:1fr;max-width:420px}
+  header{padding:16px 20px}
+  .hero{padding:60px 20px 50px}
+  .header-nav{display:none}
+  .compare-table{font-size:12px}
+  .compare-table th,.compare-table td{padding:10px 10px}
+  footer{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <div class="header-logo-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </div>
+    <span class="header-logo-name">Food Control</span>
+  </div>
+  <nav class="header-nav">
+    <a href="#planos">Planos</a>
+    <a href="#comparar">Comparar</a>
+    <a href="#faq">Dúvidas</a>
+    <a href="https://burger-control.vercel.app" class="btn-header">Entrar no app →</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Controle financeiro para food service
+  </div>
+  <h1>Gestão de despesas<br>com <em>inteligência</em></h1>
+  <p class="hero-sub">Escaneie cupons fiscais, controle centros de custo e tome decisões com relatórios gerados por IA. Tudo em um só lugar.</p>
+
+  <div class="toggle-wrap">
+    <button class="toggle-btn active" id="btn-mensal" onclick="setPlano('mensal')">Mensal</button>
+    <button class="toggle-btn" id="btn-anual" onclick="setPlano('anual')">Anual <span class="toggle-save">−20%</span></button>
+  </div>
+</section>
+
+<section class="plans-wrap" id="planos">
+
+  <!-- STARTER -->
+  <div class="plan">
+    <div class="plan-tier">Gratuito</div>
+    <div class="plan-name">Starter</div>
+    <div class="plan-desc">Para quem quer experimentar antes de assinar.</div>
+    <div class="plan-price">
+      <div class="plan-amount free">Grátis</div>
+      <div class="plan-period">para sempre</div>
+      <div class="plan-annual">&nbsp;</div>
+    </div>
+    <a href="https://burger-control.vercel.app" class="plan-cta cta-ghost">Começar grátis</a>
+    <hr class="divider">
+    <div class="feat-title">Incluído</div>
+    <ul class="feat-list">
+      <li class="yes"><span class="feat-icon">✓</span>Até 20 lançamentos/mês</li>
+      <li class="yes"><span class="feat-icon">✓</span>2 centros de custo</li>
+      <li class="yes"><span class="feat-icon">✓</span>3 scans por IA/mês</li>
+      <li class="yes"><span class="feat-icon">✓</span>Dashboard básico</li>
+      <li class="yes"><span class="feat-icon">✓</span>1 usuário</li>
+      <li class="no"><span class="feat-icon">–</span>Lançamento de receitas</li>
+      <li class="no"><span class="feat-icon">–</span>DRE e relatórios</li>
+      <li class="no"><span class="feat-icon">–</span>Exportação CSV</li>
+    </ul>
+  </div>
+
+  <!-- PRO -->
+  <div class="plan featured">
+    <div class="plan-tier">Recomendado</div>
+    <div class="plan-name">Pro</div>
+    <div class="plan-desc">Para restaurantes que querem controle total das finanças.</div>
+    <div class="plan-price">
+      <div class="plan-amount" id="pro-price"><sup>R$</sup>59</div>
+      <div class="plan-period">/mês por estabelecimento</div>
+      <div class="plan-annual" id="pro-annual">&nbsp;</div>
+    </div>
+    <a href="#contato" class="plan-cta cta-primary" onclick="openWpp('Pro')">Assinar Pro</a>
+    <hr class="divider">
+    <div class="feat-title">Tudo do Starter, mais</div>
+    <ul class="feat-list">
+      <li class="yes"><span class="feat-icon">✓</span>Lançamentos ilimitados</li>
+      <li class="yes"><span class="feat-icon">✓</span>Todos os centros de custo</li>
+      <li class="yes"><span class="feat-icon">✓</span>Scans ilimitados por IA</li>
+      <li class="yes"><span class="feat-icon">✓</span>Lançamento de receitas</li>
+      <li class="yes"><span class="feat-icon">✓</span>DRE completo</li>
+      <li class="yes"><span class="feat-icon">✓</span>Relatórios inteligentes IA</li>
+      <li class="yes"><span class="feat-icon">✓</span>Exportação CSV</li>
+      <li class="yes"><span class="feat-icon">✓</span>Até 5 usuários</li>
+    </ul>
+  </div>
+
+  <!-- ENTERPRISE -->
+  <div class="plan">
+    <div class="plan-tier">Redes & Franquias</div>
+    <div class="plan-name">Enterprise</div>
+    <div class="plan-desc">Para quem opera múltiplas unidades e precisa de visão consolidada.</div>
+    <div class="plan-price">
+      <div class="plan-amount" id="ent-price"><sup>R$</sup>179</div>
+      <div class="plan-period">/mês por rede</div>
+      <div class="plan-annual" id="ent-annual">&nbsp;</div>
+    </div>
+    <a href="#contato" class="plan-cta cta-gold" onclick="openWpp('Enterprise')">Falar com consultor</a>
+    <hr class="divider">
+    <div class="feat-title">Tudo do Pro, mais</div>
+    <ul class="feat-list">
+      <li class="yes"><span class="feat-icon">✓</span>Múltiplas unidades<span class="feat-badge">NOVO</span></li>
+      <li class="yes"><span class="feat-icon">✓</span>Dashboard consolidado</li>
+      <li class="yes"><span class="feat-icon">✓</span>Comparativo entre lojas</li>
+      <li class="yes"><span class="feat-icon">✓</span>Usuários ilimitados</li>
+      <li class="yes"><span class="feat-icon">✓</span>Controle de acesso avançado</li>
+      <li class="yes"><span class="feat-icon">✓</span>Suporte via WhatsApp</li>
+      <li class="yes"><span class="feat-icon">✓</span>Onboarding personalizado</li>
+    </ul>
+  </div>
+
+</section>
+
+<!-- COMPARATIVO -->
+<section class="compare-wrap" id="comparar">
+  <h2 class="compare-title">Compare os planos</h2>
+  <p class="compare-sub">Veja em detalhes o que cada plano oferece</p>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Recurso</th>
+        <th>Starter</th>
+        <th class="hl">Pro</th>
+        <th>Enterprise</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Lançamentos/mês</td><td>20</td><td class="hl-col">Ilimitado</td><td>Ilimitado</td></tr>
+      <tr><td>Centros de custo</td><td>2</td><td class="hl-col">Todos</td><td>Todos</td></tr>
+      <tr><td>Scan por IA (foto)</td><td>3/mês</td><td class="hl-col">Ilimitado</td><td>Ilimitado</td></tr>
+      <tr><td>Usuários</td><td>1</td><td class="hl-col">5</td><td>Ilimitado</td></tr>
+      <tr><td>Controle de acesso</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Receitas</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>DRE</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Relatórios IA</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Exportação CSV</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Múltiplas unidades</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Dashboard consolidado</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Suporte WhatsApp</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- FAQ -->
+<section class="faq-wrap" id="faq">
+  <h2 class="faq-title">Dúvidas frequentes</h2>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Posso cancelar quando quiser? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Sim. Não há fidelidade. Você cancela a qualquer momento e continua com acesso até o fim do período pago.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">O plano anual tem desconto? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Sim, o plano anual oferece 20% de desconto em relação ao mensal — você paga 10 meses e usa 12.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Como funciona o scan de cupons por IA? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Você fotografa ou faz upload do cupom fiscal ou nota fiscal. A IA extrai automaticamente fornecedor, CNPJ, valor, data e tipo do documento. Você revisa e salva com um clique — sem digitar nada.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Funciona para qualquer tipo de restaurante? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Sim. O sistema foi desenvolvido inicialmente para hamburguerias mas funciona para qualquer food service: pizzarias, lanchonetes, restaurantes, bares, padarias e redes de franquias.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Como é feito o pagamento? <span class="faq-icon">+</span></div>
+    <div class="faq-a">No momento aceitamos PIX e transferência bancária. Entre em contato pelo WhatsApp para assinar e receber os dados de pagamento. Cartão de crédito em breve.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Meus dados ficam seguros? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Sim. Os dados são armazenados no Supabase com criptografia e controle de acesso por usuário. Cada operador vê apenas os próprios lançamentos, e somente o Admin tem visão total.</div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-banner" id="contato">
+  <div class="cta-inner">
+    <h2>Pronto para começar?</h2>
+    <p>Fale com a gente pelo WhatsApp. Respondemos em minutos.</p>
+    <a href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20Food%20Control!" class="btn-wpp" id="btn-wpp-main" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Falar no WhatsApp
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Food Control</div>
+  <div class="footer-copy">© 2026 Food Control. Todos os direitos reservados.</div>
+</footer>
+
+<script>
+const WHATSAPP = '5569999834306'; //
+
+let planoAtual = 'mensal';
+
+function setPlano(p){
+  planoAtual = p;
+  document.getElementById('btn-mensal').classList.toggle('active', p==='mensal');
+  document.getElementById('btn-anual').classList.toggle('active', p==='anual');
+  const proPrice = p==='mensal' ? '59' : '47';
+  const entPrice = p==='mensal' ? '179' : '143';
+  document.getElementById('pro-price').innerHTML = '<sup>R$</sup>' + proPrice;
+  document.getElementById('ent-price').innerHTML = '<sup>R$</sup>' + entPrice;
+  document.getElementById('pro-annual').textContent = p==='anual' ? 'R$ 564/ano — economia de R$ 144' : '\u00a0';
+  document.getElementById('ent-annual').textContent = p==='anual' ? 'R$ 1.716/ano — economia de R$ 432' : '\u00a0';
+}
+
+function openWpp(plano){
+  const msg = encodeURIComponent(`Olá! Tenho interesse no plano ${plano} (${planoAtual}) do Food Control. Pode me dar mais informações?`);
+  window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, '_blank');
+}
+
+document.getElementById('btn-wpp-main').href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Olá! Quero conhecer o Food Control. Pode me ajudar?')}`;
+
+function toggleFaq(el){
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>
 
