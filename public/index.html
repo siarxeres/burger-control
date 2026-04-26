@@ -296,11 +296,16 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
           Lançar Despesa
         </div>
-        <div class="nav-sec">Análise</div>
+        <div class="nav-sec">Lançamentos</div>
         <div class="nav-item" onclick="showPage('despesas',this)" id="nav-despesas">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
           Despesas
         </div>
+        <div class="nav-item" onclick="showPage('receitas',this)" id="nav-receitas">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+          Receitas
+        </div>
+        <div class="nav-sec">Análise</div>
         <div class="nav-item" onclick="showPage('centros',this)" id="nav-centros">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
           Centros de Custo
@@ -309,6 +314,11 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
           Relatórios IA
         </div>
+        <div class="nav-item" onclick="showPage('dre',this)" id="nav-dre">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          DRE
+        </div>
+        <div class="nav-sec">Admin</div>
         <div class="nav-item" id="nav-usuarios" onclick="showPage('usuarios',this)" style="display:none">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
           Usuários
@@ -464,6 +474,49 @@ tbody tr:hover td{background:var(--surface2)}
           <div class="report-out" id="report-out"></div>
         </div>
 
+        <!-- RECEITAS -->
+        <div class="page" id="page-receitas">
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+            <select class="form-control" id="filtro-rec-cat" style="width:180px" onchange="renderReceitas()">
+              <option value="">Todas as categorias</option>
+              <option>Salão</option><option>Delivery</option><option>Eventos</option><option>Outros</option>
+            </select>
+            <button class="btn btn-sm" onclick="exportCSVReceitas()">⬇ CSV</button>
+            <button class="btn btn-primary btn-sm" onclick="openModalReceita()">+ Nova Receita</button>
+          </div>
+          <div class="metrics" id="rec-metrics"></div>
+          <div class="table-wrap">
+            <table><thead><tr>
+              <th>Descrição</th><th>Categoria</th><th>Canal</th><th>Pagamento</th><th>Data</th><th style="text-align:right">Valor</th><th></th>
+            </tr></thead>
+            <tbody id="rec-tbody"></tbody></table>
+          </div>
+          <div id="rec-total" style="display:none;text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
+        </div>
+
+        <!-- DRE -->
+        <div class="page" id="page-dre">
+          <div class="card" style="padding:16px;margin-bottom:20px">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Data início</label>
+                <input type="date" class="form-control" id="dre-inicio" style="width:160px">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Data fim</label>
+                <input type="date" class="form-control" id="dre-fim" style="width:160px">
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-sm" onclick="setDrePeriodo('mes')">Mês atual</button>
+                <button class="btn btn-sm" onclick="setDrePeriodo('trimestre')">Trimestre</button>
+                <button class="btn btn-sm" onclick="setDrePeriodo('ano')">Ano</button>
+                <button class="btn btn-primary btn-sm" onclick="renderDRE()">▶ Gerar DRE</button>
+              </div>
+            </div>
+          </div>
+          <div id="dre-output"></div>
+        </div>
+
         <!-- PLANOS (só admin) -->
         <div class="page" id="page-planos">
           <div class="alert alert-info" style="margin-bottom:18px">
@@ -510,6 +563,7 @@ let currentProfile = null;
 let currentPlano = null;
 let despesas = [];
 let todosPlanos = [];
+let receitas = [];
 
 const CC_COLORS = {'Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922','Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'};
 const STATUS_STYLE = {'Aprovado':'background:#eaf3de;color:#3b6d11','Pendente':'background:#faeeda;color:#854f0b','Rejeitado':'background:#fcebeb;color:#a32d2d'};
@@ -564,6 +618,7 @@ async function doLogin(){
       await loadProfile();
       await loadPlanos();
       await loadDespesas();
+      await loadReceitas();
       initApp();
     }
   } catch(e) {
@@ -616,6 +671,7 @@ function traduzirErro(msg){
     await loadProfile();
     await loadPlanos();
     await loadDespesas();
+    await loadReceitas();
     initApp();
   }
 })();
@@ -644,6 +700,13 @@ async function loadDespesas(){
   if(!error) despesas = data || [];
 }
 
+async function loadReceitas(){
+  let query = sb.from('receitas').select('*').order('created_at', { ascending: false });
+  if(!isAdmin()) query = query.eq('user_id', currentUser.id);
+  const { data, error } = await query;
+  if(!error) receitas = data || [];
+}
+
 function initApp(){
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
@@ -665,7 +728,7 @@ function showPage(id, navEl){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',centros:'Centros de Custo',relatorio:'Relatórios IA',usuarios:'Gerenciar Usuários',planos:'Configurar Planos'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',usuarios:'Gerenciar Usuários',planos:'Configurar Planos'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
@@ -673,6 +736,8 @@ function showPage(id, navEl){
   if(id==='centros') renderCentros();
   if(id==='usuarios') renderUsuarios();
   if(id==='planos') renderPlanos();
+  if(id==='receitas') renderReceitas();
+  if(id==='dre') initDRE();
 }
 
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay-sb').classList.toggle('show'); }
@@ -1043,6 +1108,263 @@ function updateFooter(){
            </div>`;
     }
   }
+}
+
+// ══ RECEITAS ══
+function renderReceitas(){
+  const fCat = document.getElementById('filtro-rec-cat')?.value || '';
+  let list = receitas;
+  if(fCat) list = list.filter(r=>r.categoria===fCat);
+  const total = list.reduce((s,r)=>s+r.valor,0);
+  const totalMes = receitas.filter(r=>{
+    const d=new Date(r.data); const n=new Date();
+    return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();
+  }).reduce((s,r)=>s+r.valor,0);
+
+  document.getElementById('rec-metrics').innerHTML=`
+    <div class="metric"><div class="metric-label">Total de Receitas</div><div class="metric-value green">${fmt(total)}</div><div class="metric-sub">${receitas.length} lançamento(s)</div></div>
+    <div class="metric"><div class="metric-label">Mês Atual</div><div class="metric-value green">${fmt(totalMes)}</div><div class="metric-sub">receitas no mês</div></div>
+    <div class="metric"><div class="metric-label">Ticket Médio</div><div class="metric-value">${receitas.length?fmt(total/receitas.length):fmt(0)}</div><div class="metric-sub">por lançamento</div></div>
+    <div class="metric"><div class="metric-label">Resultado</div><div class="metric-value ${total>=despesas.reduce((s,d)=>s+d.valor,0)?'green':'accent'}">${fmt(total-despesas.reduce((s,d)=>s+d.valor,0))}</div><div class="metric-sub">receitas − despesas</div></div>`;
+
+  const tbody=document.getElementById('rec-tbody'), tr=document.getElementById('rec-total');
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-icon">💰</div><div class="empty-title">Nenhuma receita lançada</div><span class="link" onclick="openModalReceita()">Lançar receita →</span></div></td></tr>`;
+    tr.style.display='none'; return;
+  }
+  tr.style.display='block'; tr.textContent=`Total: ${fmt(list.reduce((s,r)=>s+r.valor,0))} (${list.length} lançamento${list.length>1?'s':''})`;
+  tbody.innerHTML=list.map(r=>`<tr>
+    <td style="font-weight:600">${r.descricao}</td>
+    <td><span class="badge badge-ai">${r.categoria}</span></td>
+    <td style="color:var(--muted)">${r.canal||'—'}</td>
+    <td style="color:var(--muted)">${r.forma_pagamento||'—'}</td>
+    <td style="color:var(--muted)">${fmtDate(r.data)}</td>
+    <td style="text-align:right;font-weight:700;color:var(--green)">${fmt(r.valor)}</td>
+    <td><button class="btn btn-xs" onclick="excluirReceita(${r.id})">🗑</button></td>
+  </tr>`).join('');
+}
+
+function openModalReceita(){
+  document.getElementById('modal-title').textContent = 'Nova Receita';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-group full"><label class="form-label">Descrição <span style="color:var(--accent)">*</span></label><input type="text" class="form-control" id="mr-desc" placeholder="Ex: Vendas do dia, iFood, Evento..."></div>
+      <div class="form-group"><label class="form-label">Categoria <span style="color:var(--accent)">*</span></label>
+        <select class="form-control" id="mr-cat"><option value="">Selecionar...</option><option>Salão</option><option>Delivery</option><option>Eventos</option><option>Outros</option></select></div>
+      <div class="form-group"><label class="form-label">Canal de venda</label>
+        <select class="form-control" id="mr-canal"><option value="">—</option><option>Balcão</option><option>iFood</option><option>Rappi</option><option>WhatsApp</option><option>Telefone</option><option>App próprio</option><option>Outros</option></select></div>
+      <div class="form-group"><label class="form-label">Valor <span style="color:var(--accent)">*</span></label><input type="text" class="form-control" id="mr-valor" placeholder="R$ 0,00"></div>
+      <div class="form-group"><label class="form-label">Data <span style="color:var(--accent)">*</span></label><input type="date" class="form-control" id="mr-data" value="${new Date().toISOString().split('T')[0]}"></div>
+      <div class="form-group"><label class="form-label">Forma de pagamento</label>
+        <select class="form-control" id="mr-pagto"><option value="">—</option><option>Dinheiro</option><option>Cartão de Débito</option><option>Cartão de Crédito</option><option>PIX</option><option>Online</option></select></div>
+      <div class="form-group full"><label class="form-label">Observações</label><input type="text" class="form-control" id="mr-obs" placeholder="Opcional"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarReceita()">💾 Salvar Receita</button>
+    </div>`;
+  document.getElementById('modal').classList.add('show');
+}
+
+async function salvarReceita(){
+  const descricao = document.getElementById('mr-desc').value.trim();
+  const categoria = document.getElementById('mr-cat').value;
+  const valorRaw = document.getElementById('mr-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
+  const valor = parseFloat(valorRaw);
+  const data = document.getElementById('mr-data').value;
+  if(!descricao){toast('⚠ Preencha a descrição.');return;}
+  if(!categoria){toast('⚠ Selecione a categoria.');return;}
+  if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
+  if(!data){toast('⚠ Informe a data.');return;}
+  const item = {
+    user_id: currentUser.id, descricao, categoria,
+    canal: document.getElementById('mr-canal').value,
+    valor, data,
+    forma_pagamento: document.getElementById('mr-pagto').value,
+    obs: document.getElementById('mr-obs').value.trim(),
+  };
+  const { data: saved, error } = await sb.from('receitas').insert(item).select().single();
+  if(error){toast('❌ Erro: '+error.message);return;}
+  receitas.unshift(saved);
+  closeModal(); toast('✅ Receita salva!');
+  renderReceitas(); updateFooter();
+}
+
+async function excluirReceita(id){
+  if(!confirm('Excluir esta receita?')) return;
+  const { error } = await sb.from('receitas').delete().eq('id', id);
+  if(error){toast('❌ Erro: '+error.message);return;}
+  receitas = receitas.filter(r=>r.id!==id);
+  renderReceitas(); toast('🗑 Receita excluída.');
+}
+
+function exportCSVReceitas(){
+  if(!receitas.length){toast('Sem receitas para exportar.');return;}
+  const headers=['ID','Descrição','Categoria','Canal','Valor','Data','Pagamento','Obs'];
+  const rows=receitas.map(r=>[r.id,r.descricao,r.categoria,r.canal,r.valor.toFixed(2).replace('.',','),fmtDate(r.data),r.forma_pagamento,r.obs].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
+  const csv=[headers,...rows].map(r=>r.join(';')).join('
+');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`receitas_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  toast('✅ CSV exportado!');
+}
+
+// ══ DRE ══
+function initDRE(){
+  const hoje = new Date();
+  const ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  document.getElementById('dre-inicio').value = ini.toISOString().split('T')[0];
+  document.getElementById('dre-fim').value = hoje.toISOString().split('T')[0];
+  renderDRE();
+}
+
+function setDrePeriodo(p){
+  const hoje = new Date();
+  let ini;
+  if(p==='mes') ini = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  else if(p==='trimestre') ini = new Date(hoje.getFullYear(), hoje.getMonth()-2, 1);
+  else ini = new Date(hoje.getFullYear(), 0, 1);
+  document.getElementById('dre-inicio').value = ini.toISOString().split('T')[0];
+  document.getElementById('dre-fim').value = hoje.toISOString().split('T')[0];
+  renderDRE();
+}
+
+function renderDRE(){
+  const ini = document.getElementById('dre-inicio')?.value;
+  const fim = document.getElementById('dre-fim')?.value;
+  if(!ini||!fim){ document.getElementById('dre-output').innerHTML='<div class="alert alert-warn">Selecione o período.</div>'; return; }
+
+  // Filtrar por período
+  const recPer = receitas.filter(r=>r.data>=ini&&r.data<=fim);
+  const despPer = despesas.filter(d=>d.data>=ini&&d.data<=fim&&d.status!=='Rejeitado');
+
+  // 1. Receitas totais
+  const recTotal = recPer.reduce((s,r)=>s+r.valor,0);
+  const recSalao = recPer.filter(r=>r.categoria==='Salão').reduce((s,r)=>s+r.valor,0);
+  const recDel = recPer.filter(r=>r.categoria==='Delivery').reduce((s,r)=>s+r.valor,0);
+  const recEv = recPer.filter(r=>r.categoria==='Eventos').reduce((s,r)=>s+r.valor,0);
+  const recOut = recPer.filter(r=>r.categoria==='Outros').reduce((s,r)=>s+r.valor,0);
+
+  // 2. CMV (Custo da Mercadoria Vendida)
+  const cmv = despPer.filter(d=>d.natureza==='cmv'||d.categoria==='Insumos / Ingredientes'||d.categoria==='Embalagens').reduce((s,d)=>s+d.valor,0);
+
+  // 3. Margem de Contribuição
+  const margem = recTotal - cmv;
+  const margemPct = recTotal>0 ? (margem/recTotal*100) : 0;
+
+  // 4. Despesas Fixas
+  const fixas = despPer.filter(d=>d.natureza==='fixa'||d.categoria==='Aluguel'||d.categoria==='Folha de Pagamento'||d.categoria==='Energia / Água / Gás').reduce((s,d)=>s+d.valor,0);
+
+  // Despesas Operacionais
+  const cmvCats = ['Insumos / Ingredientes','Embalagens'];
+  const fixasCats = ['Aluguel','Folha de Pagamento','Energia / Água / Gás'];
+  const impostoCats = ['Impostos'];
+  const operacional = despPer.filter(d=>
+    !cmvCats.includes(d.categoria) &&
+    !fixasCats.includes(d.categoria) &&
+    !impostoCats.includes(d.categoria) &&
+    d.natureza!=='cmv' && d.natureza!=='fixa' && d.natureza!=='imposto'
+  ).reduce((s,d)=>s+d.valor,0);
+
+  // 5. Resultado Operacional antes dos impostos
+  const ebitda = margem - fixas - operacional;
+
+  // 6. Impostos
+  const impostos = despPer.filter(d=>d.natureza==='imposto'||d.categoria==='Impostos').reduce((s,d)=>s+d.valor,0);
+
+  // 7. Resultado Líquido
+  const liquido = ebitda - impostos;
+
+  const pct = v => recTotal>0 ? `${(v/recTotal*100).toFixed(1)}%` : '—';
+  const cor = v => v>=0 ? 'color:var(--green)' : 'color:var(--accent)';
+  const fmtLinha = (label, valor, sub, bold, indent, borderTop) => `
+    <tr style="${borderTop?'border-top:2px solid var(--border2)':''}">
+      <td style="padding:${indent?'8px 11px 8px 28px':'10px 11px'};${bold?'font-weight:700':''}color:var(--text)">${label}${sub?`<div style="font-size:11px;font-weight:400;color:var(--muted);margin-top:2px">${sub}</div>`:''}</td>
+      <td style="text-align:right;padding:10px 11px;${bold?'font-weight:700':''}${bold&&valor!==undefined?';'+cor(valor):''}">${valor!==undefined?fmt(valor):''}</td>
+      <td style="text-align:right;padding:10px 11px;color:var(--muted);font-size:12px">${valor!==undefined?pct(valor):''}</td>
+    </tr>`;
+
+  const periodo = `${fmtDate(ini)} a ${fmtDate(fim)}`;
+
+  document.getElementById('dre-output').innerHTML = `
+    <div class="card" style="overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:16px;font-weight:700">DRE — Demonstrativo de Resultado</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Período: ${periodo}</div>
+        </div>
+        <button class="btn btn-sm" onclick="exportDRE('${ini}','${fim}')">⬇ Exportar CSV</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:var(--surface2)">
+          <th style="text-align:left;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">Descrição</th>
+          <th style="text-align:right;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">Valor (R$)</th>
+          <th style="text-align:right;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">% Receita</th>
+        </tr></thead>
+        <tbody>
+          ${fmtLinha('1. RECEITAS TOTAIS', recTotal, null, true, false, false)}
+          ${fmtLinha('Vendas no Salão', recSalao, null, false, true, false)}
+          ${fmtLinha('Delivery', recDel, null, false, true, false)}
+          ${fmtLinha('Eventos', recEv, null, false, true, false)}
+          ${recOut>0?fmtLinha('Outras receitas', recOut, null, false, true, false):''}
+
+          ${fmtLinha('2. CUSTOS DE PRODUÇÃO (CMV)', cmv, 'Insumos, Embalagens', true, false, true)}
+
+          ${fmtLinha('3. MARGEM DE CONTRIBUIÇÃO', margem, `${margemPct.toFixed(1)}% da receita`, true, false, true)}
+
+          ${fmtLinha('4. DESPESAS FIXAS', fixas, 'Aluguel, Folha, Energia', true, false, true)}
+          ${fmtLinha('Despesas Operacionais', operacional, 'Serviços, Manutenção, Marketing etc.', false, true, false)}
+
+          ${fmtLinha('5. RESULTADO OPERACIONAL (EBITDA)', ebitda, 'Antes dos impostos', true, false, true)}
+
+          ${fmtLinha('6. IMPOSTOS', impostos, null, true, false, true)}
+
+          ${fmtLinha('7. RESULTADO LÍQUIDO', liquido, liquido>=0?'✅ Operação lucrativa':'⚠️ Operação deficitária', true, false, true)}
+        </tbody>
+      </table>
+      ${recTotal===0&&despesas.length===0?`<div class="empty" style="padding:30px"><div class="empty-icon">📊</div><div class="empty-title">Sem dados no período</div>Lance receitas e despesas para gerar o DRE.</div>`:''}
+    </div>
+
+    <div class="metrics" style="margin-top:16px">
+      <div class="metric"><div class="metric-label">Receita Total</div><div class="metric-value green">${fmt(recTotal)}</div></div>
+      <div class="metric"><div class="metric-label">Margem de Contribuição</div><div class="metric-value" style="${cor(margem)}">${fmt(margem)}</div><div class="metric-sub">${margemPct.toFixed(1)}% da receita</div></div>
+      <div class="metric"><div class="metric-label">EBITDA</div><div class="metric-value" style="${cor(ebitda)}">${fmt(ebitda)}</div></div>
+      <div class="metric"><div class="metric-label">Resultado Líquido</div><div class="metric-value" style="${cor(liquido)}">${fmt(liquido)}</div><div class="metric-sub">${recTotal>0?(liquido/recTotal*100).toFixed(1)+'% da receita':'—'}</div></div>
+    </div>`;
+}
+
+function exportDRE(ini, fim){
+  const recPer = receitas.filter(r=>r.data>=ini&&r.data<=fim);
+  const despPer = despesas.filter(d=>d.data>=ini&&d.data<=fim&&d.status!=='Rejeitado');
+  const recTotal = recPer.reduce((s,r)=>s+r.valor,0);
+  const cmv = despPer.filter(d=>d.categoria==='Insumos / Ingredientes'||d.categoria==='Embalagens'||d.natureza==='cmv').reduce((s,d)=>s+d.valor,0);
+  const margem = recTotal-cmv;
+  const fixas = despPer.filter(d=>d.categoria==='Aluguel'||d.categoria==='Folha de Pagamento'||d.categoria==='Energia / Água / Gás'||d.natureza==='fixa').reduce((s,d)=>s+d.valor,0);
+  const cmvCats=['Insumos / Ingredientes','Embalagens'],fixasCats=['Aluguel','Folha de Pagamento','Energia / Água / Gás'];
+  const operacional = despPer.filter(d=>!cmvCats.includes(d.categoria)&&!fixasCats.includes(d.categoria)&&d.natureza!=='cmv'&&d.natureza!=='fixa'&&d.natureza!=='imposto').reduce((s,d)=>s+d.valor,0);
+  const ebitda = margem-fixas-operacional;
+  const impostos = despPer.filter(d=>d.natureza==='imposto').reduce((s,d)=>s+d.valor,0);
+  const liquido = ebitda-impostos;
+  const pct = v => recTotal>0?(v/recTotal*100).toFixed(1)+'%':'—';
+  const rows = [
+    ['DRE — Demonstrativo de Resultado','',''],
+    [`Período: ${fmtDate(ini)} a ${fmtDate(fim)}`,'',''],
+    ['','',''],
+    ['Descrição','Valor (R$)','% Receita'],
+    ['1. RECEITAS TOTAIS',recTotal.toFixed(2).replace('.',','),pct(recTotal)],
+    ['2. CUSTOS DE PRODUÇÃO (CMV)',cmv.toFixed(2).replace('.',','),pct(cmv)],
+    ['3. MARGEM DE CONTRIBUIÇÃO',margem.toFixed(2).replace('.',','),pct(margem)],
+    ['4. DESPESAS FIXAS',fixas.toFixed(2).replace('.',','),pct(fixas)],
+    ['   Despesas Operacionais',operacional.toFixed(2).replace('.',','),pct(operacional)],
+    ['5. RESULTADO OPERACIONAL (EBITDA)',ebitda.toFixed(2).replace('.',','),pct(ebitda)],
+    ['6. IMPOSTOS',impostos.toFixed(2).replace('.',','),pct(impostos)],
+    ['7. RESULTADO LÍQUIDO',liquido.toFixed(2).replace('.',','),pct(liquido)],
+  ];
+  const csv = rows.map(r=>r.map(v=>`"${v}"`).join(';')).join('
+');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`DRE_${ini}_${fim}.csv`; a.click();
+  toast('✅ DRE exportado!');
 }
 </script>
 </body>
