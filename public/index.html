@@ -323,6 +323,10 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
           Usuários
         </div>
+        <div class="nav-item" id="nav-centros-admin" onclick="showPage('centros-admin',this)" style="display:none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          Centros de Custo
+        </div>
         <div class="nav-item" id="nav-planos" onclick="showPage('planos',this)" style="display:none">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           Planos
@@ -410,7 +414,7 @@ tbody tr:hover td{background:var(--surface2)}
               <div class="form-group"><label class="form-label">Fornecedor <span>*</span></label><input type="text" class="form-control" id="f-fornecedor" placeholder="Razão social ou nome fantasia"></div>
               <div class="form-group"><label class="form-label">CNPJ / CPF</label><input type="text" class="form-control" id="f-cnpj" placeholder="00.000.000/0000-00"></div>
               <div class="form-group"><label class="form-label">Centro de Custo <span>*</span></label>
-                <select class="form-control" id="f-cc"><option value="">Selecionar...</option><option>Cozinha</option><option>Salão / Atendimento</option><option>Delivery</option><option>Administrativo</option><option>Marketing</option><option>Manutenção</option></select></div>
+                <select class="form-control" id="f-cc" onchange="handleCCChange(this)"><option value="">Selecionar...</option></select></div>
               <div class="form-group"><label class="form-label">Categoria</label>
                 <select class="form-control" id="f-cat"><option value="">Selecionar...</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select></div>
               <div class="form-group"><label class="form-label">Valor Total <span>*</span></label><input type="text" class="form-control" id="f-valor" placeholder="R$ 0,00"></div>
@@ -517,6 +521,18 @@ tbody tr:hover td{background:var(--surface2)}
           <div id="dre-output"></div>
         </div>
 
+        <!-- CENTROS DE CUSTO ADMIN -->
+        <div class="page" id="page-centros-admin">
+          <div class="alert alert-info" style="margin-bottom:18px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Gerencie os centros de custo disponíveis. Defina qual plano mínimo é necessário para cada um.
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+            <button class="btn btn-primary btn-sm" onclick="openModalNovoCC()">+ Novo Centro</button>
+          </div>
+          <div id="centros-admin-list"></div>
+        </div>
+
         <!-- PLANOS (só admin) -->
         <div class="page" id="page-planos">
           <div class="alert alert-info" style="margin-bottom:18px">
@@ -564,6 +580,8 @@ let currentPlano = null;
 let despesas = [];
 let todosPlanos = [];
 let receitas = [];
+let todosCentros = [];
+let centrosPermitidos = [];
 
 const CC_COLORS = {'Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922','Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'};
 const STATUS_STYLE = {'Aprovado':'background:#eaf3de;color:#3b6d11','Pendente':'background:#faeeda;color:#854f0b','Rejeitado':'background:#fcebeb;color:#a32d2d'};
@@ -617,6 +635,7 @@ async function doLogin(){
       currentUser = data.user;
       await loadProfile();
       await loadPlanos();
+      await loadCentros();
       await loadDespesas();
       await loadReceitas();
       initApp();
@@ -670,6 +689,7 @@ function traduzirErro(msg){
     currentUser = session.user;
     await loadProfile();
     await loadPlanos();
+    await loadCentros();
     await loadDespesas();
     await loadReceitas();
     initApp();
@@ -691,6 +711,25 @@ async function loadPlanos(){
   if(data) todosPlanos = data;
   const planoId = currentProfile?.plano || 'starter';
   currentPlano = todosPlanos.find(p=>p.id===planoId) || null;
+}
+
+async function loadCentros(){
+  const { data } = await sb.from('centros_custo').select('*').eq('ativo', true).order('ordem');
+  if(data){
+    todosCentros = data;
+    const planoId = currentProfile?.plano || 'starter';
+    // Admin vê tudo, outros filtram pelo plano
+    if(isAdmin()){
+      centrosPermitidos = todosCentros;
+    } else {
+      const prioridade = ['starter','pro','enterprise'];
+      const nivel = prioridade.indexOf(planoId);
+      centrosPermitidos = todosCentros.filter(c => {
+        const cnivel = prioridade.indexOf(c.plano_minimo);
+        return cnivel <= nivel || (c.personalizado && c.conta_id === currentUser.id);
+      });
+    }
+  }
 }
 
 async function loadDespesas(){
@@ -722,10 +761,60 @@ function initApp(){
   roleEl.className = 'sf-role ' + (isAdmin() ? 'admin' : 'operador');
   document.getElementById('nav-usuarios').style.display = isAdmin() ? 'flex' : 'none';
   document.getElementById('nav-planos').style.display = isAdmin() ? 'flex' : 'none';
+  document.getElementById('nav-centros-admin').style.display = isAdmin() ? 'flex' : 'none';
   document.getElementById('despesas-aviso-op').style.display = isAdmin() ? 'none' : 'flex';
   document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
+  populateCCSelects();
   updateFooter();
   updateDashboard();
+}
+
+function populateCCSelects(){
+  // Build CC options for form
+  const sel = document.getElementById('f-cc');
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Selecionar...</option>';
+
+  todosCentros.forEach(c => {
+    const permitido = centrosPermitidos.find(p=>p.id===c.id);
+    const opt = document.createElement('option');
+    opt.value = c.nome;
+    if(permitido){
+      opt.textContent = c.icone + ' ' + c.nome;
+    } else {
+      opt.textContent = '🔒 ' + c.nome + ' (requer upgrade)';
+      opt.disabled = true;
+      opt.style.color = 'var(--hint)';
+    }
+    sel.appendChild(opt);
+  });
+
+  // Add "Criar novo CC" for enterprise
+  if(currentPlano?.cc_personalizados || isAdmin()){
+    const sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = '──────────────';
+    sel.appendChild(sep);
+    const novo = document.createElement('option');
+    novo.value = '__novo__';
+    novo.textContent = '✏️ Criar novo centro de custo...';
+    sel.appendChild(novo);
+  }
+
+  if(cur) sel.value = cur;
+
+  // Also update filtro-cc in despesas
+  const filtro = document.getElementById('filtro-cc');
+  if(filtro){
+    filtro.innerHTML = '<option value="">Todos os centros</option>';
+    todosCentros.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.nome;
+      opt.textContent = c.icone + ' ' + c.nome;
+      filtro.appendChild(opt);
+    });
+  }
 }
 
 // ══ NAVIGATION ══
@@ -734,7 +823,7 @@ function showPage(id, navEl){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',usuarios:'Gerenciar Usuários',planos:'Configurar Planos'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',usuarios:'Gerenciar Usuários',planos:'Configurar Planos','centros-admin':'Centros de Custo — Admin'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
@@ -744,6 +833,7 @@ function showPage(id, navEl){
   if(id==='planos') renderPlanos();
   if(id==='receitas') renderReceitas();
   if(id==='dre') initDRE();
+  if(id==='centros-admin') renderCentrosAdmin();
 }
 
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay-sb').classList.toggle('show'); }
@@ -1114,6 +1204,126 @@ function updateFooter(){
              <div style="height:100%;width:${pct}%;background:${pct>80?'#d85a30':'#639922'};border-radius:2px;transition:width .3s"></div>
            </div>`;
     }
+  }
+}
+
+
+// ══ CENTROS DE CUSTO — ADMIN ══
+async function renderCentrosAdmin(){
+  if(!isAdmin()){ document.getElementById('centros-admin-list').innerHTML='<div class="alert alert-warn">Acesso negado.</div>'; return; }
+  await loadCentros();
+
+  const CORES = ['#d85a30','#378add','#639922','#7f77dd','#d4537e','#ba7517','#16a085','#e67e22','#8e44ad','#2c3e50'];
+  const PLANOS_LABEL = { starter:'🆓 Starter', pro:'💰 Pro', enterprise:'💎 Enterprise' };
+
+  document.getElementById('centros-admin-list').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Centro de Custo</th>
+          <th>Cor</th>
+          <th>Ícone</th>
+          <th>Plano mínimo</th>
+          <th>Tipo</th>
+          <th>Status</th>
+          <th></th>
+        </tr></thead>
+        <tbody>
+          ${todosCentros.map(c => `
+            <tr>
+              <td style="font-weight:600">
+                <span style="display:inline-flex;align-items:center;gap:8px">
+                  <span style="width:10px;height:10px;border-radius:50%;background:${c.cor};flex-shrink:0"></span>
+                  ${c.icone} ${c.nome}
+                </span>
+              </td>
+              <td><input type="color" value="${c.cor}" style="width:36px;height:28px;border:none;cursor:pointer;border-radius:4px" onchange="atualizarCC(${c.id},'cor',this.value)"></td>
+              <td><input type="text" value="${c.icone}" style="width:50px;text-align:center;padding:4px;border:.5px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);font-size:16px" onchange="atualizarCC(${c.id},'icone',this.value)"></td>
+              <td>
+                <select class="form-control" style="width:140px;padding:5px 8px;font-size:12px" onchange="atualizarCC(${c.id},'plano_minimo',this.value)">
+                  <option value="starter" ${c.plano_minimo==='starter'?'selected':''}>🆓 Starter</option>
+                  <option value="pro" ${c.plano_minimo==='pro'?'selected':''}>💰 Pro</option>
+                  <option value="enterprise" ${c.plano_minimo==='enterprise'?'selected':''}>💎 Enterprise</option>
+                </select>
+              </td>
+              <td><span class="badge ${c.personalizado?'badge-ai':'badge-gray'}">${c.personalizado?'Personalizado':'Padrão'}</span></td>
+              <td><span class="badge" style="${c.ativo?'background:#eaf3de;color:#3b6d11':'background:#fcebeb;color:#a32d2d'}">${c.ativo?'Ativo':'Inativo'}</span></td>
+              <td style="display:flex;gap:6px">
+                <button class="btn btn-xs" onclick="atualizarCC(${c.id},'ativo',${!c.ativo})">${c.ativo?'Desativar':'Ativar'}</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+async function atualizarCC(id, campo, valor){
+  const updates = { [campo]: valor };
+  const { error } = await sb.from('centros_custo').update(updates).eq('id', id);
+  if(error){ toast('❌ Erro: '+error.message); return; }
+  toast('✅ Centro atualizado!');
+  await loadCentros();
+  populateCCSelects();
+  renderCentrosAdmin();
+}
+
+function openModalNovoCC(){
+  document.getElementById('modal-title').textContent = 'Novo Centro de Custo';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-group full">
+        <label class="form-label">Nome <span style="color:var(--accent)">*</span></label>
+        <input type="text" class="form-control" id="ncc-nome" placeholder="Ex: Estoque, TI, RH...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ícone (emoji)</label>
+        <input type="text" class="form-control" id="ncc-icone" placeholder="📦" value="📦" style="font-size:20px;text-align:center">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cor</label>
+        <input type="color" id="ncc-cor" value="#d85a30" style="width:100%;height:40px;border:none;cursor:pointer;border-radius:var(--rs)">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Plano mínimo</label>
+        <select class="form-control" id="ncc-plano">
+          <option value="starter">🆓 Starter (gratuito)</option>
+          <option value="pro" selected>💰 Pro</option>
+          <option value="enterprise">💎 Enterprise</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarNovoCC()">💾 Criar Centro</button>
+    </div>`;
+  document.getElementById('modal').classList.add('show');
+}
+
+async function salvarNovoCC(){
+  const nome = document.getElementById('ncc-nome').value.trim();
+  if(!nome){ toast('⚠ Informe o nome.'); return; }
+  const item = {
+    nome,
+    icone: document.getElementById('ncc-icone').value || '📦',
+    cor: document.getElementById('ncc-cor').value,
+    plano_minimo: document.getElementById('ncc-plano').value,
+    personalizado: !isAdmin(),
+    conta_id: isAdmin() ? null : currentUser.id,
+    ordem: todosCentros.length + 1,
+  };
+  const { error } = await sb.from('centros_custo').insert(item);
+  if(error){ toast('❌ Erro: '+error.message); return; }
+  toast('✅ Centro de custo criado!');
+  closeModal();
+  await loadCentros();
+  populateCCSelects();
+  if(isAdmin()) renderCentrosAdmin();
+}
+
+function handleCCChange(sel){
+  if(sel.value === '__novo__'){
+    sel.value = '';
+    openModalNovoCC();
   }
 }
 
