@@ -1402,16 +1402,41 @@ async function alternarModo(){
   const btn = document.getElementById('toggle-modo');
   const label = document.getElementById('toggle-modo-label');
 
+  // IDs dos itens de nav da empresa para esconder/mostrar
+  const navEmpresa = ['nav-dashboard','nav-lancar','nav-despesas','nav-receitas',
+    'nav-centros','nav-relatorio','nav-dre','nav-usuarios','nav-centros-admin','nav-planos'];
+  const secEmpresa = document.querySelectorAll('.nav-sec');
+
   if(modoPainel === 'pessoal'){
     btn.classList.add('pessoal');
     label.textContent = '👤 Pessoal';
+    // Esconder nav empresa
+    navEmpresa.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = 'none';
+    });
+    secEmpresa.forEach(el => el.style.display = 'none');
+    // Mostrar nav pessoal
     document.getElementById('nav-pessoal-section').classList.add('show');
-    // Carregar dados pessoais
     await loadDadosPessoais();
     showPage('pessoal-dashboard', document.getElementById('nav-pessoal-dash'));
   } else {
     btn.classList.remove('pessoal');
     label.textContent = '🏢 Empresa';
+    // Mostrar nav empresa
+    navEmpresa.forEach(id => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      // Respeitar visibilidade original (admin-only items)
+      const adminOnly = ['nav-usuarios','nav-centros-admin','nav-planos'];
+      if(adminOnly.includes(id)){
+        el.style.display = isAdmin() ? 'flex' : 'none';
+      } else {
+        el.style.display = 'flex';
+      }
+    });
+    secEmpresa.forEach(el => el.style.display = '');
+    // Esconder nav pessoal
     document.getElementById('nav-pessoal-section').classList.remove('show');
     showPage('dashboard', document.getElementById('nav-dashboard'));
   }
