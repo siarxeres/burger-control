@@ -1117,6 +1117,13 @@ async function salvarDespesa(){
   if(!cc){toast('⚠ Selecione o centro de custo.');return;}
   if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
   if(!data){toast('⚠ Informe a data.');return;}
+
+  // Aviso de data futura
+  const hoje = new Date().toISOString().split('T')[0];
+  if(data > hoje){
+    const confirma = confirm(`⚠️ A data informada é futura (${fmtDate(data)}).\n\nIsso pode ser um erro de digitação.\nConfirma o lançamento mesmo assim?`);
+    if(!confirma) return;
+  }
   // Verificações de plano
   if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
   if(!podeUsarCC(cc)){ alertPlano(`Limite de ${currentPlano?.max_cc} centros de custo atingido`); return; }
@@ -1589,6 +1596,13 @@ async function salvarPessoal(){
   if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
   if(!data){toast('⚠ Informe a data.');return;}
 
+  // Aviso de data futura
+  const hoje = new Date().toISOString().split('T')[0];
+  if(data > hoje){
+    const confirma = confirm(`⚠️ A data informada é futura (${fmtDate(data)}).\n\nIsso pode ser um erro de digitação.\nConfirma o lançamento mesmo assim?`);
+    if(!confirma) return;
+  }
+
   const item = {
     user_id: currentUser.id, tipo, descricao, categoria, valor, data,
     forma_pagamento: document.getElementById('p-pagto').value,
@@ -1950,6 +1964,13 @@ async function salvarReceita(){
   if(!categoria){toast('⚠ Selecione a categoria.');return;}
   if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
   if(!data){toast('⚠ Informe a data.');return;}
+
+  // Aviso de data futura
+  const hoje = new Date().toISOString().split('T')[0];
+  if(data > hoje){
+    const confirma = confirm(`⚠️ A data informada é futura (${fmtDate(data)}).\n\nIsso pode ser um erro de digitação.\nConfirma o lançamento mesmo assim?`);
+    if(!confirma) return;
+  }
   const item = {
     user_id: currentUser.id, descricao, categoria,
     canal: document.getElementById('mr-canal').value,
