@@ -186,6 +186,20 @@ tbody tr:hover td{background:var(--surface2)}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:var(--bg);padding:11px 16px;border-radius:var(--rs);font-size:13px;font-weight:600;z-index:300;animation:toastIn .2s ease;box-shadow:0 4px 20px rgba(0,0,0,.25)}
 @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
+/* MODO TOGGLE */
+.toggle-modo{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--surface2);border:.5px solid var(--border2);
+  border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .2s;user-select:none;
+}
+.toggle-modo:hover{border-color:var(--accent);color:var(--accent)}
+.toggle-modo.pessoal{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+
+/* PESSOAL NAV */
+.nav-pessoal{display:none}
+.nav-pessoal.show{display:block}
+
 /* USUARIOS */
 .user-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .user-avatar{width:38px;height:38px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
@@ -350,7 +364,10 @@ tbody tr:hover td{background:var(--surface2)}
           </button>
           <span class="topbar-title" id="page-title">Dashboard</span>
         </div>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="toggle-modo" id="toggle-modo" onclick="alternarModo()" title="Alternar entre Empresa e Pessoal">
+            <span id="toggle-modo-label">🏢 Empresa</span>
+          </div>
           <button class="btn btn-primary" onclick="showPage('lancar',document.getElementById('nav-lancar'))">+ Lançar</button>
         </div>
       </header>
@@ -521,6 +538,147 @@ tbody tr:hover td{background:var(--surface2)}
           <div id="dre-output"></div>
         </div>
 
+
+        <!-- ══ PÁGINAS PESSOAIS ══ -->
+
+        <!-- DASHBOARD PESSOAL -->
+        <div class="page" id="page-pessoal-dashboard">
+          <div class="alert alert-info" style="margin-bottom:18px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Este painel é exclusivamente pessoal — separado das finanças da empresa.
+          </div>
+          <div class="metrics" id="p-metrics"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px" id="p-cats-grid"></div>
+          <div class="sec-title">Últimos Lançamentos Pessoais</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Data</th><th style="text-align:right">Valor</th></tr></thead>
+            <tbody id="p-dash-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <!-- LANÇAR PESSOAL -->
+        <div class="page" id="page-pessoal-lancar">
+          <div class="card" style="padding:20px">
+            <div class="form-grid">
+              <div class="form-group full">
+                <label class="form-label">Tipo <span style="color:var(--accent)">*</span></label>
+                <div style="display:flex;gap:8px">
+                  <button class="btn" id="tipo-despesa-btn" onclick="setTipoPessoal('despesa')" style="flex:1;background:var(--accent);color:#fff;border-color:var(--accent)">📤 Despesa</button>
+                  <button class="btn" id="tipo-receita-btn" onclick="setTipoPessoal('receita')" style="flex:1">📥 Receita</button>
+                </div>
+                <input type="hidden" id="p-tipo" value="despesa">
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Descrição <span style="color:var(--accent)">*</span></label>
+                <input type="text" class="form-control" id="p-desc" placeholder="Ex: Aluguel, Salário, Mercado...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Categoria <span style="color:var(--accent)">*</span></label>
+                <select class="form-control" id="p-cat">
+                  <option value="">Selecionar...</option>
+                  <optgroup label="💸 Despesas">
+                    <option>Moradia</option>
+                    <option>Alimentação</option>
+                    <option>Transporte</option>
+                    <option>Saúde</option>
+                    <option>Lazer</option>
+                    <option>Educação</option>
+                    <option>Vestuário</option>
+                    <option>Outros</option>
+                  </optgroup>
+                  <optgroup label="💰 Receitas">
+                    <option>Salário</option>
+                    <option>Pró-labore</option>
+                    <option>Freelance</option>
+                    <option>Investimentos</option>
+                    <option>Outras Receitas</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Valor <span style="color:var(--accent)">*</span></label>
+                <input type="text" class="form-control" id="p-valor" placeholder="R$ 0,00">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Data <span style="color:var(--accent)">*</span></label>
+                <input type="date" class="form-control" id="p-data">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Forma de Pagamento</label>
+                <select class="form-control" id="p-pagto">
+                  <option value="">—</option>
+                  <option>Dinheiro</option><option>PIX</option><option>Cartão de Débito</option>
+                  <option>Cartão de Crédito</option><option>Transferência</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Recorrente?</label>
+                <select class="form-control" id="p-recorrente">
+                  <option value="false">Não</option>
+                  <option value="true">Sim (mensal)</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Observações</label>
+                <input type="text" class="form-control" id="p-obs" placeholder="Opcional">
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn" onclick="limparFormPessoal()">Limpar</button>
+              <button class="btn btn-primary" onclick="salvarPessoal()">💾 Salvar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXTRATO PESSOAL -->
+        <div class="page" id="page-pessoal-extrato">
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+            <select class="form-control" id="p-filtro-tipo" style="width:150px" onchange="renderExtratoPessoal()">
+              <option value="">Todos</option>
+              <option value="despesa">Despesas</option>
+              <option value="receita">Receitas</option>
+            </select>
+            <select class="form-control" id="p-filtro-cat" style="width:180px" onchange="renderExtratoPessoal()">
+              <option value="">Todas as categorias</option>
+              <option>Moradia</option><option>Alimentação</option><option>Transporte</option>
+              <option>Saúde</option><option>Lazer</option><option>Educação</option>
+              <option>Vestuário</option><option>Outros</option>
+              <option>Salário</option><option>Pró-labore</option><option>Freelance</option>
+              <option>Investimentos</option><option>Outras Receitas</option>
+            </select>
+            <button class="btn btn-sm" onclick="exportCSVPessoal()">⬇ CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr>
+              <th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Pagamento</th><th>Data</th><th style="text-align:right">Valor</th><th></th>
+            </tr></thead>
+            <tbody id="p-extrato-tbody"></tbody></table>
+          </div>
+          <div id="p-extrato-total" style="display:none;text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
+        </div>
+
+        <!-- DRE PESSOAL -->
+        <div class="page" id="page-pessoal-dre">
+          <div class="card" style="padding:16px;margin-bottom:20px">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Data início</label>
+                <input type="date" class="form-control" id="p-dre-ini" style="width:160px">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Data fim</label>
+                <input type="date" class="form-control" id="p-dre-fim" style="width:160px">
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-sm" onclick="setPDrePeriodo('mes')">Mês atual</button>
+                <button class="btn btn-sm" onclick="setPDrePeriodo('ano')">Ano</button>
+                <button class="btn btn-primary btn-sm" onclick="renderDREPessoal()">▶ Gerar</button>
+              </div>
+            </div>
+          </div>
+          <div id="p-dre-output"></div>
+        </div>
+
         <!-- CENTROS DE CUSTO ADMIN -->
         <div class="page" id="page-centros-admin">
           <div class="alert alert-info" style="margin-bottom:18px">
@@ -582,6 +740,9 @@ let todosPlanos = [];
 let receitas = [];
 let todosCentros = [];
 let centrosPermitidos = [];
+let despesasPessoais = [];
+let receitasPessoais = [];
+let modoPainel = 'empresa'; // 'empresa' ou 'pessoal'
 
 const CC_COLORS = {'Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922','Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'};
 const STATUS_STYLE = {'Aprovado':'background:#eaf3de;color:#3b6d11','Pendente':'background:#faeeda;color:#854f0b','Rejeitado':'background:#fcebeb;color:#a32d2d'};
@@ -823,7 +984,7 @@ function showPage(id, navEl){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',usuarios:'Gerenciar Usuários',planos:'Configurar Planos','centros-admin':'Centros de Custo — Admin'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',usuarios:'Gerenciar Usuários',planos:'Configurar Planos','centros-admin':'Centros de Custo — Admin','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'DRE Pessoal'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
@@ -834,6 +995,12 @@ function showPage(id, navEl){
   if(id==='receitas') renderReceitas();
   if(id==='dre') initDRE();
   if(id==='centros-admin') renderCentrosAdmin();
+  if(id==='pessoal-dashboard') renderPessoalDashboard();
+  if(id==='pessoal-extrato') renderExtratoPessoal();
+  if(id==='pessoal-dre') initDREPessoal();
+  if(id==='pessoal-lancar'){
+    document.getElementById('p-data').value = new Date().toISOString().split('T')[0];
+  }
 }
 
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay-sb').classList.toggle('show'); }
@@ -1207,6 +1374,321 @@ function updateFooter(){
   }
 }
 
+
+
+// ══ MODO EMPRESA / PESSOAL ══
+async function alternarModo(){
+  modoPainel = modoPainel === 'empresa' ? 'pessoal' : 'empresa';
+  const btn = document.getElementById('toggle-modo');
+  const label = document.getElementById('toggle-modo-label');
+
+  if(modoPainel === 'pessoal'){
+    btn.classList.add('pessoal');
+    label.textContent = '👤 Pessoal';
+    document.getElementById('nav-pessoal-section').classList.add('show');
+    // Carregar dados pessoais
+    await loadDadosPessoais();
+    showPage('pessoal-dashboard', document.getElementById('nav-pessoal-dash'));
+  } else {
+    btn.classList.remove('pessoal');
+    label.textContent = '🏢 Empresa';
+    document.getElementById('nav-pessoal-section').classList.remove('show');
+    showPage('dashboard', document.getElementById('nav-dashboard'));
+  }
+}
+
+async function loadDadosPessoais(){
+  const { data, error } = await sb.from('despesas_pessoais')
+    .select('*').eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+  if(!error){
+    despesasPessoais = (data||[]).filter(d=>d.tipo==='despesa');
+    receitasPessoais = (data||[]).filter(d=>d.tipo==='receita');
+  }
+}
+
+// ══ DASHBOARD PESSOAL ══
+function renderPessoalDashboard(){
+  const todos = [...despesasPessoais, ...receitasPessoais];
+  const totalDesp = despesasPessoais.reduce((s,d)=>s+d.valor,0);
+  const totalRec = receitasPessoais.reduce((s,r)=>s+r.valor,0);
+  const saldo = totalRec - totalDesp;
+
+  // Mês atual
+  const now = new Date();
+  const mesDesp = despesasPessoais.filter(d=>{
+    const dt=new Date(d.data); return dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear();
+  }).reduce((s,d)=>s+d.valor,0);
+  const mesRec = receitasPessoais.filter(r=>{
+    const dt=new Date(r.data); return dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear();
+  }).reduce((s,r)=>s+r.valor,0);
+
+  document.getElementById('p-metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">Receitas do Mês</div><div class="metric-value green">${fmt(mesRec)}</div><div class="metric-sub">total pessoal</div></div>
+    <div class="metric"><div class="metric-label">Despesas do Mês</div><div class="metric-value accent">${fmt(mesDesp)}</div><div class="metric-sub">total pessoal</div></div>
+    <div class="metric"><div class="metric-label">Saldo do Mês</div><div class="metric-value" style="${(mesRec-mesDesp)>=0?'color:var(--green)':'color:var(--accent)'}">${fmt(mesRec-mesDesp)}</div></div>
+    <div class="metric"><div class="metric-label">Saldo Geral</div><div class="metric-value" style="${saldo>=0?'color:var(--green)':'color:var(--accent)'}">${fmt(saldo)}</div><div class="metric-sub">acumulado</div></div>`;
+
+  // Categorias de despesa
+  const cats = ['Moradia','Alimentação','Transporte','Saúde','Lazer','Educação','Vestuário','Outros'];
+  const catColors = {'Moradia':'#378add','Alimentação':'#d85a30','Transporte':'#639922','Saúde':'#d4537e','Lazer':'#7f77dd','Educação':'#ba7517','Vestuário':'#16a085','Outros':'#888'};
+  const porCat = {};
+  despesasPessoais.forEach(d=>{ porCat[d.categoria]=(porCat[d.categoria]||0)+d.valor; });
+  const max = Math.max(...Object.values(porCat),1);
+
+  document.getElementById('p-cats-grid').innerHTML = `
+    <div class="card" style="padding:16px">
+      <div class="sec-title">Despesas por Categoria</div>
+      ${cats.filter(c=>porCat[c]).map(c=>`
+        <div class="bar-row">
+          <div class="bar-label">${c}</div>
+          <div class="bar-track"><div class="bar-fill" style="background:${catColors[c]||'#888'};width:${Math.round((porCat[c]||0)/max*100)}%"></div></div>
+          <div class="bar-value">${fmt(porCat[c]||0)}</div>
+        </div>`).join('') || '<div style="color:var(--muted);font-size:13px">Sem despesas lançadas.</div>'}
+    </div>
+    <div class="card" style="padding:16px">
+      <div class="sec-title">Receitas por Categoria</div>
+      ${(() => {
+        const rcats = ['Salário','Pró-labore','Freelance','Investimentos','Outras Receitas'];
+        const rColors = {'Salário':'#639922','Pró-labore':'#378add','Freelance':'#7f77dd','Investimentos':'#ba7517','Outras Receitas':'#888'};
+        const porRCat = {};
+        receitasPessoais.forEach(r=>{ porRCat[r.categoria]=(porRCat[r.categoria]||0)+r.valor; });
+        const maxR = Math.max(...Object.values(porRCat),1);
+        return rcats.filter(c=>porRCat[c]).map(c=>`
+          <div class="bar-row">
+            <div class="bar-label">${c}</div>
+            <div class="bar-track"><div class="bar-fill" style="background:${rColors[c]||'#639922'};width:${Math.round((porRCat[c]||0)/maxR*100)}%"></div></div>
+            <div class="bar-value">${fmt(porRCat[c]||0)}</div>
+          </div>`).join('') || '<div style="color:var(--muted);font-size:13px">Sem receitas lançadas.</div>';
+      })()}
+    </div>`;
+
+  // Últimos lançamentos
+  const todos2 = [...despesasPessoais,...receitasPessoais].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const tbody = document.getElementById('p-dash-tbody');
+  if(!todos2.length){
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-icon">💳</div><div class="empty-title">Nenhum lançamento pessoal</div><span class="link" onclick="showPage('pessoal-lancar',document.getElementById('nav-pessoal-lancar'))">Lançar agora →</span></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = todos2.slice(0,8).map(d=>`<tr>
+    <td style="font-weight:600">${d.descricao}</td>
+    <td style="color:var(--muted)">${d.categoria}</td>
+    <td><span class="badge" style="${d.tipo==='receita'?'background:#eaf3de;color:#3b6d11':'background:#faece7;color:#993c1d'}">${d.tipo==='receita'?'📥 Receita':'📤 Despesa'}</span></td>
+    <td style="color:var(--muted)">${fmtDate(d.data)}</td>
+    <td style="text-align:right;font-weight:700;${d.tipo==='receita'?'color:var(--green)':'color:var(--accent)'}">${d.tipo==='receita'?'+':'-'}${fmt(d.valor)}</td>
+  </tr>`).join('');
+}
+
+// ══ LANÇAR PESSOAL ══
+function setTipoPessoal(tipo){
+  document.getElementById('p-tipo').value = tipo;
+  const bd = document.getElementById('tipo-despesa-btn');
+  const br = document.getElementById('tipo-receita-btn');
+  if(tipo==='despesa'){
+    bd.style.cssText='flex:1;background:var(--accent);color:#fff;border-color:var(--accent)';
+    br.style.cssText='flex:1';
+  } else {
+    br.style.cssText='flex:1;background:#639922;color:#fff;border-color:#639922';
+    bd.style.cssText='flex:1';
+  }
+}
+
+function limparFormPessoal(){
+  ['p-desc','p-valor','p-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-cat').selectedIndex=0;
+  document.getElementById('p-pagto').selectedIndex=0;
+  document.getElementById('p-recorrente').selectedIndex=0;
+  document.getElementById('p-data').value=new Date().toISOString().split('T')[0];
+  setTipoPessoal('despesa');
+}
+
+async function salvarPessoal(){
+  const tipo = document.getElementById('p-tipo').value;
+  const descricao = document.getElementById('p-desc').value.trim();
+  const categoria = document.getElementById('p-cat').value;
+  const valorRaw = document.getElementById('p-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
+  const valor = parseFloat(valorRaw);
+  const data = document.getElementById('p-data').value;
+  if(!descricao){toast('⚠ Preencha a descrição.');return;}
+  if(!categoria){toast('⚠ Selecione a categoria.');return;}
+  if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
+  if(!data){toast('⚠ Informe a data.');return;}
+
+  const item = {
+    user_id: currentUser.id, tipo, descricao, categoria, valor, data,
+    forma_pagamento: document.getElementById('p-pagto').value,
+    recorrente: document.getElementById('p-recorrente').value==='true',
+    obs: document.getElementById('p-obs').value.trim(),
+  };
+  const { data: saved, error } = await sb.from('despesas_pessoais').insert(item).select().single();
+  if(error){toast('❌ Erro: '+error.message);return;}
+  if(tipo==='despesa') despesasPessoais.unshift(saved);
+  else receitasPessoais.unshift(saved);
+  limparFormPessoal();
+  toast(`✅ ${tipo==='despesa'?'Despesa':'Receita'} pessoal salva!`);
+  showPage('pessoal-dashboard', document.getElementById('nav-pessoal-dash'));
+}
+
+// ══ EXTRATO PESSOAL ══
+function renderExtratoPessoal(){
+  const fTipo = document.getElementById('p-filtro-tipo')?.value||'';
+  const fCat = document.getElementById('p-filtro-cat')?.value||'';
+  let todos = [...despesasPessoais,...receitasPessoais].sort((a,b)=>new Date(b.data)-new Date(a.data));
+  if(fTipo) todos=todos.filter(d=>d.tipo===fTipo);
+  if(fCat) todos=todos.filter(d=>d.categoria===fCat);
+
+  const tbody=document.getElementById('p-extrato-tbody');
+  const tot=document.getElementById('p-extrato-total');
+  if(!todos.length){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Nenhum lançamento encontrado</div></div></td></tr>`;
+    tot.style.display='none'; return;
+  }
+  const totalRec=todos.filter(d=>d.tipo==='receita').reduce((s,d)=>s+d.valor,0);
+  const totalDesp=todos.filter(d=>d.tipo==='despesa').reduce((s,d)=>s+d.valor,0);
+  tot.style.display='block';
+  tot.innerHTML=`Receitas: <span style="color:var(--green)">${fmt(totalRec)}</span> &nbsp;|&nbsp; Despesas: <span style="color:var(--accent)">${fmt(totalDesp)}</span> &nbsp;|&nbsp; Saldo: <span style="${(totalRec-totalDesp)>=0?'color:var(--green)':'color:var(--accent)'}">${fmt(totalRec-totalDesp)}</span>`;
+
+  tbody.innerHTML=todos.map(d=>`<tr>
+    <td style="font-weight:600">${d.descricao}${d.recorrente?' <span class="badge badge-gray" style="font-size:10px">🔄 Recorrente</span>':''}</td>
+    <td style="color:var(--muted)">${d.categoria}</td>
+    <td><span class="badge" style="${d.tipo==='receita'?'background:#eaf3de;color:#3b6d11':'background:#faece7;color:#993c1d'}">${d.tipo==='receita'?'📥 Receita':'📤 Despesa'}</span></td>
+    <td style="color:var(--muted)">${d.forma_pagamento||'—'}</td>
+    <td style="color:var(--muted)">${fmtDate(d.data)}</td>
+    <td style="text-align:right;font-weight:700;${d.tipo==='receita'?'color:var(--green)':'color:var(--accent)'}">${d.tipo==='receita'?'+':'-'}${fmt(d.valor)}</td>
+    <td><button class="btn btn-xs btn-danger" onclick="excluirPessoal(${d.id},'${d.tipo}')">🗑</button></td>
+  </tr>`).join('');
+}
+
+async function excluirPessoal(id, tipo){
+  if(!confirm('Excluir este lançamento?')) return;
+  const { error } = await sb.from('despesas_pessoais').delete().eq('id',id);
+  if(error){toast('❌ Erro: '+error.message);return;}
+  if(tipo==='despesa') despesasPessoais=despesasPessoais.filter(d=>d.id!==id);
+  else receitasPessoais=receitasPessoais.filter(d=>d.id!==id);
+  renderExtratoPessoal();
+  toast('🗑 Excluído.');
+}
+
+function exportCSVPessoal(){
+  const todos=[...despesasPessoais,...receitasPessoais].sort((a,b)=>new Date(b.data)-new Date(a.data));
+  if(!todos.length){toast('Sem dados.');return;}
+  const headers=['ID','Tipo','Descrição','Categoria','Valor','Data','Pagamento','Recorrente','Obs'];
+  const rows=todos.map(d=>[d.id,d.tipo,d.descricao,d.categoria,d.valor.toFixed(2).replace('.',','),fmtDate(d.data),d.forma_pagamento,d.recorrente?'Sim':'Não',d.obs].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`));
+  const csv=[headers,...rows].map(r=>r.join(';')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`financas_pessoais_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  toast('✅ CSV exportado!');
+}
+
+// ══ DRE PESSOAL ══
+function initDREPessoal(){
+  const hoje=new Date();
+  const ini=new Date(hoje.getFullYear(),hoje.getMonth(),1);
+  document.getElementById('p-dre-ini').value=ini.toISOString().split('T')[0];
+  document.getElementById('p-dre-fim').value=hoje.toISOString().split('T')[0];
+  renderDREPessoal();
+}
+
+function setPDrePeriodo(p){
+  const hoje=new Date();
+  const ini = p==='mes' ? new Date(hoje.getFullYear(),hoje.getMonth(),1) : new Date(hoje.getFullYear(),0,1);
+  document.getElementById('p-dre-ini').value=ini.toISOString().split('T')[0];
+  document.getElementById('p-dre-fim').value=hoje.toISOString().split('T')[0];
+  renderDREPessoal();
+}
+
+function renderDREPessoal(){
+  const ini=document.getElementById('p-dre-ini')?.value;
+  const fim=document.getElementById('p-dre-fim')?.value;
+  if(!ini||!fim){document.getElementById('p-dre-output').innerHTML='<div class="alert alert-warn">Selecione o período.</div>';return;}
+
+  const despPer=despesasPessoais.filter(d=>d.data>=ini&&d.data<=fim);
+  const recPer=receitasPessoais.filter(r=>r.data>=ini&&r.data<=fim);
+
+  // Receitas
+  const totalSalario=recPer.filter(r=>['Salário','Pró-labore'].includes(r.categoria)).reduce((s,r)=>s+r.valor,0);
+  const totalOutrasRec=recPer.filter(r=>!['Salário','Pró-labore'].includes(r.categoria)).reduce((s,r)=>s+r.valor,0);
+  const totalRec=recPer.reduce((s,r)=>s+r.valor,0);
+
+  // Despesas por categoria
+  const cats=['Moradia','Alimentação','Transporte','Saúde','Lazer','Educação','Vestuário','Outros'];
+  const porCat={};
+  cats.forEach(c=>{ porCat[c]=despPer.filter(d=>d.categoria===c).reduce((s,d)=>s+d.valor,0); });
+  const totalDesp=despPer.reduce((s,d)=>s+d.valor,0);
+
+  // Essenciais vs Não-essenciais
+  const essenciais=['Moradia','Alimentação','Saúde','Transporte'];
+  const naoEssenciais=['Lazer','Educação','Vestuário','Outros'];
+  const totalEss=despPer.filter(d=>essenciais.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
+  const totalNaoEss=despPer.filter(d=>naoEssenciais.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
+
+  const saldo=totalRec-totalDesp;
+  const pct=v=>totalRec>0?`${(v/totalRec*100).toFixed(1)}%`:'—';
+  const cor=v=>v>=0?'color:var(--green)':'color:var(--accent)';
+
+  const linha=(label,valor,sub,bold,indent,borderTop)=>`
+    <tr style="${borderTop?'border-top:2px solid var(--border2)':''}">
+      <td style="padding:${indent?'8px 11px 8px 28px':'10px 11px'};${bold?'font-weight:700':''}color:var(--text)">${label}${sub?`<div style="font-size:11px;font-weight:400;color:var(--muted);margin-top:1px">${sub}</div>`:''}</td>
+      <td style="text-align:right;padding:10px 11px;${bold?'font-weight:700':''}${bold&&valor!==undefined?';'+cor(valor):''}">${valor!==undefined?fmt(valor):''}</td>
+      <td style="text-align:right;padding:10px 11px;color:var(--muted);font-size:12px">${valor!==undefined?pct(valor):''}</td>
+    </tr>`;
+
+  document.getElementById('p-dre-output').innerHTML=`
+    <div class="card" style="overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:16px;font-weight:700">DRE Pessoal</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Período: ${fmtDate(ini)} a ${fmtDate(fim)}</div>
+        </div>
+        <button class="btn btn-sm" onclick="exportDREPessoal('${ini}','${fim}')">⬇ Exportar</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="background:var(--surface2)">
+          <th style="text-align:left;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">Descrição</th>
+          <th style="text-align:right;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">Valor</th>
+          <th style="text-align:right;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">% Receita</th>
+        </tr></thead>
+        <tbody>
+          ${linha('1. RECEITAS TOTAIS', totalRec, null, true, false, false)}
+          ${linha('Salário + Pró-labore', totalSalario, null, false, true, false)}
+          ${linha('Outras receitas', totalOutrasRec, null, false, true, false)}
+          ${linha('2. DESPESAS ESSENCIAIS', totalEss, 'Moradia, Alimentação, Saúde, Transporte', true, false, true)}
+          ${cats.filter(c=>essenciais.includes(c)&&porCat[c]>0).map(c=>linha(c,porCat[c],null,false,true,false)).join('')}
+          ${linha('3. DESPESAS NÃO ESSENCIAIS', totalNaoEss, 'Lazer, Educação, Vestuário, Outros', true, false, true)}
+          ${cats.filter(c=>naoEssenciais.includes(c)&&porCat[c]>0).map(c=>linha(c,porCat[c],null,false,true,false)).join('')}
+          ${linha('4. TOTAL DESPESAS', totalDesp, null, true, false, true)}
+          ${linha('5. SALDO DO PERÍODO', saldo, saldo>=0?'✅ Situação positiva':'⚠️ Gastou mais do que ganhou', true, false, true)}
+        </tbody>
+      </table>
+    </div>
+    <div class="metrics" style="margin-top:16px">
+      <div class="metric"><div class="metric-label">Receita Total</div><div class="metric-value green">${fmt(totalRec)}</div></div>
+      <div class="metric"><div class="metric-label">Desp. Essenciais</div><div class="metric-value accent">${fmt(totalEss)}</div><div class="metric-sub">${pct(totalEss)} da receita</div></div>
+      <div class="metric"><div class="metric-label">Desp. Não Essenciais</div><div class="metric-value" style="color:#ba7517">${fmt(totalNaoEss)}</div><div class="metric-sub">${pct(totalNaoEss)} da receita</div></div>
+      <div class="metric"><div class="metric-label">Saldo</div><div class="metric-value" style="${cor(saldo)}">${fmt(saldo)}</div></div>
+    </div>`;
+}
+
+function exportDREPessoal(ini,fim){
+  const despPer=despesasPessoais.filter(d=>d.data>=ini&&d.data<=fim);
+  const recPer=receitasPessoais.filter(r=>r.data>=ini&&r.data<=fim);
+  const totalRec=recPer.reduce((s,r)=>s+r.valor,0);
+  const totalDesp=despPer.reduce((s,d)=>s+d.valor,0);
+  const saldo=totalRec-totalDesp;
+  const rows=[
+    ['DRE Pessoal','',''],
+    [`Período: ${fmtDate(ini)} a ${fmtDate(fim)}`,'',''],
+    ['','',''],
+    ['Descrição','Valor (R$)','% Receita'],
+    ['1. RECEITAS TOTAIS',totalRec.toFixed(2).replace('.',','),totalRec>0?'100%':'—'],
+    ['2. TOTAL DESPESAS',totalDesp.toFixed(2).replace('.',','),totalRec>0?(totalDesp/totalRec*100).toFixed(1)+'%':'—'],
+    ['5. SALDO',saldo.toFixed(2).replace('.',','),totalRec>0?(saldo/totalRec*100).toFixed(1)+'%':'—'],
+  ];
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(';')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`DRE_pessoal_${ini}_${fim}.csv`; a.click();
+  toast('✅ DRE pessoal exportado!');
+}
 
 // ══ CENTROS DE CUSTO — ADMIN ══
 async function renderCentrosAdmin(){
