@@ -1343,16 +1343,24 @@ async function gerarRelatorio(tipo){
   if(!podeVerRelatorios()){ alertPlano('Relatórios IA'); return; }
   const out=document.getElementById('report-out'), loading=document.getElementById('report-loading');
   out.classList.remove('show'); out.textContent=''; loading.classList.add('show');
-  const resumo=JSON.stringify(despesas.map(d=>({fornecedor:d.fornecedor,cc:d.cc,categoria:d.categoria,valor:d.valor,data:d.data,usuario:d.profiles?.full_name})));
+  // Garantir que despesas é um array válido
+  const listaDesp = Array.isArray(despesas) ? despesas : [];
+  const resumo=JSON.stringify(listaDesp.map(d=>({fornecedor:d.fornecedor,cc:d.cc,categoria:d.categoria,valor:d.valor,data:d.data,usuario:d.profiles?.full_name})));
+  // Incluir receitas no contexto dos relatórios
+  const listaRec = Array.isArray(receitas) ? receitas : [];
+  const resumoRec = JSON.stringify(listaRec.map(r=>({descricao:r.descricao,categoria:r.categoria,valor:r.valor,data:r.data})));
+  const totalRec = listaRec.reduce((s,r)=>s+r.valor,0);
+  const totalDesp = listaDesp.reduce((s,d)=>s+d.valor,0);
+
   const prompts={
-    resumo:`Analista financeiro de food service. Dados de despesas: ${resumo}\n\nGere resumo executivo em português: total, principal CC e categoria, distribuição % e 3 observações estratégicas.`,
-    anomalias:`Auditor financeiro. Dados: ${resumo}\n\nIdentifique anomalias, duplicidades e valores atípicos. Pontue por nível de atenção. Português.`,
-    tendencias:`Analista de dados para restaurantes. Dados: ${resumo}\n\nAnalise tendências, concentração por CC e equilíbrio operacional vs fixo. Português.`,
-    economia:`Consultor de custos para hamburguerias. Dados: ${resumo}\n\nSugira 5 ações concretas de redução de custos com estimativa de impacto. Português.`,
-    dre:`Contador especializado em food service. Dados: ${resumo}\n\nMonte DRE simplificado agrupando despesas por natureza em formato de tabela textual. Português.`
+    resumo:`Você é analista financeiro especialista em food service. Dados da hamburgueria:\nDESPESAS: ${resumo}\nRECEITAS: ${resumoRec}\nTotal Receitas: R$${totalRec.toFixed(2)} | Total Despesas: R$${totalDesp.toFixed(2)} | Resultado: R$${(totalRec-totalDesp).toFixed(2)}\n\nGere um resumo executivo em português com: resultado financeiro, principal CC, principais categorias de despesa, e 3 observações estratégicas. Seja objetivo e direto.`,
+    anomalias:`Você é auditor financeiro especializado em food service. Dados:\nDESPESAS: ${resumo}\nRECEITAS: ${resumoRec}\n\nIdentifique anomalias, valores atípicos, despesas suspeitas ou desequilíbrios financeiros. Pontue por nível de atenção (Alto/Médio/Baixo). Se não houver dados suficientes, informe. Responda em português.`,
+    tendencias:`Você é analista de dados para restaurantes. Dados:\nDESPESAS: ${resumo}\nRECEITAS: ${resumoRec}\n\nAnalise tendências, concentração de custos por centro, equilíbrio entre receitas e despesas, e padrões de consumo. Sugira ações baseadas nos dados. Português.`,
+    economia:`Você é consultor de redução de custos para hamburguerias. Dados:\nDESPESAS: ${resumo}\nTotal: R$${totalDesp.toFixed(2)}\n\nSugira 5 ações concretas e priorizadas para redução de custos com estimativa de impacto percentual. Use benchmarks do setor. Português, formato estruturado.`,
+    dre:`Você é contador especializado em food service. Dados:\nRECEITAS: ${resumoRec} (Total: R$${totalRec.toFixed(2)})\nDESPESAS: ${resumo} (Total: R$${totalDesp.toFixed(2)})\n\nMonte um DRE simplificado agrupando por natureza (CMV, Desp.Operacionais, Desp.Fixas). Apresente em formato de tabela textual com valores e percentuais. Português.`
   };
   try {
-    const resp=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:despesas.length?prompts[tipo]:'Informe que não há dados de despesas ainda. Português.'}]})});
+    const resp=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:listaDesp.length?prompts[tipo]:'Informe que não há dados de despesas lançados ainda e oriente o usuário a realizar lançamentos primeiro. Responda em português.'}]})});
     const data=await resp.json();
     loading.classList.remove('show');
     out.textContent=data.content.map(c=>c.text||'').join(''); out.classList.add('show');
