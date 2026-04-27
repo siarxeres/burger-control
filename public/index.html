@@ -482,6 +482,7 @@ tbody tr:hover td{background:var(--surface2)}
             <select class="form-control" id="filtro-cc" style="width:175px" onchange="renderDespesas()"><option value="">Todos os centros</option><option>Cozinha</option><option>Salão / Atendimento</option><option>Delivery</option><option>Administrativo</option><option>Marketing</option><option>Manutenção</option></select>
             <select class="form-control" id="filtro-cat" style="width:195px" onchange="renderDespesas()"><option value="">Todas as categorias</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select>
             <select class="form-control" id="filtro-status" style="width:145px" onchange="renderDespesas()"><option value="">Todos os status</option><option>Aprovado</option><option>Pendente</option><option>Rejeitado</option></select>
+            <select class="form-control" id="filtro-usuario" style="width:180px" onchange="renderDespesas()" style="display:none"><option value="">Todos os usuários</option></select>
             <button class="btn btn-sm" onclick="exportCSV()">⬇ CSV</button>
           </div>
           <div class="table-wrap">
@@ -961,8 +962,31 @@ function initApp(){
   document.getElementById('despesas-aviso-op').style.display = isAdmin() ? 'none' : 'flex';
   document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
   populateCCSelects();
+  populateUserFilter();
   updateFooter();
   updateDashboard();
+}
+
+function populateUserFilter(){
+  const sel = document.getElementById('filtro-usuario');
+  if(!sel) return;
+  // Só mostra para admin
+  sel.style.display = isAdmin() ? 'block' : 'none';
+  if(!isAdmin()) return;
+  // Preenche com usuários únicos das despesas
+  const usuarios = {};
+  despesas.forEach(d => {
+    if(d.user_id && d.profiles?.full_name){
+      usuarios[d.user_id] = d.profiles.full_name;
+    }
+  });
+  sel.innerHTML = '<option value="">Todos os usuários</option>';
+  Object.entries(usuarios).forEach(([id, nome]) => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = nome;
+    sel.appendChild(opt);
+  });
 }
 
 function populateCCSelects(){
@@ -1189,9 +1213,13 @@ function renderDespesas(){
   const fCC=document.getElementById('filtro-cc').value;
   const fCat=document.getElementById('filtro-cat').value;
   const fSt=document.getElementById('filtro-status').value;
+  const fUser=document.getElementById('filtro-usuario')?.value||'';
   if(fCC) list=list.filter(d=>d.cc===fCC);
   if(fCat) list=list.filter(d=>d.categoria===fCat);
   if(fSt) list=list.filter(d=>d.status===fSt);
+  if(fUser) list=list.filter(d=>d.user_id===fUser);
+  // Repopular filtro de usuários com dados atuais
+  populateUserFilter();
   const tbody=document.getElementById('desp-tbody'), tr=document.getElementById('desp-total');
   if(!list.length){ tbody.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum lançamento encontrado</div></div></td></tr>`; tr.style.display='none'; return; }
   tr.style.display='block'; tr.textContent=`Total: ${fmt(list.reduce((s,d)=>s+d.valor,0))} (${list.length} lançamento${list.length>1?'s':''})`;
