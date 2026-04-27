@@ -1360,11 +1360,33 @@ async function gerarRelatorio(tipo){
     dre:`Você é contador especializado em food service. Dados:\nRECEITAS: ${resumoRec} (Total: R$${totalRec.toFixed(2)})\nDESPESAS: ${resumo} (Total: R$${totalDesp.toFixed(2)})\n\nMonte um DRE simplificado agrupando por natureza (CMV, Desp.Operacionais, Desp.Fixas). Apresente em formato de tabela textual com valores e percentuais. Português.`
   };
   try {
-    const resp=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:listaDesp.length?prompts[tipo]:'Informe que não há dados de despesas lançados ainda e oriente o usuário a realizar lançamentos primeiro. Responda em português.'}]})});
-    const data=await resp.json();
+    const resp = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: listaDesp.length || listaRec.length ? prompts[tipo] : 'Informe que não há dados lançados ainda e oriente o usuário. Responda em português.'
+        }]
+      })
+    });
+    const data = await resp.json();
     loading.classList.remove('show');
-    out.textContent=data.content.map(c=>c.text||'').join(''); out.classList.add('show');
-  } catch(e){ loading.classList.remove('show'); out.textContent='Erro: '+e.message; out.classList.add('show'); }
+    if(data.error){
+      out.textContent = '❌ Erro da API: ' + (data.error.message || JSON.stringify(data.error));
+    } else if(data.content && Array.isArray(data.content)){
+      out.textContent = data.content.map(c=>c.text||'').join('');
+    } else {
+      out.textContent = '❌ Resposta inesperada: ' + JSON.stringify(data).slice(0,200);
+    }
+    out.classList.add('show');
+  } catch(e){
+    loading.classList.remove('show');
+    out.textContent = 'Erro de conexão: ' + e.message;
+    out.classList.add('show');
+  }
 }
 
 // ══ CSV ══
