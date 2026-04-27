@@ -1067,7 +1067,7 @@ valor_total: apenas números com ponto decimal. Campos não encontrados: string 
     const content = isImg
       ? [{type:'image',source:{type:'base64',media_type:mimeType,data:base64.split(',')[1]}},{type:'text',text:PROMPT}]
       : [{type:'text',text:PROMPT+'\n\nDocumento não é imagem — retorne JSON com campos vazios.'}];
-    const resp = await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content}]})});
+    const resp = await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,messages:[{role:'user',content}]})});
     const data = await resp.json();
     stopProgress();
     if(data.error) throw new Error(data.error);
@@ -1364,7 +1364,7 @@ async function gerarRelatorio(tipo){
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 1500,
         messages: [{
           role: 'user',
