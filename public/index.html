@@ -345,6 +345,26 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           Planos
         </div>
+        <!-- NAV PESSOAL -->
+        <div class="nav-pessoal" id="nav-pessoal-section">
+          <div class="nav-sec" style="color:var(--accent);margin-top:8px">👤 Conta Pessoal</div>
+          <div class="nav-item" onclick="showPage('pessoal-dashboard',this)" id="nav-pessoal-dash">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Resumo Pessoal
+          </div>
+          <div class="nav-item" onclick="showPage('pessoal-lancar',this)" id="nav-pessoal-lancar">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+            Lançar
+          </div>
+          <div class="nav-item" onclick="showPage('pessoal-extrato',this)" id="nav-pessoal-extrato">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            Extrato
+          </div>
+          <div class="nav-item" onclick="showPage('pessoal-dre',this)" id="nav-pessoal-dre">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            DRE Pessoal
+          </div>
+        </div>
       </nav>
       <div class="sidebar-footer">
         <div class="sf-user" id="sf-user">—</div>
