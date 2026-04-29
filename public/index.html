@@ -372,6 +372,7 @@ tbody tr:hover td{background:var(--surface2)}
         <div class="sf-period" id="sf-period">—</div>
         <div class="sf-amount" id="sf-amount">R$ 0,00</div>
         <div id="sf-plano-uso"></div>
+        <div id="sf-upgrade"></div>
         <button class="btn-logout" onclick="doLogout()">Sair da conta</button>
       </div>
     </aside>
@@ -809,7 +810,24 @@ function podeScanIA(){
 }
 function podeVerRelatorios(){ return isAdmin() || currentPlano?.tem_relatorios_ia; }
 function podeExportarCSV(){ return isAdmin() || currentPlano?.tem_export_csv; }
-function alertPlano(recurso){ toast(`🔒 "${recurso}" requer upgrade de plano. Acesse /pricing.html para conhecer os planos!`); }
+function alertPlano(recurso){
+  // Remove existing alert if any
+  const existing = document.getElementById('plano-alert-banner');
+  if(existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'plano-alert-banner';
+  banner.style.cssText = 'position:fixed;bottom:80px;right:22px;background:var(--surface);border:1.5px solid var(--accent);border-radius:var(--r);padding:14px 16px;z-index:250;box-shadow:0 4px 20px rgba(0,0,0,.25);max-width:300px;animation:toastIn .2s ease';
+  banner.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:600">🔒 Recurso bloqueado</div>
+      <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">"${recurso}" não está disponível no plano <strong>${currentPlano?.nome||'atual'}</strong>.</div>
+    <a href="/pricing.html" target="_blank" style="display:block;text-align:center;padding:8px;background:var(--accent);color:#fff;border-radius:var(--rs);font-size:13px;font-weight:600;text-decoration:none">⬆ Ver planos e fazer upgrade</a>`;
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 6000);
+}
 
 // ══ AUTH ══
 function showView(v){
@@ -1501,6 +1519,19 @@ function updateFooter(){
            <div style="height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden">
              <div style="height:100%;width:${pct}%;background:${pct>80?'#d85a30':'#639922'};border-radius:2px;transition:width .3s"></div>
            </div>`;
+    }
+    // Botão de upgrade — não mostra para Enterprise
+    const upgradeEl = document.getElementById('sf-upgrade');
+    if(upgradeEl){
+      if(currentPlano.id !== 'enterprise'){
+        const proximoPlano = currentPlano.id === 'starter' ? 'Pro' : 'Enterprise';
+        upgradeEl.innerHTML = `
+          <a href="/pricing.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:8px;background:var(--accent-bg);border:.5px solid var(--accent);border-radius:var(--rs);font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(216,90,48,0.15)'" onmouseout="this.style.background='var(--accent-bg)'">
+            ⬆ Upgrade para ${proximoPlano}
+          </a>`;
+      } else {
+        upgradeEl.innerHTML = '';
+      }
     }
   }
 }
