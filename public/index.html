@@ -461,6 +461,7 @@ tbody tr:hover td{background:var(--surface2)}
           <div class="tabs">
             <div class="tab active" onclick="switchTab('scan',this)">📷 Escanear Documento</div>
             <div class="tab" onclick="switchTab('manual',this)">✏️ Preencher Manualmente</div>
+            <div class="tab" onclick="switchTab('csv',this)">📊 Importar CSV</div>
           </div>
           <div id="tab-scan">
             <input type="file" id="file-input" accept="image/*,.pdf" style="display:none" onchange="handleFile(event)">
@@ -532,6 +533,55 @@ tbody tr:hover td{background:var(--surface2)}
             <tbody id="desp-tbody"></tbody></table>
           </div>
           <div id="desp-total" style="display:none;text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
+        </div>
+
+        <!-- CSV IMPORT TAB (inside page-lancar) -->
+        <div id="tab-csv" style="display:none">
+          <div class="alert alert-info" style="margin-bottom:16px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Importe lançamentos de qualquer sistema (WI2, SAP, Totvs, Omie, bancos, etc). A IA interpreta o arquivo automaticamente.
+          </div>
+          <input type="file" id="csv-input" accept=".csv,.txt,.xls,.xlsx" style="display:none" onchange="handleCSVImport(event)">
+          <div class="scan-zone" id="csv-zone" onclick="document.getElementById('csv-input').click()"
+            ondragover="event.preventDefault();this.classList.add('over')"
+            ondragleave="this.classList.remove('over')"
+            ondrop="event.preventDefault();this.classList.remove('over');handleCSVDrop(event)">
+            <div class="scan-zone-icon">📊</div>
+            <div class="scan-zone-title">Clique ou arraste o arquivo CSV aqui</div>
+            <div class="scan-zone-sub">CSV, TXT, XLS, XLSX · Qualquer sistema de gestão</div>
+          </div>
+          <div class="progress-bar" id="csv-progress" style="display:none"><div class="progress-fill" id="csv-progress-fill"></div></div>
+          <div id="csv-status" style="text-align:center;padding:12px;color:var(--muted);font-size:13px;display:none"></div>
+
+          <!-- Preview tabela -->
+          <div id="csv-preview" style="display:none;margin-top:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+              <div>
+                <div style="font-size:14px;font-weight:700" id="csv-preview-title">Lançamentos encontrados</div>
+                <div style="font-size:12px;color:var(--muted)" id="csv-preview-sub"></div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-sm" onclick="cancelarCSV()">✕ Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmarCSVImport()">✅ Confirmar importação</button>
+              </div>
+            </div>
+            <div class="table-wrap" style="max-height:400px;overflow-y:auto">
+              <table>
+                <thead><tr>
+                  <th><input type="checkbox" id="csv-check-all" onchange="toggleTodosCSV(this)" checked></th>
+                  <th>Fornecedor</th>
+                  <th>Descrição</th>
+                  <th>Tipo</th>
+                  <th>Data</th>
+                  <th>Centro de Custo</th>
+                  <th>Categoria</th>
+                  <th style="text-align:right">Valor</th>
+                </tr></thead>
+                <tbody id="csv-preview-tbody"></tbody>
+              </table>
+            </div>
+            <div id="csv-preview-total" style="text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
+          </div>
         </div>
 
         <!-- CENTROS -->
@@ -1781,6 +1831,266 @@ function updateFooter(){
 }
 
 
+
+
+// ══ IMPORTAR CSV ══
+let csvLancamentosPreview = [];
+
+function handleCSVDrop(e){
+  const file = e.dataTransfer.files[0];
+  if(file) processCSVFile(file);
+}
+
+function handleCSVImport(e){
+  const file = e.target.files[0];
+  if(file) processCSVFile(file);
+}
+
+async function processCSVFile(file){
+  const status = document.getElementById('csv-status');
+  const progress = document.getElementById('csv-progress');
+  const progressFill = document.getElementById('csv-progress-fill');
+  const preview = document.getElementById('csv-preview');
+
+  preview.style.display = 'none';
+  status.style.display = 'block';
+  status.textContent = '📊 Lendo arquivo...';
+  progress.style.display = 'block';
+  progressFill.style.width = '20%';
+
+  // Read file content
+  const text = await new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = e => res(e.target.result);
+    reader.onerror = rej;
+    reader.readAsText(file, 'UTF-8');
+  });
+
+  progressFill.style.width = '40%';
+  status.textContent = '🤖 Enviando para análise da IA...';
+
+  // Send to Claude for interpretation
+  const prompt = `Você é um especialista em análise de arquivos financeiros. Analise este arquivo CSV/texto exportado de um sistema de gestão financeira e extraia TODOS os lançamentos financeiros encontrados.
+
+ARQUIVO:
+${text.slice(0, 8000)}
+
+Retorne APENAS um JSON válido com este formato exato (sem markdown, sem explicações):
+{
+  "sistema": "nome do sistema detectado ou Desconhecido",
+  "empresa": "nome da empresa se encontrado",
+  "periodo": "período dos dados se encontrado",
+  "lancamentos": [
+    {
+      "tipo": "despesa ou receita",
+      "fornecedor": "nome do fornecedor/cliente",
+      "descricao": "descrição do lançamento",
+      "valor": 0.00,
+      "data": "DD/MM/YYYY",
+      "documento": "número do documento se houver",
+      "categoria": "categoria sugerida entre: Insumos / Ingredientes, Embalagens, Serviços, Equipamentos, Manutenção, Energia / Água / Gás, Folha de Pagamento, Aluguel, Marketing / Publicidade, Impostos, Outros",
+      "centro_custo": "Administrativo"
+    }
+  ]
+}
+
+Regras:
+- tipo "despesa" quando há saída de dinheiro (débito)
+- tipo "receita" quando há entrada de dinheiro (crédito)
+- Ignore linhas de saldo, cabeçalho, totais e linhas vazias
+- valor sempre como número positivo sem pontos de milhar
+- data no formato DD/MM/YYYY
+- Sugira categoria baseado na descrição
+- centro_custo padrão: Administrativo`;
+
+  try {
+    const resp = await fetch('/api/claude', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    progressFill.style.width = '80%';
+    const data = await resp.json();
+
+    if(data.error){ throw new Error(data.error.message || 'Erro da API'); }
+
+    const rawText = data.content.map(c=>c.text||'').join('');
+
+    // Parse JSON response
+    let parsed;
+    try {
+      const clean = rawText.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      throw new Error('IA não conseguiu interpretar o arquivo. Tente um formato CSV mais simples.');
+    }
+
+    progressFill.style.width = '100%';
+
+    if(!parsed.lancamentos || !parsed.lancamentos.length){
+      throw new Error('Nenhum lançamento encontrado no arquivo.');
+    }
+
+    csvLancamentosPreview = parsed.lancamentos;
+
+    // Show preview
+    renderCSVPreview(parsed);
+    status.style.display = 'none';
+    progress.style.display = 'none';
+
+  } catch(e) {
+    progressFill.style.width = '0%';
+    progress.style.display = 'none';
+    status.innerHTML = `❌ Erro: ${e.message}`;
+    status.style.color = 'var(--accent)';
+  }
+
+  // Reset file input
+  document.getElementById('csv-input').value = '';
+}
+
+function renderCSVPreview(parsed){
+  const preview = document.getElementById('csv-preview');
+  const title = document.getElementById('csv-preview-title');
+  const sub = document.getElementById('csv-preview-sub');
+  const tbody = document.getElementById('csv-preview-tbody');
+  const total = document.getElementById('csv-preview-total');
+
+  const despesas = csvLancamentosPreview.filter(l=>l.tipo==='despesa');
+  const receitas = csvLancamentosPreview.filter(l=>l.tipo==='receita');
+  const totalDesp = despesas.reduce((s,l)=>s+l.valor,0);
+  const totalRec = receitas.reduce((s,l)=>s+l.valor,0);
+
+  title.textContent = `${csvLancamentosPreview.length} lançamentos encontrados`;
+  sub.textContent = `${parsed.sistema}${parsed.empresa?' — '+parsed.empresa:''}${parsed.periodo?' · '+parsed.periodo:''}`;
+
+  const ccOpts = (todosCentros.length ? todosCentros : [{nome:'Administrativo'},{nome:'Cozinha'},{nome:'Salão / Atendimento'},{nome:'Delivery'},{nome:'Marketing'},{nome:'Manutenção'}])
+    .map(c=>`<option>${c.nome}</option>`).join('');
+
+  const catOpts = ['Insumos / Ingredientes','Embalagens','Serviços','Equipamentos','Manutenção','Energia / Água / Gás','Folha de Pagamento','Aluguel','Marketing / Publicidade','Impostos','Outros']
+    .map(c=>`<option>${c}</option>`).join('');
+
+  tbody.innerHTML = csvLancamentosPreview.map((l,i) => `
+    <tr id="csv-row-${i}">
+      <td><input type="checkbox" class="csv-check" data-idx="${i}" checked></td>
+      <td style="font-weight:600;font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.fornecedor}">${l.fornecedor}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.descricao}">${l.descricao}</td>
+      <td><span class="badge" style="${l.tipo==='receita'?'background:#eaf3de;color:#3b6d11':'background:#faece7;color:#993c1d'}">${l.tipo==='receita'?'📥':'📤'}</span></td>
+      <td style="font-size:12px;white-space:nowrap">${l.data}</td>
+      <td>
+        <select class="form-control" style="font-size:11px;padding:3px 6px;width:140px" data-idx="${i}" data-field="centro_custo" onchange="updateCSVRow(this)">
+          ${ccOpts.replace(`>${l.centro_custo||'Administrativo'}<`, ` selected>${l.centro_custo||'Administrativo'}<`)}
+        </select>
+      </td>
+      <td>
+        <select class="form-control" style="font-size:11px;padding:3px 6px;width:140px" data-idx="${i}" data-field="categoria" onchange="updateCSVRow(this)">
+          ${catOpts.replace(`>${l.categoria||'Outros'}<`, ` selected>${l.categoria||'Outros'}<`)}
+        </select>
+      </td>
+      <td style="text-align:right;font-weight:700;${l.tipo==='receita'?'color:var(--green)':'color:var(--accent)'}">
+        ${fmt(l.valor)}
+      </td>
+    </tr>`).join('');
+
+  total.innerHTML = `
+    Despesas: <span style="color:var(--accent)">${fmt(totalDesp)}</span> &nbsp;|&nbsp;
+    Receitas: <span style="color:var(--green)">${fmt(totalRec)}</span> &nbsp;|&nbsp;
+    Saldo: <span style="${(totalRec-totalDesp)>=0?'color:var(--green)':'color:var(--accent)'}">${fmt(totalRec-totalDesp)}</span>`;
+
+  preview.style.display = 'block';
+}
+
+function updateCSVRow(sel){
+  const idx = parseInt(sel.dataset.idx);
+  const field = sel.dataset.field;
+  csvLancamentosPreview[idx][field] = sel.value;
+}
+
+function toggleTodosCSV(cb){
+  document.querySelectorAll('.csv-check').forEach(c => c.checked = cb.checked);
+}
+
+function cancelarCSV(){
+  document.getElementById('csv-preview').style.display = 'none';
+  csvLancamentosPreview = [];
+  document.getElementById('csv-input').value = '';
+}
+
+async function confirmarCSVImport(){
+  const selecionados = [...document.querySelectorAll('.csv-check:checked')]
+    .map(c => csvLancamentosPreview[parseInt(c.dataset.idx)])
+    .filter(Boolean);
+
+  if(!selecionados.length){ toast('⚠ Selecione ao menos um lançamento.'); return; }
+
+  const btn = document.querySelector('[onclick="confirmarCSVImport()"]');
+  btn.disabled = true;
+  btn.textContent = '⏳ Importando...';
+
+  let ok = 0, erro = 0;
+  const hoje = new Date().toISOString().split('T')[0];
+
+  for(const l of selecionados){
+    // Parse date DD/MM/YYYY to YYYY-MM-DD
+    let dataISO = hoje;
+    try {
+      const parts = l.data.split('/');
+      if(parts.length === 3) dataISO = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+    } catch(e){}
+
+    if(l.tipo === 'despesa'){
+      const item = {
+        user_id: currentUser.id,
+        fornecedor: l.fornecedor || 'Importado CSV',
+        cc: l.centro_custo || 'Administrativo',
+        categoria: l.categoria || 'Outros',
+        valor: l.valor,
+        data: dataISO,
+        tipo: 'Importado CSV',
+        ndoc: l.documento || '',
+        status: 'Aprovado',
+        obs: l.descricao || '',
+        ia: true,
+      };
+      const { error } = await sb.from('despesas').insert(item);
+      if(error) erro++; else ok++;
+    } else {
+      const item = {
+        user_id: currentUser.id,
+        descricao: l.fornecedor || 'Importado CSV',
+        categoria: l.tipo === 'receita' ? 'Outros' : 'Outros',
+        canal: 'Outros',
+        valor: l.valor,
+        data: dataISO,
+        obs: l.descricao || '',
+      };
+      const { error } = await sb.from('receitas').insert(item);
+      if(error) erro++; else ok++;
+    }
+  }
+
+  // Reload data
+  await loadDespesas();
+  await loadReceitas();
+  updateDashboard();
+  updateFooter();
+
+  cancelarCSV();
+  btn.disabled = false;
+  btn.textContent = '✅ Confirmar importação';
+
+  if(erro > 0){
+    toast(`✅ ${ok} importados · ❌ ${erro} erros`);
+  } else {
+    toast(`✅ ${ok} lançamentos importados com sucesso!`);
+    showPage('despesas', document.getElementById('nav-despesas'));
+  }
+}
 
 // ══ MODO EMPRESA / PESSOAL ══
 async function alternarModo(){
