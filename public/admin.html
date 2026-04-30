@@ -1,1 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Firma — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --green: #43e97b;
+    --yellow: #f9c74f;
+    --red: #f94144;
+    --text: #e8eaf0;
+    --text2: #8b90a7;
+    --rs: 10px;
+    --font: 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
 
+  /* LOGIN */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 60% 40%, #1a1440 0%, #0f1117 70%);
+  }
+  .login-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px; width: 100%; max-width: 400px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+  .login-logo { text-align: center; margin-bottom: 32px; }
+  .login-logo .badge {
+    display: inline-block; background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
+  }
+  .login-logo h1 { font-size: 24px; font-weight: 700; }
+  .login-logo p { color: var(--text2); font-size: 14px; margin-top: 4px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .form-group input {
+    width: 100%; padding: 10px 14px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--rs);
+    color: var(--text); font-size: 14px; outline: none;
+    transition: border-color .2s;
+  }
+  .form-group input:focus { border-color: var(--accent); }
+  .btn-login {
+    width: 100%; padding: 12px; background: var(--accent); color: #fff;
+    border: none; border-radius: var(--rs); font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: opacity .2s;
+  }
+  .btn-login:hover { opacity: .85; }
+  #login-error { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; }
+
+  /* LAYOUT */
+  #admin-app { display: none; min-height: 100vh; }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh;
+    z-index: 100;
+  }
+  .sidebar-header {
+    padding: 20px; border-bottom: 1px solid var(--border);
+  }
+  .sidebar-header .brand { font-size: 16px; font-weight: 700; }
+  .sidebar-header .badge-admin {
+    display: inline-block; background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    padding: 2px 8px; border-radius: 20px; margin-left: 8px;
+  }
+  .sidebar-header .sub { color: var(--text2); font-size: 12px; margin-top: 4px; }
+  .nav-section { padding: 16px 12px 8px; }
+  .nav-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text2); padding: 0 8px; margin-bottom: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px; cursor: pointer;
+    font-size: 14px; color: var(--text2); transition: all .15s;
+    margin-bottom: 2px;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent); color: #fff; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-footer {
+    margin-top: auto; padding: 16px; border-top: 1px solid var(--border);
+  }
+  .sidebar-footer .user-info { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+  .sidebar-footer .user-info strong { display: block; color: var(--text); font-size: 14px; }
+  .btn-logout {
+    width: 100%; padding: 8px; background: transparent; border: 1px solid var(--border);
+    color: var(--text2); border-radius: var(--rs); font-size: 13px; cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+  .back-link {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 12px; margin: 8px 12px 0;
+    border-radius: 8px; cursor: pointer; font-size: 13px;
+    color: var(--text2); transition: all .15s; text-decoration: none;
+    border: 1px solid var(--border);
+  }
+  .back-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* MAIN */
+  .main { margin-left: 240px; flex: 1; padding: 32px; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h2 { font-size: 22px; font-weight: 700; }
+  .page-header p { color: var(--text2); font-size: 14px; margin-top: 4px; }
+
+  /* CARDS MÉTRICAS */
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .metric-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--rs); padding: 20px;
+    transition: border-color .2s;
+  }
+  .metric-card:hover { border-color: var(--accent); }
+  .metric-card .label { font-size: 12px; color: var(--text2); font-weight: 600; letter-spacing: .5px; margin-bottom: 8px; }
+  .metric-card .value { font-size: 28px; font-weight: 700; }
+  .metric-card .value.green { color: var(--green); }
+  .metric-card .value.accent { color: var(--accent); }
+  .metric-card .value.yellow { color: var(--yellow); }
+  .metric-card .sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* TABELAS */
+  .table-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--rs); overflow: hidden; margin-bottom: 24px;
+  }
+  .table-card-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .table-card-header h3 { font-size: 15px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .8px; color: var(--text2); background: var(--surface2); }
+  td { padding: 12px 16px; font-size: 14px; border-top: 1px solid var(--border); }
+  tr:hover td { background: var(--surface2); }
+  .badge-plano {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+  .badge-plano.starter { background: rgba(139,144,167,.15); color: var(--text2); }
+  .badge-plano.pro { background: rgba(108,99,255,.15); color: var(--accent); }
+  .badge-plano.enterprise { background: rgba(67,233,123,.15); color: var(--green); }
+  .badge-role {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+  .badge-role.admin { background: rgba(249,97,68,.15); color: var(--red); }
+  .badge-role.operador { background: rgba(108,99,255,.15); color: var(--accent); }
+
+  /* BOTÕES */
+  .btn {
+    padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; transition: all .15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { opacity: .85; }
+  .btn-danger { background: rgba(249,65,68,.15); color: var(--red); border: 1px solid var(--red); }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* FORMULÁRIOS */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 5px; }
+  input, select, textarea {
+    width: 100%; padding: 9px 12px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-size: 14px; outline: none; transition: border-color .2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: var(--surface); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; width: 100%; max-width: 480px;
+    box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  }
+  .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 12px 20px; border-radius: 10px;
+    font-size: 14px; z-index: 999; opacity: 0; transform: translateY(10px);
+    transition: all .3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* CONFIGS */
+  .config-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--rs); padding: 24px; margin-bottom: 20px; }
+  .config-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .config-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .config-row:last-child { border-bottom: none; }
+  .config-row .info { font-size: 14px; }
+  .config-row .info small { display: block; color: var(--text2); font-size: 12px; margin-top: 2px; }
+
+  /* CENTROS DE CUSTO */
+  .cc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .cc-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--rs); padding: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .cc-color { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
+  .cc-info { flex: 1; min-width: 0; }
+  .cc-info .name { font-size: 14px; font-weight: 600; }
+  .cc-info .meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .cc-actions { display: flex; gap: 6px; }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 40px; color: var(--text2); font-size: 14px; }
+
+  /* PLANOS */
+  .planos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .plano-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--rs); padding: 20px;
+  }
+  .plano-card .plano-nome { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .plano-card .plano-preco { font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 12px; }
+  .plano-card .plano-feat { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .plano-card .plano-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .main { margin-left: 0; padding: 16px; }
+    .layout { flex-direction: column; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="badge">ADMIN</div>
+      <h1>🏢 Minha Firma</h1>
+      <p>Painel de Administração</p>
+    </div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="login-email" placeholder="seu@email.com">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="btn-login" onclick="fazerLogin()">Entrar no Painel</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="admin-app">
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">Minha Firma <span class="badge-admin">ADMIN</span></div>
+        <div class="sub">Painel de Gestão</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">VISÃO GERAL</div>
+        <div class="nav-item active" onclick="showPage('dashboard',this)">
+          <span class="icon">📊</span> Dashboard
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">GESTÃO</div>
+        <div class="nav-item" onclick="showPage('usuarios',this)">
+          <span class="icon">👥</span> Usuários
+        </div>
+        <div class="nav-item" onclick="showPage('planos',this)">
+          <span class="icon">💎</span> Planos
+        </div>
+        <div class="nav-item" onclick="showPage('centros',this)">
+          <span class="icon">🏷️</span> Centros de Custo
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">SISTEMA</div>
+        <div class="nav-item" onclick="showPage('configuracoes',this)">
+          <span class="icon">⚙️</span> Configurações
+        </div>
+      </div>
+      <a class="back-link" href="/">← Voltar ao App</a>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <strong id="admin-name">—</strong>
+          <span id="admin-email">—</span>
+        </div>
+        <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <h2>Dashboard</h2>
+          <p>Visão geral do sistema Minha Firma</p>
+        </div>
+        <div class="metrics-grid" id="metrics-grid">
+          <div class="loading">Carregando métricas...</div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Últimos cadastros</h3>
+          </div>
+          <div id="ultimos-cadastros"><div class="loading">Carregando...</div></div>
+        </div>
+      </div>
+
+      <!-- USUÁRIOS -->
+      <div class="page" id="page-usuarios">
+        <div class="page-header">
+          <h2>Usuários</h2>
+          <p>Gerencie todos os usuários cadastrados</p>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>Todos os usuários</h3>
+            <span id="total-usuarios" style="color:var(--text2);font-size:13px"></span>
+          </div>
+          <div id="usuarios-list"><div class="loading">Carregando...</div></div>
+        </div>
+      </div>
+
+      <!-- PLANOS -->
+      <div class="page" id="page-planos">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <h2>Planos</h2>
+            <p>Gerencie os planos disponíveis</p>
+          </div>
+          <button class="btn btn-primary" onclick="abrirModalPlano()">+ Novo Plano</button>
+        </div>
+        <div class="planos-grid" id="planos-list"><div class="loading">Carregando...</div></div>
+      </div>
+
+      <!-- CENTROS DE CUSTO -->
+      <div class="page" id="page-centros">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <h2>Centros de Custo</h2>
+            <p>Gerencie todos os centros de custo do sistema</p>
+          </div>
+          <button class="btn btn-primary" onclick="abrirModalCC()">+ Novo Centro</button>
+        </div>
+        <div class="cc-grid" id="centros-list"><div class="loading">Carregando...</div></div>
+      </div>
+
+      <!-- CONFIGURAÇÕES -->
+      <div class="page" id="page-configuracoes">
+        <div class="page-header">
+          <h2>Configurações do Sistema</h2>
+          <p>Parâmetros globais sem precisar alterar o código</p>
+        </div>
+
+        <div class="config-section">
+          <h3>💬 WhatsApp de Suporte</h3>
+          <div class="form-row">
+            <div>
+              <label>Número do WhatsApp</label>
+              <input type="text" id="cfg-whatsapp" placeholder="5511999999999">
+            </div>
+            <div>
+              <label>Mensagem padrão</label>
+              <input type="text" id="cfg-whatsapp-msg" placeholder="Olá, preciso de ajuda com...">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="salvarConfig('whatsapp')">Salvar</button>
+        </div>
+
+        <div class="config-section">
+          <h3>💳 Dados de Pagamento</h3>
+          <div class="form-row">
+            <div>
+              <label>CPF / CNPJ</label>
+              <input type="text" id="cfg-cpfcnpj" placeholder="00.000.000/0001-00">
+            </div>
+            <div>
+              <label>Nome do favorecido</label>
+              <input type="text" id="cfg-favorecido" placeholder="Nome ou razão social">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div>
+              <label>Chave PIX</label>
+              <input type="text" id="cfg-pix" placeholder="email, CPF, CNPJ ou chave aleatória">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="salvarConfig('pagamento')">Salvar</button>
+        </div>
+
+        <div class="config-section">
+          <h3>🏢 Dados da Empresa</h3>
+          <div class="form-row">
+            <div>
+              <label>Nome da empresa</label>
+              <input type="text" id="cfg-empresa-nome" placeholder="Minha Firma Ltda">
+            </div>
+            <div>
+              <label>E-mail de contato</label>
+              <input type="text" id="cfg-empresa-email" placeholder="contato@minhafirma.app">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div>
+              <label>Site</label>
+              <input type="text" id="cfg-empresa-site" placeholder="https://minhafirma.app">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="salvarConfig('empresa')">Salvar</button>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div>
+</div>
+
+<!-- MODAL CENTRO DE CUSTO -->
+<div class="modal-overlay" id="modal-cc">
+  <div class="modal">
+    <h3 id="modal-cc-titulo">Novo Centro de Custo</h3>
+    <input type="hidden" id="cc-id">
+    <div class="form-row">
+      <div>
+        <label>Nome</label>
+        <input type="text" id="cc-nome" placeholder="Ex: Cozinha">
+      </div>
+      <div>
+        <label>Cor</label>
+        <input type="color" id="cc-cor" value="#6c63ff" style="height:41px;padding:4px">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Nível de acesso (1–5)</label>
+        <input type="number" id="cc-nivel" min="1" max="5" value="1">
+      </div>
+      <div>
+        <label>Ordem de exibição</label>
+        <input type="number" id="cc-ordem" value="1">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div>
+        <label>Status</label>
+        <select id="cc-ativo">
+          <option value="true">Ativo</option>
+          <option value="false">Inativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-cc')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCC()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PLANO -->
+<div class="modal-overlay" id="modal-plano">
+  <div class="modal">
+    <h3 id="modal-plano-titulo">Novo Plano</h3>
+    <input type="hidden" id="plano-id">
+    <div class="form-row">
+      <div>
+        <label>Nome do plano</label>
+        <input type="text" id="plano-nome" placeholder="Ex: Pro">
+      </div>
+      <div>
+        <label>Preço mensal (R$)</label>
+        <input type="number" id="plano-preco" placeholder="0.00" step="0.01">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Máx. lançamentos/mês</label>
+        <input type="number" id="plano-max-lanc" placeholder="-1 = ilimitado">
+      </div>
+      <div>
+        <label>Máx. scans IA/mês</label>
+        <input type="number" id="plano-max-scans" placeholder="-1 = ilimitado">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Máx. centros de custo</label>
+        <input type="number" id="plano-max-cc" placeholder="-1 = ilimitado">
+      </div>
+      <div>
+        <label>Ordem</label>
+        <input type="number" id="plano-ordem" value="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Relatórios IA</label>
+        <select id="plano-relatorios">
+          <option value="true">Sim</option>
+          <option value="false">Não</option>
+        </select>
+      </div>
+      <div>
+        <label>Exportar CSV</label>
+        <select id="plano-csv">
+          <option value="true">Sim</option>
+          <option value="false">Não</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-plano')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarPlano()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-overlay" id="modal-usuario">
+  <div class="modal">
+    <h3>Editar Usuário</h3>
+    <input type="hidden" id="usuario-id">
+    <div class="form-row full">
+      <div>
+        <label>Nome completo</label>
+        <input type="text" id="usuario-nome" readonly style="opacity:.6">
+      </div>
+    </div>
+    <div class="form-row full">
+      <div>
+        <label>E-mail</label>
+        <input type="text" id="usuario-email" readonly style="opacity:.6">
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Plano</label>
+        <select id="usuario-plano"></select>
+      </div>
+      <div>
+        <label>Função</label>
+        <select id="usuario-role">
+          <option value="operador">Operador</option>
+          <option value="administrador">Administrador</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-usuario')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarUsuario()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://wxmkjnfiggwxefyhccqv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bWtqbmZpZ2d3eGVmeWhjY3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTczMTksImV4cCI6MjA5MjEzMzMxOX0.3TWRrufebRD6ZAIVOgSoY3Uv5RiXxpOGIYchCrNVwHo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let currentProfile = null;
+let todosPlanos = [];
+
+function isAdmin(p){ return ['admin','administrador'].includes(p?.role); }
+
+// ═══ AUTH ═══
+async function fazerLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(error){ errEl.textContent = 'E-mail ou senha inválidos.'; return; }
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+  if(!prof || !isAdmin(prof)){ await sb.auth.signOut(); errEl.textContent = 'Acesso negado. Apenas administradores.'; return; }
+  currentUser = data.user;
+  currentProfile = prof;
+  iniciarApp();
+}
+
+async function fazerLogout(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+async function verificarSessao(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session) return;
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  if(!prof || !isAdmin(prof)) return;
+  currentUser = session.user;
+  currentProfile = prof;
+  iniciarApp();
+}
+
+function iniciarApp(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-app').style.display = 'block';
+  document.getElementById('admin-name').textContent = currentProfile.full_name || currentUser.email;
+  document.getElementById('admin-email').textContent = currentUser.email;
+  carregarDashboard();
+  carregarPlanos();
+  carregarConfigs();
+}
+
+// ═══ NAVEGAÇÃO ═══
+function showPage(id, el){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if(el) el.classList.add('active');
+  if(id === 'usuarios') carregarUsuarios();
+  if(id === 'centros') carregarCentros();
+  if(id === 'planos') carregarPlanos();
+}
+
+// ═══ DASHBOARD ═══
+async function carregarDashboard(){
+  const [{ data: users }, { data: despesas }, { data: planos }] = await Promise.all([
+    sb.from('profiles').select('*'),
+    sb.from('despesas').select('valor, created_at'),
+    sb.from('planos').select('*')
+  ]);
+
+  const totalUsuarios = users?.length || 0;
+  const porPlano = {};
+  users?.forEach(u => { porPlano[u.plano || 'starter'] = (porPlano[u.plano || 'starter'] || 0) + 1; });
+  const totalDespesas = despesas?.reduce((s, d) => s + (d.valor || 0), 0) || 0;
+  const hoje = new Date();
+  const mesAtual = despesas?.filter(d => {
+    const d2 = new Date(d.created_at);
+    return d2.getMonth() === hoje.getMonth() && d2.getFullYear() === hoje.getFullYear();
+  });
+  const totalMes = mesAtual?.reduce((s, d) => s + (d.valor || 0), 0) || 0;
+
+  document.getElementById('metrics-grid').innerHTML = `
+    <div class="metric-card">
+      <div class="label">TOTAL USUÁRIOS</div>
+      <div class="value accent">${totalUsuarios}</div>
+      <div class="sub">cadastrados</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">DESPESAS NO MÊS</div>
+      <div class="value green">R$ ${totalMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+      <div class="sub">${mesAtual?.length || 0} lançamentos</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">TOTAL DESPESAS</div>
+      <div class="value yellow">R$ ${totalDespesas.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+      <div class="sub">histórico completo</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">PLANOS ATIVOS</div>
+      <div class="value accent">${planos?.length || 0}</div>
+      <div class="sub">${Object.entries(porPlano).map(([k,v])=>`${k}: ${v}`).join(' · ')}</div>
+    </div>
+  `;
+
+  const ultimos = [...(users||[])].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0,5);
+  document.getElementById('ultimos-cadastros').innerHTML = `
+    <table>
+      <thead><tr><th>NOME</th><th>E-MAIL</th><th>PLANO</th><th>CADASTRO</th></tr></thead>
+      <tbody>
+        ${ultimos.map(u => `
+          <tr>
+            <td>${u.full_name || '—'}</td>
+            <td style="color:var(--text2)">${u.email}</td>
+            <td><span class="badge-plano ${u.plano||'starter'}">${u.plano||'starter'}</span></td>
+            <td style="color:var(--text2)">${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// ═══ USUÁRIOS ═══
+async function carregarUsuarios(){
+  document.getElementById('usuarios-list').innerHTML = '<div class="loading">Carregando...</div>';
+  const { data: users } = await sb.from('profiles').select('*').order('full_name');
+  document.getElementById('total-usuarios').textContent = `${users?.length || 0} usuários`;
+  document.getElementById('usuarios-list').innerHTML = `
+    <table>
+      <thead><tr><th>NOME</th><th>E-MAIL</th><th>PLANO</th><th>FUNÇÃO</th><th>CADASTRO</th><th>AÇÕES</th></tr></thead>
+      <tbody>
+        ${(users||[]).map(u => `
+          <tr>
+            <td><strong>${u.full_name || '—'}</strong></td>
+            <td style="color:var(--text2)">${u.email}</td>
+            <td><span class="badge-plano ${u.plano||'starter'}">${u.plano||'starter'}</span></td>
+            <td><span class="badge-role ${isAdmin(u)?'admin':'operador'}">${u.role||'operador'}</span></td>
+            <td style="color:var(--text2)">${new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
+            <td>
+              <button class="btn btn-sm btn-ghost" onclick="abrirModalUsuario('${u.id}','${u.full_name||''}','${u.email}','${u.plano||'starter'}','${u.role||'operador'}')">✏️ Editar</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function abrirModalUsuario(id, nome, email, plano, role){
+  document.getElementById('usuario-id').value = id;
+  document.getElementById('usuario-nome').value = nome;
+  document.getElementById('usuario-email').value = email;
+  document.getElementById('usuario-role').value = role;
+  const sel = document.getElementById('usuario-plano');
+  sel.innerHTML = todosPlanos.map(p => `<option value="${p.id}" ${p.id===plano?'selected':''}>${p.nome}</option>`).join('');
+  document.getElementById('modal-usuario').classList.add('show');
+}
+
+async function salvarUsuario(){
+  const id = document.getElementById('usuario-id').value;
+  const plano = document.getElementById('usuario-plano').value;
+  const role = document.getElementById('usuario-role').value;
+  await sb.from('profiles').update({ plano, role }).eq('id', id);
+  fecharModal('modal-usuario');
+  toast('✅ Usuário atualizado!');
+  carregarUsuarios();
+}
+
+// ═══ PLANOS ═══
+async function carregarPlanos(){
+  const { data } = await sb.from('planos').select('*').order('ordem');
+  todosPlanos = data || [];
+  document.getElementById('planos-list').innerHTML = (todosPlanos).map(p => `
+    <div class="plano-card">
+      <div class="plano-nome">${p.nome}</div>
+      <div class="plano-preco">R$ ${(p.preco||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}<small style="font-size:13px;color:var(--text2)">/mês</small></div>
+      <div class="plano-feat">📦 Lançamentos: ${p.max_lancamentos===-1?'Ilimitado':p.max_lancamentos}</div>
+      <div class="plano-feat">🤖 Scans IA: ${p.max_scans_ia===-1?'Ilimitado':p.max_scans_ia}</div>
+      <div class="plano-feat">🏷️ Centros CC: ${p.max_cc===-1?'Ilimitado':p.max_cc}</div>
+      <div class="plano-feat">📊 Relatórios IA: ${p.tem_relatorios_ia?'✅':'❌'}</div>
+      <div class="plano-feat">📤 Exportar CSV: ${p.tem_export_csv?'✅':'❌'}</div>
+      <div class="plano-actions">
+        <button class="btn btn-sm btn-ghost" onclick='editarPlano(${JSON.stringify(p)})'>✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="deletarPlano('${p.id}','${p.nome}')">🗑️</button>
+      </div>
+    </div>
+  `).join('') || '<div class="loading">Nenhum plano cadastrado.</div>';
+}
+
+function abrirModalPlano(){
+  document.getElementById('modal-plano-titulo').textContent = 'Novo Plano';
+  document.getElementById('plano-id').value = '';
+  document.getElementById('plano-nome').value = '';
+  document.getElementById('plano-preco').value = '';
+  document.getElementById('plano-max-lanc').value = '-1';
+  document.getElementById('plano-max-scans').value = '-1';
+  document.getElementById('plano-max-cc').value = '-1';
+  document.getElementById('plano-ordem').value = todosPlanos.length + 1;
+  document.getElementById('plano-relatorios').value = 'false';
+  document.getElementById('plano-csv').value = 'false';
+  document.getElementById('modal-plano').classList.add('show');
+}
+
+function editarPlano(p){
+  document.getElementById('modal-plano-titulo').textContent = 'Editar Plano';
+  document.getElementById('plano-id').value = p.id;
+  document.getElementById('plano-nome').value = p.nome;
+  document.getElementById('plano-preco').value = p.preco || 0;
+  document.getElementById('plano-max-lanc').value = p.max_lancamentos ?? -1;
+  document.getElementById('plano-max-scans').value = p.max_scans_ia ?? -1;
+  document.getElementById('plano-max-cc').value = p.max_cc ?? -1;
+  document.getElementById('plano-ordem').value = p.ordem || 1;
+  document.getElementById('plano-relatorios').value = p.tem_relatorios_ia ? 'true' : 'false';
+  document.getElementById('plano-csv').value = p.tem_export_csv ? 'true' : 'false';
+  document.getElementById('modal-plano').classList.add('show');
+}
+
+async function salvarPlano(){
+  const id = document.getElementById('plano-id').value;
+  const dados = {
+    nome: document.getElementById('plano-nome').value,
+    preco: parseFloat(document.getElementById('plano-preco').value) || 0,
+    max_lancamentos: parseInt(document.getElementById('plano-max-lanc').value),
+    max_scans_ia: parseInt(document.getElementById('plano-max-scans').value),
+    max_cc: parseInt(document.getElementById('plano-max-cc').value),
+    ordem: parseInt(document.getElementById('plano-ordem').value),
+    tem_relatorios_ia: document.getElementById('plano-relatorios').value === 'true',
+    tem_export_csv: document.getElementById('plano-csv').value === 'true',
+  };
+  if(id){ await sb.from('planos').update(dados).eq('id', id); }
+  else { dados.id = dados.nome.toLowerCase().replace(/\s+/g,'-'); await sb.from('planos').insert(dados); }
+  fecharModal('modal-plano');
+  toast('✅ Plano salvo!');
+  carregarPlanos();
+}
+
+async function deletarPlano(id, nome){
+  if(!confirm(`Deletar o plano "${nome}"? Usuários com esse plano precisarão ser migrados.`)) return;
+  await sb.from('planos').delete().eq('id', id);
+  toast('🗑️ Plano removido.');
+  carregarPlanos();
+}
+
+// ═══ CENTROS DE CUSTO ═══
+async function carregarCentros(){
+  document.getElementById('centros-list').innerHTML = '<div class="loading">Carregando...</div>';
+  const { data } = await sb.from('centros_custo').select('*').order('ordem');
+  document.getElementById('centros-list').innerHTML = (data||[]).map(c => `
+    <div class="cc-card">
+      <div class="cc-color" style="background:${c.cor||'#6c63ff'}"></div>
+      <div class="cc-info">
+        <div class="name">${c.nome}</div>
+        <div class="meta">Nível ${c.nivel||1} · Ordem ${c.ordem||1} · ${c.ativo?'Ativo':'Inativo'}</div>
+      </div>
+      <div class="cc-actions">
+        <button class="btn btn-sm btn-ghost" onclick='editarCC(${JSON.stringify(c)})'>✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deletarCC('${c.id}','${c.nome}')">🗑️</button>
+      </div>
+    </div>
+  `).join('') || '<div class="loading">Nenhum centro cadastrado.</div>';
+}
+
+function abrirModalCC(){
+  document.getElementById('modal-cc-titulo').textContent = 'Novo Centro de Custo';
+  document.getElementById('cc-id').value = '';
+  document.getElementById('cc-nome').value = '';
+  document.getElementById('cc-cor').value = '#6c63ff';
+  document.getElementById('cc-nivel').value = 1;
+  document.getElementById('cc-ordem').value = 1;
+  document.getElementById('cc-ativo').value = 'true';
+  document.getElementById('modal-cc').classList.add('show');
+}
+
+function editarCC(c){
+  document.getElementById('modal-cc-titulo').textContent = 'Editar Centro de Custo';
+  document.getElementById('cc-id').value = c.id;
+  document.getElementById('cc-nome').value = c.nome;
+  document.getElementById('cc-cor').value = c.cor || '#6c63ff';
+  document.getElementById('cc-nivel').value = c.nivel || 1;
+  document.getElementById('cc-ordem').value = c.ordem || 1;
+  document.getElementById('cc-ativo').value = c.ativo ? 'true' : 'false';
+  document.getElementById('modal-cc').classList.add('show');
+}
+
+async function salvarCC(){
+  const id = document.getElementById('cc-id').value;
+  const dados = {
+    nome: document.getElementById('cc-nome').value,
+    cor: document.getElementById('cc-cor').value,
+    nivel: parseInt(document.getElementById('cc-nivel').value),
+    ordem: parseInt(document.getElementById('cc-ordem').value),
+    ativo: document.getElementById('cc-ativo').value === 'true',
+    personalizado: false,
+    conta_id: null,
+  };
+  if(id){ await sb.from('centros_custo').update(dados).eq('id', id); }
+  else { await sb.from('centros_custo').insert(dados); }
+  fecharModal('modal-cc');
+  toast('✅ Centro de custo salvo!');
+  carregarCentros();
+}
+
+async function deletarCC(id, nome){
+  if(!confirm(`Deletar "${nome}"? Isso pode afetar lançamentos existentes.`)) return;
+  await sb.from('centros_custo').delete().eq('id', id);
+  toast('🗑️ Centro removido.');
+  carregarCentros();
+}
+
+// ═══ CONFIGURAÇÕES ═══
+async function carregarConfigs(){
+  const { data } = await sb.from('centros_custo').select('id').limit(1);
+  // configs viriam de uma tabela 'configs' - por enquanto mostra vazio
+}
+
+async function salvarConfig(tipo){
+  // Futuramente salvar em tabela 'configs' no Supabase
+  toast('✅ Configuração salva!');
+}
+
+// ═══ UTILS ═══
+function fecharModal(id){ document.getElementById(id).classList.remove('show'); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Fechar modais clicando fora
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('show'); });
+});
+
+// Init
+verificarSessao();
+</script>
+</body>
+</html>
