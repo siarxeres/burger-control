@@ -1298,10 +1298,58 @@ function renderDespesas(){
 function renderCentros(){
   const byCC={}; despesas.forEach(d=>{ if(!byCC[d.cc]) byCC[d.cc]={total:0,count:0}; byCC[d.cc].total+=d.valor; byCC[d.cc].count++; });
   const total=despesas.reduce((s,d)=>s+d.valor,0);
-  document.getElementById('cc-grid').innerHTML=Object.keys(CC_COLORS).map(cc=>{ const i=byCC[cc]||{total:0,count:0}; const p=total?Math.round(i.total/total*100):0; return `<div class="cc-card"><div class="cc-header"><div class="cc-dot" style="background:${CC_COLORS[cc]}"></div>${cc}</div><div class="cc-track"><div class="cc-fill" style="background:${CC_COLORS[cc]};width:${p}%"></div></div><div class="cc-meta"><span>${i.count} lançamento(s)</span><span><strong>${fmt(i.total)}</strong> ${p}%</span></div></div>`; }).join('');
-  const byCat={}; despesas.forEach(d=>{ const k=d.categoria+'§'+d.cc; if(!byCat[k]) byCat[k]={cat:d.categoria,cc:d.cc,total:0,count:0}; byCat[k].total+=d.valor; byCat[k].count++; });
+
+  // Filtrar centros pelo plano do usuário
+  const prioridade = ['starter','pro','enterprise'];
+  const nivelUsuario = prioridade.indexOf(currentPlano?.id || 'starter');
+
+  // Usar todosCentros se disponível, senão usar CC_COLORS como fallback
+  const centrosParaMostrar = todosCentros.length > 0 ? todosCentros : Object.keys(CC_COLORS).map(nome=>({nome, cor:CC_COLORS[nome], plano_minimo:'starter'}));
+
+  const grid = document.getElementById('cc-grid');
+  grid.innerHTML = centrosParaMostrar.map(c => {
+    const nivelCC = prioridade.indexOf(c.plano_minimo || 'starter');
+    const permitido = isAdmin() || nivelUsuario >= nivelCC;
+    const cor = c.cor || CC_COLORS[c.nome] || '#888';
+    const i = byCC[c.nome] || {total:0, count:0};
+    const p = total ? Math.round(i.total/total*100) : 0;
+
+    if(!permitido){
+      return `<div class="cc-card" style="opacity:.5;position:relative">
+        <div style="position:absolute;top:8px;right:8px;font-size:16px">🔒</div>
+        <div class="cc-header"><div class="cc-dot" style="background:${cor}"></div>${c.nome}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Disponível no plano <strong>${c.plano_minimo==='pro'?'Pro':'Enterprise'}</strong></div>
+        <a href="/pricing.html" target="_blank" style="font-size:11px;color:var(--accent);font-weight:600;text-decoration:none">⬆ Fazer upgrade →</a>
+      </div>`;
+    }
+
+    return `<div class="cc-card">
+      <div class="cc-header"><div class="cc-dot" style="background:${cor}"></div>${c.nome}</div>
+      <div class="cc-track"><div class="cc-fill" style="background:${cor};width:${p}%"></div></div>
+      <div class="cc-meta"><span>${i.count} lançamento(s)</span><span><strong>${fmt(i.total)}</strong> ${p}%</span></div>
+    </div>`;
+  }).join('');
+
+  // Tabela — só centros permitidos
+  const byCat={};
+  despesas.forEach(d=>{
+    const cc = centrosParaMostrar.find(c=>c.nome===d.cc);
+    const nivelCC = prioridade.indexOf(cc?.plano_minimo || 'starter');
+    if(!isAdmin() && nivelUsuario < nivelCC) return;
+    const k=d.categoria+'§'+d.cc;
+    if(!byCat[k]) byCat[k]={cat:d.categoria,cc:d.cc,total:0,count:0};
+    byCat[k].total+=d.valor; byCat[k].count++;
+  });
   const rows=Object.values(byCat).sort((a,b)=>b.total-a.total);
-  document.getElementById('cc-tbody').innerHTML=!rows.length?`<tr><td colspan="5"><div class="empty">Sem dados.</div></td></tr>`:rows.map(r=>`<tr><td>${r.cat}</td><td><span class="badge" style="background:${CC_COLORS[r.cc]||'#888'}20;color:${CC_COLORS[r.cc]||'#888'}">${r.cc}</span></td><td style="color:var(--muted)">${r.count}</td><td style="text-align:right;font-weight:700">${fmt(r.total)}</td><td style="text-align:right;color:var(--muted)">${total?Math.round(r.total/total*100):0}%</td></tr>`).join('');
+  document.getElementById('cc-tbody').innerHTML=!rows.length
+    ?`<tr><td colspan="5"><div class="empty">Sem dados.</div></td></tr>`
+    :rows.map(r=>`<tr>
+      <td>${r.cat}</td>
+      <td><span class="badge" style="background:${CC_COLORS[r.cc]||'#888'}20;color:${CC_COLORS[r.cc]||'#888'}">${r.cc}</span></td>
+      <td style="color:var(--muted)">${r.count}</td>
+      <td style="text-align:right;font-weight:700">${fmt(r.total)}</td>
+      <td style="text-align:right;color:var(--muted)">${total?Math.round(r.total/total*100):0}%</td>
+    </tr>`).join('');
 }
 
 // ══ USUÁRIOS (admin) ══
