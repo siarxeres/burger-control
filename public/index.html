@@ -1199,9 +1199,11 @@ function showPage(id, navEl){
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay-sb').classList.toggle('show'); }
 function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay-sb').classList.remove('show'); }
 function switchTab(tab, el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
   document.getElementById('tab-scan').style.display = tab==='scan'?'block':'none';
   document.getElementById('tab-manual').style.display = tab==='manual'?'block':'none';
+  document.getElementById('tab-csv').style.display = tab==='csv'?'block':'none';
 }
 
 // ══ FILE / AI ══
