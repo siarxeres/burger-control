@@ -192,6 +192,17 @@ tbody tr:hover td{background:var(--surface2)}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:var(--bg);padding:11px 16px;border-radius:var(--rs);font-size:13px;font-weight:600;z-index:300;animation:toastIn .2s ease;box-shadow:0 4px 20px rgba(0,0,0,.25)}
 @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
+/* PASSWORD TOGGLE */
+.pass-wrap { position: relative; }
+.pass-wrap .form-control { padding-right: 40px; }
+.pass-eye {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--muted);
+  padding: 4px; display: flex; align-items: center; justify-content: center;
+  transition: color .15s;
+}
+.pass-eye:hover { color: var(--text); }
+
 /* PWA INSTALL BANNER */
 .pwa-banner{
   position:fixed;bottom:0;left:0;right:0;
@@ -278,7 +289,12 @@ tbody tr:hover td{background:var(--surface2)}
       </div>
       <div class="form-group" style="margin-bottom:20px">
         <label class="form-label">Senha</label>
-        <input type="password" class="form-control" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        <div class="pass-wrap">
+          <input type="password" class="form-control" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+          <button type="button" class="pass-eye" onclick="toggleSenha('login-pass',this)" tabindex="-1">
+            <svg id="eye-login-pass" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <button class="btn btn-primary" style="width:100%" onclick="doLogin()" id="btn-login">Entrar</button>
       <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
@@ -301,7 +317,12 @@ tbody tr:hover td{background:var(--surface2)}
       </div>
       <div class="form-group" style="margin-bottom:20px">
         <label class="form-label">Senha</label>
-        <input type="password" class="form-control" id="signup-pass" placeholder="Mínimo 6 caracteres">
+        <div class="pass-wrap">
+          <input type="password" class="form-control" id="signup-pass" placeholder="Mínimo 6 caracteres">
+          <button type="button" class="pass-eye" onclick="toggleSenha('signup-pass',this)" tabindex="-1">
+            <svg id="eye-signup-pass" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <button class="btn btn-primary" style="width:100%" onclick="doSignup()" id="btn-signup">Criar conta</button>
       <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
@@ -862,6 +883,16 @@ function alertPlano(recurso){
     <a href="/pricing.html" target="_blank" style="display:block;text-align:center;padding:8px;background:var(--accent);color:#fff;border-radius:var(--rs);font-size:13px;font-weight:600;text-decoration:none">⬆ Ver planos e fazer upgrade</a>`;
   document.body.appendChild(banner);
   setTimeout(() => banner.remove(), 6000);
+}
+
+// ══ TOGGLE SENHA ══
+function toggleSenha(inputId, btn){
+  const input = document.getElementById(inputId);
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  btn.querySelector('svg').innerHTML = isPass
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 
 // ══ AUTH ══
