@@ -895,7 +895,7 @@ const STATUS_STYLE = {'Aprovado':'background:#eaf3de;color:#3b6d11','Pendente':'
 const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtDate = d => { if(!d) return '—'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; };
 function toast(msg, dur=2800){ const el=document.createElement('div'); el.className='toast'; el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(),dur); }
-function isAdmin(){ return currentProfile?.role === 'admin'; }
+function isAdmin(){ return currentProfile?.role === 'admin' || currentProfile?.role === 'administrador'; }
 function ilimitado(v){ return !v || v >= 999999; }
 
 // ══ VERIFICAÇÕES DE PLANO ══
