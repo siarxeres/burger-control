@@ -2083,12 +2083,14 @@ async function confirmarCSVImport(){
   updateDashboard();
   updateFooter();
 
-  cancelarCSV();
+  // ✅ Restaurar botão ANTES de cancelarCSV (que remove o preview do DOM)
   btn.disabled = false;
   btn.textContent = '✅ Confirmar importação';
+  cancelarCSV();
 
   if(erro > 0){
     toast(`✅ ${ok} importados · ❌ ${erro} erros`);
+    showPage('despesas', document.getElementById('nav-despesas'));
   } else {
     toast(`✅ ${ok} lançamentos importados com sucesso!`);
     showPage('despesas', document.getElementById('nav-despesas'));
