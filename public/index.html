@@ -515,6 +515,55 @@ tbody tr:hover td{background:var(--surface2)}
           </div>
         </div>
 
+          <div id="tab-csv" style="display:none">
+            <div class="alert alert-info" style="margin-bottom:16px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              Importe lançamentos de qualquer sistema (WI2, SAP, Totvs, Omie, bancos, etc). A IA interpreta o arquivo automaticamente.
+            </div>
+            <input type="file" id="csv-input" accept=".csv,.txt,.xls,.xlsx" style="display:none" onchange="handleCSVImport(event)">
+            <div class="scan-zone" id="csv-zone" onclick="document.getElementById('csv-input').click()"
+              ondragover="event.preventDefault();this.classList.add('over')"
+              ondragleave="this.classList.remove('over')"
+              ondrop="event.preventDefault();this.classList.remove('over');handleCSVDrop(event)">
+              <div class="scan-zone-icon">📊</div>
+              <div class="scan-zone-title">Clique ou arraste o arquivo CSV aqui</div>
+              <div class="scan-zone-sub">CSV, TXT, XLS, XLSX · Qualquer sistema de gestão</div>
+            </div>
+            <div class="progress-bar" id="csv-progress" style="display:none"><div class="progress-fill" id="csv-progress-fill"></div></div>
+            <div id="csv-status" style="text-align:center;padding:12px;color:var(--muted);font-size:13px;display:none"></div>
+
+            <!-- Preview tabela -->
+            <div id="csv-preview" style="display:none;margin-top:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+                <div>
+                  <div style="font-size:14px;font-weight:700" id="csv-preview-title">Lançamentos encontrados</div>
+                  <div style="font-size:12px;color:var(--muted)" id="csv-preview-sub"></div>
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-sm" onclick="cancelarCSV()">✕ Cancelar</button>
+                  <button class="btn btn-primary" onclick="confirmarCSVImport()">✅ Confirmar importação</button>
+                </div>
+              </div>
+              <div class="table-wrap" style="max-height:400px;overflow-y:auto">
+                <table>
+                  <thead><tr>
+                    <th><input type="checkbox" id="csv-check-all" onchange="toggleTodosCSV(this)" checked></th>
+                    <th>Fornecedor</th>
+                    <th>Descrição</th>
+                    <th>Tipo</th>
+                    <th>Data</th>
+                    <th>Centro de Custo</th>
+                    <th>Categoria</th>
+                    <th style="text-align:right">Valor</th>
+                  </tr></thead>
+                  <tbody id="csv-preview-tbody"></tbody>
+                </table>
+              </div>
+              <div id="csv-preview-total" style="text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
+            </div>
+          </div>
+
+
         <!-- DESPESAS -->
         <div class="page" id="page-despesas">
           <div id="despesas-aviso-op" class="alert alert-info" style="display:none">
@@ -533,55 +582,6 @@ tbody tr:hover td{background:var(--surface2)}
             <tbody id="desp-tbody"></tbody></table>
           </div>
           <div id="desp-total" style="display:none;text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
-        </div>
-
-        <!-- CSV IMPORT TAB (inside page-lancar) -->
-        <div id="tab-csv" style="display:none">
-          <div class="alert alert-info" style="margin-bottom:16px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            Importe lançamentos de qualquer sistema (WI2, SAP, Totvs, Omie, bancos, etc). A IA interpreta o arquivo automaticamente.
-          </div>
-          <input type="file" id="csv-input" accept=".csv,.txt,.xls,.xlsx" style="display:none" onchange="handleCSVImport(event)">
-          <div class="scan-zone" id="csv-zone" onclick="document.getElementById('csv-input').click()"
-            ondragover="event.preventDefault();this.classList.add('over')"
-            ondragleave="this.classList.remove('over')"
-            ondrop="event.preventDefault();this.classList.remove('over');handleCSVDrop(event)">
-            <div class="scan-zone-icon">📊</div>
-            <div class="scan-zone-title">Clique ou arraste o arquivo CSV aqui</div>
-            <div class="scan-zone-sub">CSV, TXT, XLS, XLSX · Qualquer sistema de gestão</div>
-          </div>
-          <div class="progress-bar" id="csv-progress" style="display:none"><div class="progress-fill" id="csv-progress-fill"></div></div>
-          <div id="csv-status" style="text-align:center;padding:12px;color:var(--muted);font-size:13px;display:none"></div>
-
-          <!-- Preview tabela -->
-          <div id="csv-preview" style="display:none;margin-top:16px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-              <div>
-                <div style="font-size:14px;font-weight:700" id="csv-preview-title">Lançamentos encontrados</div>
-                <div style="font-size:12px;color:var(--muted)" id="csv-preview-sub"></div>
-              </div>
-              <div style="display:flex;gap:8px">
-                <button class="btn btn-sm" onclick="cancelarCSV()">✕ Cancelar</button>
-                <button class="btn btn-primary" onclick="confirmarCSVImport()">✅ Confirmar importação</button>
-              </div>
-            </div>
-            <div class="table-wrap" style="max-height:400px;overflow-y:auto">
-              <table>
-                <thead><tr>
-                  <th><input type="checkbox" id="csv-check-all" onchange="toggleTodosCSV(this)" checked></th>
-                  <th>Fornecedor</th>
-                  <th>Descrição</th>
-                  <th>Tipo</th>
-                  <th>Data</th>
-                  <th>Centro de Custo</th>
-                  <th>Categoria</th>
-                  <th style="text-align:right">Valor</th>
-                </tr></thead>
-                <tbody id="csv-preview-tbody"></tbody>
-              </table>
-            </div>
-            <div id="csv-preview-total" style="text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
-          </div>
         </div>
 
         <!-- CENTROS -->
