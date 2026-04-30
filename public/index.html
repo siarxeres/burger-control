@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Minha Firma — Gestão Inteligente</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#d85a30">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Minha Firma">
+<meta name="mobile-web-app-capable" content="yes">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -185,6 +191,20 @@ tbody tr:hover td{background:var(--surface2)}
 
 .toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:var(--bg);padding:11px 16px;border-radius:var(--rs);font-size:13px;font-weight:600;z-index:300;animation:toastIn .2s ease;box-shadow:0 4px 20px rgba(0,0,0,.25)}
 @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* PWA INSTALL BANNER */
+.pwa-banner{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);border-top:.5px solid var(--border);
+  padding:14px 20px;display:flex;align-items:center;gap:12px;
+  z-index:400;box-shadow:0 -4px 20px rgba(0,0,0,.15);
+  animation:slideUp .3s ease;
+}
+.pwa-banner-icon{width:44px;height:44px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pwa-banner-text{flex:1}
+.pwa-banner-title{font-size:14px;font-weight:700}
+.pwa-banner-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.pwa-banner-btns{display:flex;gap:8px;flex-shrink:0}
 
 /* MODO TOGGLE */
 .toggle-modo{
@@ -748,6 +768,21 @@ tbody tr:hover td{background:var(--surface2)}
 
       </main>
     </div>
+  </div>
+</div>
+
+<!-- PWA INSTALL BANNER -->
+<div class="pwa-banner" id="pwa-banner" style="display:none">
+  <div class="pwa-banner-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+  </div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Instalar Minha Firma</div>
+    <div class="pwa-banner-sub">Adicione à tela inicial para acesso rápido</div>
+  </div>
+  <div class="pwa-banner-btns">
+    <button class="btn btn-sm" onclick="dismissPWA()">Agora não</button>
+    <button class="btn btn-primary btn-sm" onclick="installPWA()">📲 Instalar</button>
   </div>
 </div>
 
@@ -2343,6 +2378,54 @@ function exportDRE(ini, fim){
   a.download=`DRE_${ini}_${fim}.csv`; a.click();
   toast('✅ DRE exportado!');
 }
+
+// ══ PWA ══
+let deferredPrompt = null;
+
+// Registrar Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.log('SW erro:', err));
+  });
+}
+
+// Capturar evento de instalação
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Mostrar banner apenas se não foi dispensado antes
+  if(!localStorage.getItem('pwa-dismissed')){
+    setTimeout(() => {
+      document.getElementById('pwa-banner').style.display = 'flex';
+    }, 3000); // Mostrar após 3 segundos
+  }
+});
+
+// Instalar app
+async function installPWA(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if(outcome === 'accepted'){
+    toast('✅ Minha Firma instalado com sucesso!');
+  }
+  deferredPrompt = null;
+  document.getElementById('pwa-banner').style.display = 'none';
+}
+
+// Dispensar banner
+function dismissPWA(){
+  document.getElementById('pwa-banner').style.display = 'none';
+  localStorage.setItem('pwa-dismissed', '1');
+}
+
+// Detectar quando app foi instalado
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwa-banner').style.display = 'none';
+  toast('🎉 Minha Firma instalado!');
+});
 </script>
 </body>
 </html>
