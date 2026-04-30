@@ -1488,29 +1488,159 @@ async function alterarPlano(uid, nome, novoPlano){
 function openModal(id){
   const d=despesas.find(x=>x.id===id); if(!d) return;
   const meu = d.user_id === currentUser.id;
-  const podExcluir = isAdmin() || meu;
-  document.getElementById('modal-title').textContent=d.fornecedor;
+  const podEditar = isAdmin() || meu;
+  openModalVisualizacao(d, podEditar);
+}
+
+function openModalVisualizacao(d, podEditar){
+  document.getElementById('modal-title').textContent = d.fornecedor;
+  const ccOpts = todosCentros.map(c=>`<option value="${c.nome}" ${d.cc===c.nome?'selected':''}>${c.icone||'📦'} ${c.nome}</option>`).join('');
   document.getElementById('modal-body').innerHTML=`
-    <table style="width:100%;font-size:13px;margin-bottom:14px">
-      <tr><td style="color:var(--muted);padding:5px 0;width:40%">Lançado por</td><td style="font-weight:600">${d.profiles?.full_name||'—'}</td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">Centro de Custo</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">Categoria</td><td>${d.categoria}</td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">CNPJ/CPF</td><td>${d.cnpj||'—'}</td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">Tipo</td><td>${d.tipo}</td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">Nº Documento</td><td>${d.ndoc||'—'}</td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">Data</td><td>${fmtDate(d.data)}</td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">Pagamento</td><td>${d.pagto||'—'}</td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">Status</td><td><span class="badge" style="${STATUS_STYLE[d.status]||''}">${d.status}</span></td></tr>
-      <tr><td style="color:var(--muted);padding:5px 0">Valor</td><td style="font-weight:700;font-size:16px;color:var(--accent)">${fmt(d.valor)}</td></tr>
-      ${d.obs?`<tr><td style="color:var(--muted);padding:5px 0">Obs.</td><td>${d.obs}</td></tr>`:''}
-      <tr><td style="color:var(--muted);padding:5px 0">Extraído por IA</td><td>${d.ia?'<span class="badge badge-ai">Sim</span>':'Não'}</td></tr>
-    </table>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      ${podExcluir?`<button class="btn btn-danger btn-sm" onclick="deletarDespesa(${d.id})">🗑 Excluir</button>`:''}
-      <button class="btn btn-sm" onclick="closeModal()">Fechar</button>
+    <div id="modal-view">
+      <table style="width:100%;font-size:13px;margin-bottom:14px">
+        <tr><td style="color:var(--muted);padding:5px 0;width:40%">Lançado por</td><td style="font-weight:600">${d.profiles?.full_name||'—'}</td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Centro de Custo</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Categoria</td><td>${d.categoria}</td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">CNPJ/CPF</td><td>${d.cnpj||'—'}</td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Tipo</td><td>${d.tipo}</td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Nº Documento</td><td>${d.ndoc||'—'}</td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Data</td><td>${fmtDate(d.data)}</td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Pagamento</td><td>${d.pagto||'—'}</td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Status</td><td><span class="badge" style="${STATUS_STYLE[d.status]||''}">${d.status}</span></td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Valor</td><td style="font-weight:700;font-size:16px;color:var(--accent)">${fmt(d.valor)}</td></tr>
+        ${d.obs?`<tr><td style="color:var(--muted);padding:5px 0">Obs.</td><td>${d.obs}</td></tr>`:''}
+        <tr><td style="color:var(--muted);padding:5px 0">Extraído por IA</td><td>${d.ia?'<span class="badge badge-ai">Sim</span>':'Não'}</td></tr>
+      </table>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        ${podEditar?`<button class="btn btn-danger btn-sm" onclick="deletarDespesa(${d.id})">🗑 Excluir</button>`:''}
+        ${podEditar?`<button class="btn btn-primary btn-sm" onclick="abrirEdicao(${d.id})">✏️ Editar</button>`:''}
+        <button class="btn btn-sm" onclick="closeModal()">Fechar</button>
+      </div>
+    </div>
+
+    <div id="modal-edit" style="display:none">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div class="form-group full"><label class="form-label">Fornecedor <span style="color:var(--accent)">*</span></label>
+          <input type="text" class="form-control" id="ed-fornecedor" value="${(d.fornecedor||'').replace(/"/g,'&quot;')}"></div>
+        <div class="form-group"><label class="form-label">CNPJ/CPF</label>
+          <input type="text" class="form-control" id="ed-cnpj" value="${(d.cnpj||'').replace(/"/g,'&quot;')}"></div>
+        <div class="form-group"><label class="form-label">Centro de Custo <span style="color:var(--accent)">*</span></label>
+          <select class="form-control" id="ed-cc"><option value="">Selecionar...</option>${ccOpts}</select></div>
+        <div class="form-group"><label class="form-label">Categoria</label>
+          <select class="form-control" id="ed-cat">
+            <option value="">—</option>
+            <option ${d.categoria==='Insumos / Ingredientes'?'selected':''}>Insumos / Ingredientes</option>
+            <option ${d.categoria==='Embalagens'?'selected':''}>Embalagens</option>
+            <option ${d.categoria==='Serviços'?'selected':''}>Serviços</option>
+            <option ${d.categoria==='Equipamentos'?'selected':''}>Equipamentos</option>
+            <option ${d.categoria==='Manutenção'?'selected':''}>Manutenção</option>
+            <option ${d.categoria==='Energia / Água / Gás'?'selected':''}>Energia / Água / Gás</option>
+            <option ${d.categoria==='Folha de Pagamento'?'selected':''}>Folha de Pagamento</option>
+            <option ${d.categoria==='Aluguel'?'selected':''}>Aluguel</option>
+            <option ${d.categoria==='Marketing / Publicidade'?'selected':''}>Marketing / Publicidade</option>
+            <option ${d.categoria==='Outros'?'selected':''}>Outros</option>
+          </select></div>
+        <div class="form-group"><label class="form-label">Valor <span style="color:var(--accent)">*</span></label>
+          <input type="text" class="form-control" id="ed-valor" value="${d.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}"></div>
+        <div class="form-group"><label class="form-label">Data <span style="color:var(--accent)">*</span></label>
+          <input type="date" class="form-control" id="ed-data" value="${d.data}"></div>
+        <div class="form-group"><label class="form-label">Nº Documento</label>
+          <input type="text" class="form-control" id="ed-ndoc" value="${(d.ndoc||'').replace(/"/g,'&quot;')}"></div>
+        <div class="form-group"><label class="form-label">Tipo</label>
+          <select class="form-control" id="ed-tipo">
+            <option ${d.tipo==='Cupom Fiscal'?'selected':''}>Cupom Fiscal</option>
+            <option ${d.tipo==='NF-e'?'selected':''}>NF-e</option>
+            <option ${d.tipo==='NFC-e'?'selected':''}>NFC-e</option>
+            <option ${d.tipo==='SAT'?'selected':''}>SAT</option>
+            <option ${d.tipo==='Recibo'?'selected':''}>Recibo</option>
+            <option ${d.tipo==='Outro'?'selected':''}>Outro</option>
+          </select></div>
+        <div class="form-group"><label class="form-label">Pagamento</label>
+          <select class="form-control" id="ed-pagto">
+            <option value="">—</option>
+            <option ${d.pagto==='Dinheiro'?'selected':''}>Dinheiro</option>
+            <option ${d.pagto==='Cartão de Débito'?'selected':''}>Cartão de Débito</option>
+            <option ${d.pagto==='Cartão de Crédito'?'selected':''}>Cartão de Crédito</option>
+            <option ${d.pagto==='PIX'?'selected':''}>PIX</option>
+            <option ${d.pagto==='Boleto'?'selected':''}>Boleto</option>
+            <option ${d.pagto==='Transferência'?'selected':''}>Transferência</option>
+          </select></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-control" id="ed-status">
+            <option ${d.status==='Aprovado'?'selected':''}>Aprovado</option>
+            <option ${d.status==='Pendente'?'selected':''}>Pendente</option>
+            <option ${d.status==='Rejeitado'?'selected':''}>Rejeitado</option>
+          </select></div>
+        <div class="form-group full"><label class="form-label">Observações</label>
+          <input type="text" class="form-control" id="ed-obs" value="${(d.obs||'').replace(/"/g,'&quot;')}"></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="fecharEdicao()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="salvarEdicao(${d.id})">💾 Salvar alterações</button>
+      </div>
     </div>`;
   document.getElementById('modal').classList.add('show');
 }
+
+function abrirEdicao(id){
+  document.getElementById('modal-view').style.display = 'none';
+  document.getElementById('modal-edit').style.display = 'block';
+  document.getElementById('modal-title').textContent = '✏️ Editar Lançamento';
+}
+
+function fecharEdicao(){
+  document.getElementById('modal-view').style.display = 'block';
+  document.getElementById('modal-edit').style.display = 'none';
+  const d = despesas.find(x => document.getElementById('ed-fornecedor')?.value);
+  document.getElementById('modal-title').textContent = document.getElementById('ed-fornecedor')?.value || 'Lançamento';
+}
+
+async function salvarEdicao(id){
+  const fornecedor = document.getElementById('ed-fornecedor').value.trim();
+  const cc = document.getElementById('ed-cc').value;
+  const valorRaw = document.getElementById('ed-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
+  const valor = parseFloat(valorRaw);
+  const data = document.getElementById('ed-data').value;
+  if(!fornecedor){toast('⚠ Preencha o fornecedor.');return;}
+  if(!cc){toast('⚠ Selecione o centro de custo.');return;}
+  if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
+  if(!data){toast('⚠ Informe a data.');return;}
+
+  // Aviso data futura
+  const hoje = new Date().toISOString().split('T')[0];
+  if(data > hoje){
+    const confirma = confirm(`⚠️ A data informada é futura (${fmtDate(data)}).\nConfirma a alteração mesmo assim?`);
+    if(!confirma) return;
+  }
+
+  const updates = {
+    fornecedor,
+    cnpj: document.getElementById('ed-cnpj').value.trim(),
+    cc,
+    categoria: document.getElementById('ed-cat').value || 'Outros',
+    valor,
+    data,
+    ndoc: document.getElementById('ed-ndoc').value.trim(),
+    tipo: document.getElementById('ed-tipo').value,
+    pagto: document.getElementById('ed-pagto').value,
+    status: document.getElementById('ed-status').value,
+    obs: document.getElementById('ed-obs').value.trim(),
+  };
+
+  const { error } = await sb.from('despesas').update(updates).eq('id', id);
+  if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
+
+  // Atualizar localmente
+  const idx = despesas.findIndex(d=>d.id===id);
+  if(idx >= 0) despesas[idx] = { ...despesas[idx], ...updates };
+
+  closeModal();
+  renderDespesas();
+  updateDashboard();
+  updateFooter();
+  toast('✅ Lançamento atualizado!');
+}
+
 function closeModal(){ document.getElementById('modal').classList.remove('show'); }
 
 async function deletarDespesa(id){
