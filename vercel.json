@@ -1,6 +1,9 @@
 {
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/sw.js", "dest": "/public/sw.js" },
+    { "src": "/manifest.json", "dest": "/public/manifest.json" },
+    { "src": "/pricing.html", "dest": "/pricing.html" },
     { "src": "/pricing", "dest": "/pricing.html" },
     { "src": "/(.*)", "dest": "/public/index.html" }
   ]
