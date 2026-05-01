@@ -214,7 +214,7 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
       <div class="plan-period">/mês por estabelecimento</div>
       <div class="plan-annual" id="pro-annual">&nbsp;</div>
     </div>
-    <a href="#contato" class="plan-cta cta-primary" onclick="openWpp('Pro')">Assinar Pro</a>
+    <a href="#" class="plan-cta cta-primary" onclick="openPix();return false;">Assinar Pro</a>
     <hr class="divider">
     <div class="feat-title">Tudo do Starter, mais</div>
     <ul class="feat-list">
@@ -362,6 +362,86 @@ function toggleFaq(el){
   document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
   if(!isOpen) item.classList.add('open');
 }
+</script>
+<!-- MODAL PIX -->
+<div id="modal-pix" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#1e1c18;border:1px solid rgba(255,255,255,0.1);border-radius:20px;max-width:440px;width:100%;padding:36px;position:relative">
+    <button onclick="closePix()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#b5b0aa;font-size:22px;cursor:pointer">✕</button>
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:36px;margin-bottom:8px">💳</div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px">Assinar Plano Pro</h2>
+      <p style="color:#b5b0aa;font-size:14px">Faça o pagamento via PIX e envie o comprovante</p>
+    </div>
+
+    <div style="background:#161512;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:20px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.07)">
+        <span style="color:#b5b0aa;font-size:13px">Plano</span>
+        <span style="font-weight:600">Pro — <span id="pix-periodo">mensal</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <span style="color:#b5b0aa;font-size:13px">Valor</span>
+        <span style="font-size:22px;font-weight:700;color:#e8672a" id="pix-valor">R$ 59,00</span>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:12px;color:#b5b0aa;margin-bottom:6px">Chave PIX (CNPJ)</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;background:#0e0d0b;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;font-size:14px;font-family:monospace" id="pix-chave">20363834249</div>
+          <button onclick="copiarPix()" style="background:#e8672a;border:none;color:#fff;border-radius:8px;padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap" id="btn-copiar">Copiar</button>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;color:#b5b0aa;margin-bottom:6px">Favorecido</div>
+        <div style="background:#0e0d0b;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;font-size:14px">SIÁRXERES REGES DE LIMA NÉRI</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(232,103,42,0.08);border:1px solid rgba(232,103,42,0.2);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;color:#f59044;line-height:1.5">
+      ⚡ Após o pagamento, envie o comprovante via WhatsApp. Seu plano será ativado em até 1 hora útil.
+    </div>
+
+    <button onclick="enviarComprovante()" style="width:100%;background:#25D366;border:none;color:#fff;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.062.522 4.001 1.438 5.701L0 24l6.479-1.396A11.935 11.935 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.796 9.796 0 01-5.064-1.407l-.361-.214-3.747.807.839-3.641-.236-.374A9.789 9.789 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/></svg>
+      Enviar comprovante via WhatsApp
+    </button>
+  </div>
+</div>
+
+<script>
+function openPix(){
+  const valor = planoAtual === 'anual' ? 'R$ 47,00/mês (R$ 564/ano)' : 'R$ 59,00';
+  document.getElementById('pix-valor').textContent = planoAtual === 'anual' ? 'R$ 564,00' : 'R$ 59,00';
+  document.getElementById('pix-periodo').textContent = planoAtual;
+  document.getElementById('modal-pix').style.display = 'flex';
+}
+
+function closePix(){
+  document.getElementById('modal-pix').style.display = 'none';
+}
+
+function copiarPix(){
+  const chave = document.getElementById('pix-chave').textContent;
+  navigator.clipboard.writeText(chave).then(() => {
+    const btn = document.getElementById('btn-copiar');
+    btn.textContent = 'Copiado! ✓';
+    btn.style.background = '#22c55e';
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.style.background = '#e8672a'; }, 2000);
+  });
+}
+
+function enviarComprovante(){
+  const periodo = document.getElementById('pix-periodo').textContent;
+  const valor = document.getElementById('pix-valor').textContent;
+  const msg = encodeURIComponent(`Olá! Realizei o pagamento do plano Pro (${periodo}) — ${valor}. Segue o comprovante em anexo. Pode ativar meu acesso?`);
+  window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, '_blank');
+  closePix();
+}
+
+// Fechar modal clicando fora
+document.getElementById('modal-pix').addEventListener('click', function(e){
+  if(e.target === this) closePix();
+});
 </script>
 </body>
 </html>
