@@ -1391,7 +1391,7 @@ function renderCentros(){
     </tr>`).join('');
 }
 
-/ ══ MODAL ══
+// ══ MODAL ══
 function openModal(id){
   const d=despesas.find(x=>x.id===id); if(!d) return;
   const meu = d.user_id === currentUser.id;
