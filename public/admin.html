@@ -460,18 +460,22 @@
         <input type="text" id="cc-nome" placeholder="Ex: Cozinha">
       </div>
       <div>
-        <label>Cor</label>
-        <input type="color" id="cc-cor" value="#6c63ff" style="height:41px;padding:4px">
+        <label>Ícone (emoji)</label>
+        <input type="text" id="cc-icone" placeholder="📦" style="font-size:20px;text-align:center">
       </div>
     </div>
     <div class="form-row">
       <div>
-        <label>Nível de acesso (1–5)</label>
-        <input type="number" id="cc-nivel" min="1" max="5" value="1">
+        <label>Cor</label>
+        <input type="color" id="cc-cor" value="#6c63ff" style="height:41px;padding:4px">
       </div>
       <div>
-        <label>Ordem de exibição</label>
-        <input type="number" id="cc-ordem" value="1">
+        <label>Plano mínimo</label>
+        <select id="cc-plano">
+          <option value="starter">🆓 Starter</option>
+          <option value="pro">💰 Pro</option>
+          <option value="enterprise">💎 Enterprise</option>
+        </select>
       </div>
     </div>
     <div class="form-row full">
@@ -657,43 +661,58 @@ function showPage(id, el){
 
 // ═══ DASHBOARD ═══
 async function carregarDashboard(){
-  const [{ data: users }, { data: despesas }, { data: planos }] = await Promise.all([
+  const [{ data: users }, { data: planos }] = await Promise.all([
     sb.from('profiles').select('*'),
-    sb.from('despesas').select('valor, created_at'),
     sb.from('planos').select('*')
   ]);
 
+  const hoje = new Date();
+  const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+  // Total usuários + novos este mês
   const totalUsuarios = users?.length || 0;
+  const novosNoMes = users?.filter(u => new Date(u.created_at) >= inicioMes).length || 0;
+
+  // Distribuição por plano
   const porPlano = {};
   users?.forEach(u => { porPlano[u.plano || 'starter'] = (porPlano[u.plano || 'starter'] || 0) + 1; });
-  const totalDespesas = despesas?.reduce((s, d) => s + (d.valor || 0), 0) || 0;
-  const hoje = new Date();
-  const mesAtual = despesas?.filter(d => {
-    const d2 = new Date(d.created_at);
-    return d2.getMonth() === hoje.getMonth() && d2.getFullYear() === hoje.getFullYear();
-  });
-  const totalMes = mesAtual?.reduce((s, d) => s + (d.valor || 0), 0) || 0;
+
+  // MRR: soma preço do plano de cada usuário pagante (plano !== 'starter' e !== null)
+  const planosMap = {};
+  planos?.forEach(p => { planosMap[p.id] = p.preco_mensal || 0; });
+  const mrr = users?.reduce((s, u) => {
+    const plano = u.plano || 'starter';
+    if(plano === 'starter') return s;
+    return s + (planosMap[plano] || 0);
+  }, 0) || 0;
+
+  // Usuários pagantes (plano !== starter)
+  const pagantes = users?.filter(u => u.plano && u.plano !== 'starter').length || 0;
+  const conversao = totalUsuarios > 0 ? ((pagantes / totalUsuarios) * 100).toFixed(1) : '0.0';
+
+  // Distribuição legível
+  const distPlanos = Object.entries(porPlano).map(([k,v]) => `${k}: ${v}`).join(' · ') || '—';
 
   document.getElementById('metrics-grid').innerHTML = `
     <div class="metric-card">
       <div class="label">TOTAL USUÁRIOS</div>
       <div class="value accent">${totalUsuarios}</div>
-      <div class="sub">cadastrados</div>
+      <div class="sub">+${novosNoMes} entraram este mês</div>
     </div>
     <div class="metric-card">
-      <div class="label">DESPESAS NO MÊS</div>
-      <div class="value green">R$ ${totalMes.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
-      <div class="sub">${mesAtual?.length || 0} lançamentos</div>
+      <div class="label">MRR ESTIMADO</div>
+      <div class="value green">R$ ${mrr.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
+      <div class="sub">receita mensal recorrente</div>
     </div>
     <div class="metric-card">
-      <div class="label">TOTAL DESPESAS</div>
-      <div class="value yellow">R$ ${totalDespesas.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div>
-      <div class="sub">histórico completo</div>
+      <div class="label">USUÁRIOS PAGANTES</div>
+      <div class="value yellow">${pagantes}</div>
+      <div class="sub">${conversao}% de conversão (Starter → pago)</div>
     </div>
     <div class="metric-card">
-      <div class="label">PLANOS ATIVOS</div>
-      <div class="value accent">${planos?.length || 0}</div>
-      <div class="sub">${Object.entries(porPlano).map(([k,v])=>`${k}: ${v}`).join(' · ')}</div>
+      <div class="label">PLANOS COM USUÁRIOS</div>
+      <div class="value accent">${Object.keys(porPlano).length}</div>
+      <div class="sub">${distPlanos}</div>
     </div>
   `;
 
@@ -840,28 +859,63 @@ async function deletarPlano(id, nome){
 async function carregarCentros(){
   document.getElementById('centros-list').innerHTML = '<div class="loading">Carregando...</div>';
   const { data } = await sb.from('centros_custo').select('*').order('ordem');
-  document.getElementById('centros-list').innerHTML = (data||[]).map(c => `
-    <div class="cc-card">
-      <div class="cc-color" style="background:${c.cor||'#6c63ff'}"></div>
-      <div class="cc-info">
-        <div class="name">${c.nome}</div>
-        <div class="meta">Nível ${c.nivel||1} · Ordem ${c.ordem||1} · ${c.ativo?'Ativo':'Inativo'}</div>
-      </div>
-      <div class="cc-actions">
-        <button class="btn btn-sm btn-ghost" onclick='editarCC(${JSON.stringify(c)})'>✏️</button>
-        <button class="btn btn-sm btn-danger" onclick="deletarCC('${c.id}','${c.nome}')">🗑️</button>
-      </div>
-    </div>
-  `).join('') || '<div class="loading">Nenhum centro cadastrado.</div>';
+  const centros = data || [];
+  if(!centros.length){ document.getElementById('centros-list').innerHTML = '<div class="loading">Nenhum centro cadastrado.</div>'; return; }
+  document.getElementById('centros-list').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>CENTRO DE CUSTO</th>
+        <th>COR</th>
+        <th>ÍCONE</th>
+        <th>PLANO MÍNIMO</th>
+        <th>TIPO</th>
+        <th>STATUS</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        ${centros.map(c => `
+          <tr>
+            <td style="font-weight:600">
+              <span style="display:inline-flex;align-items:center;gap:8px">
+                <span style="width:10px;height:10px;border-radius:50%;background:${c.cor||'#6c63ff'};flex-shrink:0"></span>
+                ${c.icone||''} ${c.nome}
+              </span>
+            </td>
+            <td><input type="color" value="${c.cor||'#6c63ff'}" style="width:36px;height:28px;border:none;cursor:pointer;border-radius:4px;background:transparent" onchange="atualizarCCAdmin(${c.id},'cor',this.value)"></td>
+            <td><input type="text" value="${c.icone||'📦'}" style="width:50px;text-align:center;padding:4px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:16px" onchange="atualizarCCAdmin(${c.id},'icone',this.value)"></td>
+            <td>
+              <select style="padding:5px 8px;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text)" onchange="atualizarCCAdmin(${c.id},'plano_minimo',this.value)">
+                <option value="starter" ${(c.plano_minimo||'starter')==='starter'?'selected':''}>🆓 Starter</option>
+                <option value="pro" ${c.plano_minimo==='pro'?'selected':''}>💰 Pro</option>
+                <option value="enterprise" ${c.plano_minimo==='enterprise'?'selected':''}>💎 Enterprise</option>
+              </select>
+            </td>
+            <td><span class="badge-plano ${c.personalizado?'pro':'starter'}">${c.personalizado?'Personalizado':'Padrão'}</span></td>
+            <td><span style="font-size:12px;font-weight:700;color:${c.ativo?'var(--green)':'var(--red)'}">${c.ativo?'Ativo':'Inativo'}</span></td>
+            <td style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-ghost" onclick="atualizarCCAdmin(${c.id},'ativo',${!c.ativo})">${c.ativo?'Desativar':'Ativar'}</button>
+              <button class="btn btn-sm btn-danger" onclick="deletarCC(${c.id},'${c.nome}')">🗑️</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function atualizarCCAdmin(id, campo, valor){
+  const updates = { [campo]: valor };
+  const { error } = await sb.from('centros_custo').update(updates).eq('id', id);
+  if(error){ toast('❌ Erro: '+error.message); return; }
+  toast('✅ Centro atualizado!');
+  carregarCentros();
 }
 
 function abrirModalCC(){
   document.getElementById('modal-cc-titulo').textContent = 'Novo Centro de Custo';
   document.getElementById('cc-id').value = '';
   document.getElementById('cc-nome').value = '';
+  document.getElementById('cc-icone').value = '📦';
   document.getElementById('cc-cor').value = '#6c63ff';
-  document.getElementById('cc-nivel').value = 1;
-  document.getElementById('cc-ordem').value = 1;
+  document.getElementById('cc-plano').value = 'starter';
   document.getElementById('cc-ativo').value = 'true';
   document.getElementById('modal-cc').classList.add('show');
 }
@@ -870,9 +924,9 @@ function editarCC(c){
   document.getElementById('modal-cc-titulo').textContent = 'Editar Centro de Custo';
   document.getElementById('cc-id').value = c.id;
   document.getElementById('cc-nome').value = c.nome;
+  document.getElementById('cc-icone').value = c.icone || '📦';
   document.getElementById('cc-cor').value = c.cor || '#6c63ff';
-  document.getElementById('cc-nivel').value = c.nivel || 1;
-  document.getElementById('cc-ordem').value = c.ordem || 1;
+  document.getElementById('cc-plano').value = c.plano_minimo || 'starter';
   document.getElementById('cc-ativo').value = c.ativo ? 'true' : 'false';
   document.getElementById('modal-cc').classList.add('show');
 }
@@ -881,15 +935,15 @@ async function salvarCC(){
   const id = document.getElementById('cc-id').value;
   const dados = {
     nome: document.getElementById('cc-nome').value,
+    icone: document.getElementById('cc-icone').value || '📦',
     cor: document.getElementById('cc-cor').value,
-    nivel: parseInt(document.getElementById('cc-nivel').value),
-    ordem: parseInt(document.getElementById('cc-ordem').value),
+    plano_minimo: document.getElementById('cc-plano').value,
     ativo: document.getElementById('cc-ativo').value === 'true',
     personalizado: false,
     conta_id: null,
   };
   if(id){ await sb.from('centros_custo').update(dados).eq('id', id); }
-  else { await sb.from('centros_custo').insert(dados); }
+  else { await sb.from('centros_custo').insert({ ...dados, ordem: 99 }); }
   fecharModal('modal-cc');
   toast('✅ Centro de custo salvo!');
   carregarCentros();
