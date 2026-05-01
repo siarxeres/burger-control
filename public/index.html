@@ -606,10 +606,10 @@ tbody tr:hover td{background:var(--surface2)}
           </div>
           <div class="report-btns">
             <button class="btn" onclick="gerarRelatorio('resumo')">📋 Resumo Executivo</button>
-            <button class="btn" onclick="gerarRelatorio('anomalias')">🔍 Anomalias</button>
-            <button class="btn" onclick="gerarRelatorio('tendencias')">📈 Tendências</button>
-            <button class="btn" onclick="gerarRelatorio('economia')">💡 Economia</button>
-            <button class="btn" onclick="gerarRelatorio('dre')">📄 DRE via IA</button>
+            <button class="btn" onclick="gerarRelatorioPro('anomalias')">🔍 Anomalias</button>
+            <button class="btn" onclick="gerarRelatorioPro('tendencias')">📈 Tendências</button>
+            <button class="btn" onclick="gerarRelatorioPro('economia')">💡 Economia</button>
+            <button class="btn" onclick="gerarRelatorioPro('dre')">📄 DRE via IA</button>
           </div>
           <div class="report-loading" id="report-loading"><div class="spinner"></div>Gerando análise...</div>
           <div class="report-out" id="report-out"></div>
@@ -840,6 +840,15 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentProfile = null;
 let currentPlano = null;
+let isStarterLimitado = false; // true após 30 dias no starter
+
+function checkTrialExpirado(){
+  if(isAdmin() || !currentProfile) return false;
+  if(currentProfile.plano && currentProfile.plano !== 'starter') return false;
+  const criado = new Date(currentProfile.created_at);
+  const dias = (new Date() - criado) / (1000*60*60*24);
+  return dias > 30;
+}
 let despesas = [];
 let todosPlanos = [];
 let receitas = [];
@@ -1004,6 +1013,8 @@ async function loadPlanos(){
   if(data) todosPlanos = data;
   const planoId = currentProfile?.plano || 'starter';
   currentPlano = todosPlanos.find(p=>p.id===planoId) || null;
+  // Verificar se trial de 30 dias expirou
+  isStarterLimitado = checkTrialExpirado();
 }
 
 async function loadCentros(){
@@ -1103,7 +1114,20 @@ function populateCCSelects(){
     sel.appendChild(opt);
   });
 
-  // Add "Criar novo CC" for enterprise
+  // Add "Outros centros - Faça Upgrade" for expired starter
+  if(!isAdmin() && isStarterLimitado){
+    const sep = document.createElement('option');
+    sep.disabled = true;
+    sep.textContent = '──────────────';
+    sel.appendChild(sep);
+    const outros = document.createElement('option');
+    outros.disabled = true;
+    outros.textContent = '🔒 Outros centros de custo — Faça Upgrade';
+    outros.style.color = 'var(--accent)';
+    sel.appendChild(outros);
+  }
+
+  // Add "Criar novo CC" for pro/enterprise
   if(currentPlano?.cc_personalizados || isAdmin()){
     const sep = document.createElement('option');
     sep.disabled = true;
@@ -1576,6 +1600,14 @@ function setRelPeriodo(p){
   else ini = new Date(hoje.getFullYear(), 0, 1);
   document.getElementById('rel-ini').value = ini.toISOString().split('T')[0];
   document.getElementById('rel-fim').value = hoje.toISOString().split('T')[0];
+}
+
+async function gerarRelatorioPro(tipo){
+  if(!isAdmin() && isStarterLimitado){
+    alertPlano('Relatórios avançados de IA — disponível no plano Pro. Seu período de teste gratuito encerrou.');
+    return;
+  }
+  gerarRelatorio(tipo);
 }
 
 async function gerarRelatorio(tipo){
@@ -2550,11 +2582,16 @@ function renderDRE(){
                 Faturamento mínimo para cobrir todos os custos
               </div>
             </td>
+            ${!isAdmin() && isStarterLimitado ? `
+            <td colspan="2" style="text-align:center;padding:12px 11px">
+              <span onclick="alertPlano('Ponto de Equilíbrio')" style="cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--accent);font-weight:600">🔒 Disponível no plano Pro — Fazer upgrade</span>
+            </td>` : `
             <td style="text-align:right;padding:12px 11px;font-weight:700;color:${peAtingidoPct>=100?'var(--green)':'var(--accent)'}">
               ${fmt(pe)}
             </td>
-            <td style="text-align:right;padding:12px 11px;font-size:12px;color:var(--muted)">100%</td>
+            <td style="text-align:right;padding:12px 11px;font-size:12px;color:var(--muted)">100%</td>`}
           </tr>
+          ${!isAdmin() && isStarterLimitado ? '' : `
           <tr style="background:${peAtingidoPct>=100?'rgba(59,109,17,0.06)':'rgba(216,90,48,0.04)'}">
             <td style="padding:8px 11px 8px 28px;color:var(--text);font-size:13px">
               Atingido até agora
@@ -2581,7 +2618,7 @@ function renderDRE(){
           <tr style="background:${peAtingidoPct>=100?'rgba(59,109,17,0.06)':'rgba(216,90,48,0.04)'}">
             <td style="padding:8px 11px 12px 28px;color:var(--muted);font-size:13px">Previsão de atingimento</td>
             <td style="text-align:right;padding:8px 11px 12px;font-weight:600;color:${peAtingidoPct>=100?'var(--green)':'var(--text)'}" colspan="2">${previsaoPE}</td>
-          </tr>
+          </tr>`}
         </tbody>
       </table>
       ${recTotal===0&&despesas.length===0?`<div class="empty" style="padding:30px"><div class="empty-icon">📊</div><div class="empty-title">Sem dados no período</div>Lance receitas e despesas para gerar o DRE.</div>`:''}
@@ -2589,7 +2626,7 @@ function renderDRE(){
 
     <div class="metrics" style="margin-top:16px">
       <div class="metric"><div class="metric-label">Receita Total</div><div class="metric-value green">${fmt(recTotal)}</div></div>
-      <div class="metric"><div class="metric-label">Ponto de Equilíbrio</div><div class="metric-value" style="${cor(recTotal-pe)}">${fmt(pe)}</div><div class="metric-sub">${peAtingidoPct.toFixed(1)}% atingido</div></div>
+      <div class="metric"><div class="metric-label">Ponto de Equilíbrio</div>${!isAdmin() && isStarterLimitado ? '<div class="metric-value" style="font-size:13px;color:var(--accent);cursor:pointer" onclick="alertPlano(\'Ponto de Equilíbrio\')">🔒 Upgrade Pro</div>' : `<div class="metric-value" style="${cor(recTotal-pe)}">${fmt(pe)}</div><div class="metric-sub">${peAtingidoPct.toFixed(1)}% atingido</div>`}</div>
       <div class="metric"><div class="metric-label">Meta Diária</div><div class="metric-value" style="font-size:18px;${metaDiaria>0?'color:var(--accent)':'color:var(--green)'}">${metaDiaria>0?fmt(metaDiaria):'✅ OK'}</div><div class="metric-sub">${diasRestantes} dias restantes</div></div>
       <div class="metric"><div class="metric-label">Resultado Líquido</div><div class="metric-value" style="${cor(liquido)}">${fmt(liquido)}</div><div class="metric-sub">${recTotal>0?(liquido/recTotal*100).toFixed(1)+'% da receita':'—'}</div></div>
     </div>`;
