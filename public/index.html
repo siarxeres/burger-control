@@ -1331,13 +1331,39 @@ async function salvarDespesa(){
 
 // ══ DASHBOARD ══
 function updateDashboard(){
-  const total=despesas.reduce((s,d)=>s+d.valor,0);
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+
+  // Filtrar pelo mês atual
+  const despMes = despesas.filter(d => {
+    const dt = new Date(d.data);
+    return dt.getMonth() === mesAtual && dt.getFullYear() === anoAtual;
+  });
+  const recMes = receitas.filter(r => {
+    const dt = new Date(r.data);
+    return dt.getMonth() === mesAtual && dt.getFullYear() === anoAtual;
+  });
+
+  const totalDesp = despMes.reduce((s,d) => s + d.valor, 0);
+  const totalRec = recMes.reduce((s,r) => s + r.valor, 0);
+  const resultado = totalRec - totalDesp;
+  const positivo = resultado >= 0;
+
   const byCC={}; despesas.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
   const sorted=Object.entries(byCC).sort((a,b)=>b[1]-a[1]);
   const pend=despesas.filter(d=>d.status==='Pendente').length;
   const ia=despesas.filter(d=>d.ia).length;
+
   document.getElementById('dash-metrics').innerHTML=`
-    <div class="metric"><div class="metric-label">Total do Mês</div><div class="metric-value accent">${fmt(total)}</div><div class="metric-sub">${despesas.length} lançamento(s)</div></div>
+    <div class="metric">
+      <div class="metric-label">Resultado do Mês</div>
+      <div class="metric-value" style="color:${positivo?'var(--green)':'var(--accent)'}">${positivo?'+':''}${fmt(resultado)}</div>
+      <div class="metric-sub" style="display:flex;flex-direction:column;gap:2px">
+        <span>📥 Rec: ${fmt(totalRec)}</span>
+        <span>📤 Desp: ${fmt(totalDesp)}</span>
+      </div>
+    </div>
     <div class="metric"><div class="metric-label">Maior CC</div><div class="metric-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div><div class="metric-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div></div>
     <div class="metric"><div class="metric-label">Extraídos pela IA</div><div class="metric-value green">${ia}</div><div class="metric-sub">de ${despesas.length}</div></div>
     <div class="metric"><div class="metric-label">Pendentes</div><div class="metric-value" style="${pend>0?'color:#ba7517':''}">${pend}</div><div class="metric-sub">aguardando aprovação</div></div>`;
