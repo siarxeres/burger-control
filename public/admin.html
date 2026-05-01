@@ -768,7 +768,7 @@ async function carregarPlanos(){
   document.getElementById('planos-list').innerHTML = (todosPlanos).map(p => `
     <div class="plano-card">
       <div class="plano-nome">${p.nome}</div>
-      <div class="plano-preco">R$ ${(p.preco||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}<small style="font-size:13px;color:var(--text2)">/mês</small></div>
+      <div class="plano-preco">R$ ${(p.preco_mensal||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}<small style="font-size:13px;color:var(--text2)">/mês</small></div>
       <div class="plano-feat">📦 Lançamentos: ${p.max_lancamentos===-1?'Ilimitado':p.max_lancamentos}</div>
       <div class="plano-feat">🤖 Scans IA: ${p.max_scans_ia===-1?'Ilimitado':p.max_scans_ia}</div>
       <div class="plano-feat">🏷️ Centros CC: ${p.max_cc===-1?'Ilimitado':p.max_cc}</div>
@@ -800,7 +800,7 @@ function editarPlano(p){
   document.getElementById('modal-plano-titulo').textContent = 'Editar Plano';
   document.getElementById('plano-id').value = p.id;
   document.getElementById('plano-nome').value = p.nome;
-  document.getElementById('plano-preco').value = p.preco || 0;
+  document.getElementById('plano-preco').value = p.preco_mensal || 0;
   document.getElementById('plano-max-lanc').value = p.max_lancamentos ?? -1;
   document.getElementById('plano-max-scans').value = p.max_scans_ia ?? -1;
   document.getElementById('plano-max-cc').value = p.max_cc ?? -1;
@@ -814,7 +814,7 @@ async function salvarPlano(){
   const id = document.getElementById('plano-id').value;
   const dados = {
     nome: document.getElementById('plano-nome').value,
-    preco: parseFloat(document.getElementById('plano-preco').value) || 0,
+    preco_mensal: parseFloat(document.getElementById('plano-preco').value) || 0,
     max_lancamentos: parseInt(document.getElementById('plano-max-lanc').value),
     max_scans_ia: parseInt(document.getElementById('plano-max-scans').value),
     max_cc: parseInt(document.getElementById('plano-max-cc').value),
