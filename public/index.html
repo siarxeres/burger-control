@@ -211,7 +211,11 @@ tbody tr:hover td{background:var(--surface2)}
   z-index:400;box-shadow:0 -4px 20px rgba(0,0,0,.15);
   animation:slideUp .3s ease;
 }
-.pwa-banner-icon{width:44px;height:44px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.trial-banner{display:none;background:linear-gradient(135deg,rgba(232,103,42,0.12),rgba(232,103,42,0.06));border-bottom:1px solid rgba(232,103,42,0.25);padding:9px 20px;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.trial-banner.show{display:flex}
+.trial-banner-text{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.trial-banner-days{font-weight:700;color:var(--accent)}
+.trial-banner-link{font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:5px 12px;border-radius:6px;text-decoration:none;white-space:nowrap;flex-shrink:0}
 .pwa-banner-text{flex:1}
 .pwa-banner-title{font-size:14px;font-weight:700}
 .pwa-banner-sub{font-size:12px;color:var(--muted);margin-top:1px}
@@ -424,6 +428,14 @@ tbody tr:hover td{background:var(--surface2)}
           <button class="btn btn-primary" onclick="showPage('lancar',document.getElementById('nav-lancar'))">+ Lançar</button>
         </div>
       </header>
+
+      <!-- BANNER TRIAL -->
+      <div class="trial-banner" id="trial-banner">
+        <div class="trial-banner-text">
+          🎁 <span>Você está no <strong>período de teste gratuito</strong> — <span id="trial-dias" class="trial-banner-days"></span> dias restantes. Após esse período, alguns recursos serão limitados.</span>
+        </div>
+        <a href="/pricing.html" class="trial-banner-link">⬆ Fazer upgrade</a>
+      </div>
 
       <main class="content">
 
@@ -842,6 +854,19 @@ let currentProfile = null;
 let currentPlano = null;
 let isStarterLimitado = false; // true após 30 dias no starter
 
+function showTrialBanner(){
+  if(isAdmin()) return;
+  const plano = currentProfile?.plano || 'starter';
+  if(plano !== 'starter') return;
+  if(isStarterLimitado) return; // trial já expirou, não mostra banner
+  const criado = new Date(currentProfile.created_at);
+  const diasUsados = (new Date() - criado) / (1000*60*60*24);
+  const diasRestantes = Math.max(0, Math.ceil(30 - diasUsados));
+  if(diasRestantes <= 0) return;
+  document.getElementById('trial-dias').textContent = diasRestantes;
+  document.getElementById('trial-banner').classList.add('show');
+}
+
 function checkTrialExpirado(){
   if(isAdmin() || !currentProfile) return false;
   if(currentProfile.plano && currentProfile.plano !== 'starter') return false;
@@ -1015,6 +1040,7 @@ async function loadPlanos(){
   currentPlano = todosPlanos.find(p=>p.id===planoId) || null;
   // Verificar se trial de 30 dias expirou
   isStarterLimitado = checkTrialExpirado();
+  showTrialBanner();
 }
 
 async function loadCentros(){
