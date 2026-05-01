@@ -606,11 +606,16 @@ async function fazerLogin(){
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-  if(error){ errEl.textContent = 'E-mail ou senha inválidos.'; return; }
-  const { data: prof } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
-  if(!prof || !isAdmin(prof)){ await sb.auth.signOut(); errEl.textContent = 'Acesso negado. Apenas administradores.'; return; }
+  if(error){ errEl.textContent = 'E-mail ou senha invalidos.'; return; }
   currentUser = data.user;
-  currentProfile = prof;
+  const { data: roleData } = await sb.rpc('get_my_role');
+  const role = roleData || '';
+  if(!['admin','administrador'].includes(role)){
+    await sb.auth.signOut(); currentUser = null;
+    errEl.textContent = 'Acesso negado. Apenas administradores.'; return;
+  }
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+  currentProfile = prof || { id: data.user.id, email, role, full_name: email };
   iniciarApp();
 }
 
