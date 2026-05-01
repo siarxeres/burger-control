@@ -374,18 +374,9 @@ tbody tr:hover td{background:var(--surface2)}
           DRE
         </div>
         <div class="nav-sec">Admin</div>
-        <div class="nav-item" id="nav-usuarios" onclick="showPage('usuarios',this)" style="display:none">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-          Usuários
-        </div>
-        <div class="nav-item" id="nav-centros-admin" onclick="showPage('centros-admin',this)" style="display:none">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-          Centros de Custo
-        </div>
-        <div class="nav-item" id="nav-planos" onclick="showPage('planos',this)" style="display:none">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-          Planos
-        </div>
+
+
+
         <!-- NAV PESSOAL -->
         <div class="nav-pessoal" id="nav-pessoal-section">
           <div class="nav-sec" style="color:var(--accent);margin-top:8px">👤 Conta Pessoal</div>
@@ -493,7 +484,7 @@ tbody tr:hover td{background:var(--surface2)}
               <div class="form-group"><label class="form-label">Fornecedor <span>*</span></label><input type="text" class="form-control" id="f-fornecedor" placeholder="Razão social ou nome fantasia"></div>
               <div class="form-group"><label class="form-label">CNPJ / CPF</label><input type="text" class="form-control" id="f-cnpj" placeholder="00.000.000/0000-00"></div>
               <div class="form-group"><label class="form-label">Centro de Custo <span>*</span></label>
-                <select class="form-control" id="f-cc" onchange="handleCCChange(this)"><option value="">Selecionar...</option></select></div>
+                <select class="form-control" id="f-cc"><option value="">Selecionar...</option></select></div>
               <div class="form-group"><label class="form-label">Categoria</label>
                 <select class="form-control" id="f-cat"><option value="">Selecionar...</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select></div>
               <div class="form-group"><label class="form-label">Valor Total <span>*</span></label><input type="text" class="form-control" id="f-valor" placeholder="R$ 0,00"></div>
@@ -808,36 +799,6 @@ tbody tr:hover td{background:var(--surface2)}
           <div id="p-dre-output"></div>
         </div>
 
-        <!-- CENTROS DE CUSTO ADMIN -->
-        <div class="page" id="page-centros-admin">
-          <div class="alert alert-info" style="margin-bottom:18px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            Gerencie os centros de custo disponíveis. Defina qual plano mínimo é necessário para cada um.
-          </div>
-          <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
-            <button class="btn btn-primary btn-sm" onclick="openModalNovoCC()">+ Novo Centro</button>
-          </div>
-          <div id="centros-admin-list"></div>
-        </div>
-
-        <!-- PLANOS (só admin) -->
-        <div class="page" id="page-planos">
-          <div class="alert alert-info" style="margin-bottom:18px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            Edite os parâmetros de cada plano. As alterações entram em vigor imediatamente para todos os usuários.
-          </div>
-          <div id="planos-list"></div>
-        </div>
-
-        <!-- USUÁRIOS (só admin) -->
-        <div class="page" id="page-usuarios">
-          <div class="alert alert-warn" style="margin-bottom:18px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Apenas Administradores podem gerenciar usuários e alterar perfis de acesso.
-          </div>
-          <div id="usuarios-list"></div>
-        </div>
-
       </main>
     </div>
   </div>
@@ -1091,9 +1052,6 @@ function initApp(){
   const roleEl = document.getElementById('sf-role');
   roleEl.textContent = isAdmin() ? 'Admin' : (currentPlano?.nome || 'Starter');
   roleEl.className = 'sf-role ' + (isAdmin() ? 'admin' : 'operador');
-  document.getElementById('nav-usuarios').style.display = isAdmin() ? 'flex' : 'none';
-  document.getElementById('nav-planos').style.display = isAdmin() ? 'flex' : 'none';
-  document.getElementById('nav-centros-admin').style.display = isAdmin() ? 'flex' : 'none';
   document.getElementById('despesas-aviso-op').style.display = isAdmin() ? 'none' : 'flex';
   document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
   populateCCSelects();
@@ -1178,18 +1136,15 @@ function showPage(id, navEl){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',usuarios:'Gerenciar Usuários',planos:'Configurar Planos','centros-admin':'Centros de Custo — Admin','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'DRE Pessoal'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'DRE Pessoal'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
   if(id==='despesas') renderDespesas();
   if(id==='centros') renderCentros();
-  if(id==='usuarios') renderUsuarios();
-  if(id==='planos') renderPlanos();
   if(id==='receitas') renderReceitas();
   if(id==='dre') initDRE();
   if(id==='relatorio') initRelatorio();
-  if(id==='centros-admin') renderCentrosAdmin();
   if(id==='pessoal-dashboard') renderPessoalDashboard();
   if(id==='pessoal-extrato') renderExtratoPessoal();
   if(id==='pessoal-dre') initDREPessoal();
@@ -1436,108 +1391,7 @@ function renderCentros(){
     </tr>`).join('');
 }
 
-// ══ USUÁRIOS (admin) ══
-// ══ PLANOS (admin) ══
-async function renderPlanos(){
-  if(!isAdmin()){ document.getElementById('planos-list').innerHTML='<div class="alert alert-warn">Acesso negado.</div>'; return; }
-  await loadPlanos();
-  const CAMPOS = [
-    {key:'max_lancamentos', label:'Lançamentos/mês', tipo:'numero', dica:'999999 = ilimitado'},
-    {key:'max_cc', label:'Centros de custo', tipo:'numero', dica:'999999 = ilimitado'},
-    {key:'max_scans_ia', label:'Scans IA/mês', tipo:'numero', dica:'999999 = ilimitado'},
-    {key:'max_usuarios', label:'Usuários', tipo:'numero', dica:'999999 = ilimitado'},
-    {key:'preco_mensal', label:'Preço mensal (R$)', tipo:'numero', dica:'0 = gratuito'},
-    {key:'preco_anual', label:'Preço anual (R$)', tipo:'numero', dica:'0 = gratuito'},
-    {key:'tem_receitas', label:'Lançar receitas', tipo:'bool'},
-    {key:'tem_dre', label:'DRE', tipo:'bool'},
-    {key:'tem_relatorios_ia', label:'Relatórios IA', tipo:'bool'},
-    {key:'tem_export_csv', label:'Exportar CSV', tipo:'bool'},
-    {key:'tem_multiplas_unidades', label:'Múltiplas unidades', tipo:'bool'},
-    {key:'tem_suporte_wpp', label:'Suporte WhatsApp', tipo:'bool'},
-  ];
-  document.getElementById('planos-list').innerHTML = todosPlanos.map(p => `
-    <div class="card" style="margin-bottom:16px;overflow:hidden">
-      <div style="padding:14px 16px;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-size:15px;font-weight:700">${p.nome}</div>
-          <div style="font-size:12px;color:var(--muted)">${p.descricao||''}</div>
-        </div>
-        <button class="btn btn-sm btn-primary" onclick="salvarPlano('${p.id}')">💾 Salvar</button>
-      </div>
-      <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        ${CAMPOS.map(c => {
-          if(c.tipo==='bool') return `
-            <div class="form-group">
-              <label class="form-label">${c.label}</label>
-              <select class="form-control" id="plano_${p.id}_${c.key}">
-                <option value="true" ${p[c.key]?'selected':''}>✅ Sim</option>
-                <option value="false" ${!p[c.key]?'selected':''}>❌ Não</option>
-              </select>
-            </div>`;
-          return `
-            <div class="form-group">
-              <label class="form-label">${c.label} <span style="font-weight:400;color:var(--hint)">${c.dica||''}</span></label>
-              <input type="number" class="form-control" id="plano_${p.id}_${c.key}" value="${p[c.key]||0}">
-            </div>`;
-        }).join('')}
-      </div>
-    </div>`).join('');
-}
-
-async function salvarPlano(planoId){
-  const CAMPOS_NUM = ['max_lancamentos','max_cc','max_scans_ia','max_usuarios','preco_mensal','preco_anual'];
-  const CAMPOS_BOOL = ['tem_receitas','tem_dre','tem_relatorios_ia','tem_export_csv','tem_multiplas_unidades','tem_suporte_wpp'];
-  const updates = {};
-  CAMPOS_NUM.forEach(k => { updates[k] = parseInt(document.getElementById(`plano_${planoId}_${k}`)?.value||0); });
-  CAMPOS_BOOL.forEach(k => { updates[k] = document.getElementById(`plano_${planoId}_${k}`)?.value === 'true'; });
-  updates.updated_at = new Date().toISOString();
-  const { error } = await sb.from('planos').update(updates).eq('id', planoId);
-  if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
-  toast(`✅ Plano ${planoId} atualizado com sucesso!`);
-  await loadPlanos();
-}
-
-// ══ USUÁRIOS (admin) ══
-async function renderUsuarios(){
-  if(!isAdmin()){ document.getElementById('usuarios-list').innerHTML='<div class="alert alert-warn">Acesso negado.</div>'; return; }
-  const { data: users } = await sb.from('profiles').select('*').order('full_name');
-  if(!users?.length){ document.getElementById('usuarios-list').innerHTML='<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">Nenhum usuário cadastrado</div></div>'; return; }
-  document.getElementById('usuarios-list').innerHTML = users.map(u => {
-    const initials = u.full_name?.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) || '?';
-    const isMe = u.id === currentUser.id;
-    const planoOpts = todosPlanos.map(p=>`<option value="${p.id}" ${u.plano===p.id?'selected':''}>${p.nome}</option>`).join('');
-    return `<div class="user-card">
-      <div class="user-avatar">${initials}</div>
-      <div class="user-info">
-        <div class="user-name">${u.full_name||'—'} ${isMe?'<span style="font-size:11px;color:var(--muted)">(você)</span>':''}</div>
-        <div class="user-email">${u.email}</div>
-      </div>
-      <div class="user-actions" style="gap:8px;flex-wrap:wrap;justify-content:flex-end">
-        <select class="form-control" style="width:120px;padding:4px 8px;font-size:12px" onchange="alterarPlano('${u.id}','${u.full_name}',this.value)">${planoOpts}</select>
-        <span class="badge ${u.role==='admin'?'badge-admin':'badge-op'}">${u.role==='admin'?'Admin':'Operador'}</span>
-        ${!isMe?`<button class="btn btn-xs" onclick="alterarRole('${u.id}','${u.role}','${u.full_name}')">${u.role==='admin'?'→ Op':'→ Admin'}</button>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-async function alterarRole(uid, roleAtual, nome){
-  const novoRole = roleAtual === 'admin' ? 'operador' : 'admin';
-  if(!confirm(`Alterar ${nome} para ${novoRole}?`)) return;
-  const { error } = await sb.from('profiles').update({ role: novoRole }).eq('id', uid);
-  if(error){ toast('❌ Erro: '+error.message); return; }
-  toast(`✅ ${nome} agora é ${novoRole}.`);
-  renderUsuarios();
-}
-
-async function alterarPlano(uid, nome, novoPlano){
-  const { error } = await sb.from('profiles').update({ plano: novoPlano }).eq('id', uid);
-  if(error){ toast('❌ Erro: '+error.message); return; }
-  toast(`✅ Plano de ${nome} alterado para ${nomePlano(novoPlano)}.`);
-  renderUsuarios();
-}
-
-// ══ MODAL ══
+/ ══ MODAL ══
 function openModal(id){
   const d=despesas.find(x=>x.id===id); if(!d) return;
   const meu = d.user_id === currentUser.id;
@@ -2105,7 +1959,7 @@ async function alternarModo(){
 
   // IDs dos itens de nav da empresa para esconder/mostrar
   const navEmpresa = ['nav-dashboard','nav-lancar','nav-despesas','nav-receitas',
-    'nav-centros','nav-relatorio','nav-dre','nav-usuarios','nav-centros-admin','nav-planos'];
+    'nav-centros','nav-relatorio','nav-dre'];
   const secEmpresa = document.querySelectorAll('.nav-sec');
 
   if(modoPainel === 'pessoal'){
@@ -2128,13 +1982,7 @@ async function alternarModo(){
     navEmpresa.forEach(id => {
       const el = document.getElementById(id);
       if(!el) return;
-      // Respeitar visibilidade original (admin-only items)
-      const adminOnly = ['nav-usuarios','nav-centros-admin','nav-planos'];
-      if(adminOnly.includes(id)){
-        el.style.display = isAdmin() ? 'flex' : 'none';
-      } else {
-        el.style.display = 'flex';
-      }
+      el.style.display = 'flex';
     });
     secEmpresa.forEach(el => el.style.display = '');
     // Esconder nav pessoal
@@ -2444,123 +2292,6 @@ function exportDREPessoal(ini,fim){
 }
 
 // ══ CENTROS DE CUSTO — ADMIN ══
-async function renderCentrosAdmin(){
-  if(!isAdmin()){ document.getElementById('centros-admin-list').innerHTML='<div class="alert alert-warn">Acesso negado.</div>'; return; }
-  await loadCentros();
-
-  const CORES = ['#d85a30','#378add','#639922','#7f77dd','#d4537e','#ba7517','#16a085','#e67e22','#8e44ad','#2c3e50'];
-  const PLANOS_LABEL = { starter:'🆓 Starter', pro:'💰 Pro', enterprise:'💎 Enterprise' };
-
-  document.getElementById('centros-admin-list').innerHTML = `
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>Centro de Custo</th>
-          <th>Cor</th>
-          <th>Ícone</th>
-          <th>Plano mínimo</th>
-          <th>Tipo</th>
-          <th>Status</th>
-          <th></th>
-        </tr></thead>
-        <tbody>
-          ${todosCentros.map(c => `
-            <tr>
-              <td style="font-weight:600">
-                <span style="display:inline-flex;align-items:center;gap:8px">
-                  <span style="width:10px;height:10px;border-radius:50%;background:${c.cor};flex-shrink:0"></span>
-                  ${c.icone} ${c.nome}
-                </span>
-              </td>
-              <td><input type="color" value="${c.cor}" style="width:36px;height:28px;border:none;cursor:pointer;border-radius:4px" onchange="atualizarCC(${c.id},'cor',this.value)"></td>
-              <td><input type="text" value="${c.icone}" style="width:50px;text-align:center;padding:4px;border:.5px solid var(--border2);border-radius:var(--rs);background:var(--surface);color:var(--text);font-size:16px" onchange="atualizarCC(${c.id},'icone',this.value)"></td>
-              <td>
-                <select class="form-control" style="width:140px;padding:5px 8px;font-size:12px" onchange="atualizarCC(${c.id},'plano_minimo',this.value)">
-                  <option value="starter" ${c.plano_minimo==='starter'?'selected':''}>🆓 Starter</option>
-                  <option value="pro" ${c.plano_minimo==='pro'?'selected':''}>💰 Pro</option>
-                  <option value="enterprise" ${c.plano_minimo==='enterprise'?'selected':''}>💎 Enterprise</option>
-                </select>
-              </td>
-              <td><span class="badge ${c.personalizado?'badge-ai':'badge-gray'}">${c.personalizado?'Personalizado':'Padrão'}</span></td>
-              <td><span class="badge" style="${c.ativo?'background:#eaf3de;color:#3b6d11':'background:#fcebeb;color:#a32d2d'}">${c.ativo?'Ativo':'Inativo'}</span></td>
-              <td style="display:flex;gap:6px">
-                <button class="btn btn-xs" onclick="atualizarCC(${c.id},'ativo',${!c.ativo})">${c.ativo?'Desativar':'Ativar'}</button>
-              </td>
-            </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
-}
-
-async function atualizarCC(id, campo, valor){
-  const updates = { [campo]: valor };
-  const { error } = await sb.from('centros_custo').update(updates).eq('id', id);
-  if(error){ toast('❌ Erro: '+error.message); return; }
-  toast('✅ Centro atualizado!');
-  await loadCentros();
-  populateCCSelects();
-  renderCentrosAdmin();
-}
-
-function openModalNovoCC(){
-  document.getElementById('modal-title').textContent = 'Novo Centro de Custo';
-  document.getElementById('modal-body').innerHTML = `
-    <div class="form-grid" style="grid-template-columns:1fr 1fr">
-      <div class="form-group full">
-        <label class="form-label">Nome <span style="color:var(--accent)">*</span></label>
-        <input type="text" class="form-control" id="ncc-nome" placeholder="Ex: Estoque, TI, RH...">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Ícone (emoji)</label>
-        <input type="text" class="form-control" id="ncc-icone" placeholder="📦" value="📦" style="font-size:20px;text-align:center">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Cor</label>
-        <input type="color" id="ncc-cor" value="#d85a30" style="width:100%;height:40px;border:none;cursor:pointer;border-radius:var(--rs)">
-      </div>
-      <div class="form-group full">
-        <label class="form-label">Plano mínimo</label>
-        <select class="form-control" id="ncc-plano">
-          <option value="starter">🆓 Starter (gratuito)</option>
-          <option value="pro" selected>💰 Pro</option>
-          <option value="enterprise">💎 Enterprise</option>
-        </select>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-      <button class="btn" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="salvarNovoCC()">💾 Criar Centro</button>
-    </div>`;
-  document.getElementById('modal').classList.add('show');
-}
-
-async function salvarNovoCC(){
-  const nome = document.getElementById('ncc-nome').value.trim();
-  if(!nome){ toast('⚠ Informe o nome.'); return; }
-  const item = {
-    nome,
-    icone: document.getElementById('ncc-icone').value || '📦',
-    cor: document.getElementById('ncc-cor').value,
-    plano_minimo: document.getElementById('ncc-plano').value,
-    personalizado: !isAdmin(),
-    conta_id: isAdmin() ? null : currentUser.id,
-    ordem: todosCentros.length + 1,
-  };
-  const { error } = await sb.from('centros_custo').insert(item);
-  if(error){ toast('❌ Erro: '+error.message); return; }
-  toast('✅ Centro de custo criado!');
-  closeModal();
-  await loadCentros();
-  populateCCSelects();
-  if(isAdmin()) renderCentrosAdmin();
-}
-
-function handleCCChange(sel){
-  if(sel.value === '__novo__'){
-    sel.value = '';
-    openModalNovoCC();
-  }
-}
 
 // ══ RECEITAS ══
 function renderReceitas(){
