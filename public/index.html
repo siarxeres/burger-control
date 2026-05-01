@@ -885,7 +885,7 @@ function podeScanIA(){
   if(isAdmin() || !currentPlano || ilimitado(currentPlano.max_scans_ia)) return true;
   return (currentProfile?.scans_mes||0) < currentPlano.max_scans_ia;
 }
-function podeVerRelatorios(){ return isAdmin() || currentPlano?.tem_relatorios_ia; }
+function podeVerRelatorios(){ return isAdmin() || !checkTrialExpirado() || currentPlano?.tem_relatorios_ia; }
 function podeExportarCSV(){ return isAdmin() || currentPlano?.tem_export_csv; }
 function alertPlano(recurso){
   // Remove existing alert if any
@@ -1022,8 +1022,8 @@ async function loadCentros(){
   if(data){
     todosCentros = data;
     const planoId = currentProfile?.plano || 'starter';
-    // Admin vê tudo, outros filtram pelo plano
-    if(isAdmin()){
+    // Admin e usuários em trial veem tudo
+    if(isAdmin() || !checkTrialExpirado()){
       centrosPermitidos = todosCentros;
     } else {
       const prioridade = ['starter','pro','enterprise'];
@@ -1365,6 +1365,7 @@ function renderCentros(){
   // Filtrar centros pelo plano do usuário
   const prioridade = ['starter','pro','enterprise'];
   const nivelUsuario = prioridade.indexOf(currentPlano?.id || 'starter');
+  const emTrial = !isAdmin() && !checkTrialExpirado();
 
   // Usar todosCentros se disponível, senão usar CC_COLORS como fallback
   const centrosParaMostrar = todosCentros.length > 0 ? todosCentros : Object.keys(CC_COLORS).map(nome=>({nome, cor:CC_COLORS[nome], plano_minimo:'starter'}));
@@ -1372,7 +1373,7 @@ function renderCentros(){
   const grid = document.getElementById('cc-grid');
   grid.innerHTML = centrosParaMostrar.map(c => {
     const nivelCC = prioridade.indexOf(c.plano_minimo || 'starter');
-    const permitido = isAdmin() || nivelUsuario >= nivelCC;
+    const permitido = isAdmin() || emTrial || nivelUsuario >= nivelCC;
     const cor = c.cor || CC_COLORS[c.nome] || '#888';
     const i = byCC[c.nome] || {total:0, count:0};
     const p = total ? Math.round(i.total/total*100) : 0;
@@ -1398,7 +1399,7 @@ function renderCentros(){
   despesas.forEach(d=>{
     const cc = centrosParaMostrar.find(c=>c.nome===d.cc);
     const nivelCC = prioridade.indexOf(cc?.plano_minimo || 'starter');
-    if(!isAdmin() && nivelUsuario < nivelCC) return;
+    if(!isAdmin() && !emTrial && nivelUsuario < nivelCC) return;
     const k=d.categoria+'§'+d.cc;
     if(!byCat[k]) byCat[k]={cat:d.categoria,cc:d.cc,total:0,count:0};
     byCat[k].total+=d.valor; byCat[k].count++;
