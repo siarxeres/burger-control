@@ -2631,32 +2631,41 @@ function renderDRE(){
   const recEv = recPer.filter(r=>r.categoria==='Eventos').reduce((s,r)=>s+r.valor,0);
   const recOut = recPer.filter(r=>r.categoria==='Outros').reduce((s,r)=>s+r.valor,0);
 
-  // 2. CMV (Custo da Mercadoria Vendida)
-  const cmv = despPer.filter(d=>d.natureza==='cmv'||d.categoria==='Insumos / Ingredientes'||d.categoria==='Embalagens').reduce((s,d)=>s+d.valor,0);
+  // CCs de produção — onde insumos/embalagens são CMV
+  const CC_PRODUCAO = ['Cozinha','Produção / Operação','Estoque / Compras','Delivery'];
+  const CMV_CATS = ['Insumos / Ingredientes','Embalagens','Matéria-Prima','Insumos','Mercadorias'];
+  const FIXAS_CATS = ['Aluguel','Folha de Pagamento','Energia / Água / Gás','Energia Elétrica','Água / Esgoto','Gás','Encargos Sociais','Vale Transporte','Vale Refeição','Condomínio','IPTU','Internet / Telefone'];
+  const IMPOSTO_CATS = ['Impostos','Taxas / Licenças','IOF / Juros'];
+
+  // 2. CMV — insumos/embalagens SOMENTE em CCs de produção
+  const cmv = despPer.filter(d=>
+    d.natureza==='cmv' ||
+    (CC_PRODUCAO.includes(d.cc) && CMV_CATS.includes(d.categoria))
+  ).reduce((s,d)=>s+d.valor,0);
 
   // 3. Margem de Contribuição
   const margem = recTotal - cmv;
   const margemPct = recTotal>0 ? (margem/recTotal*100) : 0;
 
   // 4. Despesas Fixas
-  const fixas = despPer.filter(d=>d.natureza==='fixa'||d.categoria==='Aluguel'||d.categoria==='Folha de Pagamento'||d.categoria==='Energia / Água / Gás').reduce((s,d)=>s+d.valor,0);
+  const fixas = despPer.filter(d=>
+    d.natureza==='fixa' ||
+    FIXAS_CATS.includes(d.categoria)
+  ).reduce((s,d)=>s+d.valor,0);
 
-  // Despesas Operacionais
-  const cmvCats = ['Insumos / Ingredientes','Embalagens'];
-  const fixasCats = ['Aluguel','Folha de Pagamento','Energia / Água / Gás'];
-  const impostoCats = ['Impostos'];
+  // Despesas Operacionais — tudo que não é CMV, Fixas ou Impostos
   const operacional = despPer.filter(d=>
-    !cmvCats.includes(d.categoria) &&
-    !fixasCats.includes(d.categoria) &&
-    !impostoCats.includes(d.categoria) &&
-    d.natureza!=='cmv' && d.natureza!=='fixa' && d.natureza!=='imposto'
+    d.natureza!=='cmv' && d.natureza!=='fixa' && d.natureza!=='imposto' &&
+    !(CC_PRODUCAO.includes(d.cc) && CMV_CATS.includes(d.categoria)) &&
+    !FIXAS_CATS.includes(d.categoria) &&
+    !IMPOSTO_CATS.includes(d.categoria)
   ).reduce((s,d)=>s+d.valor,0);
 
   // 5. Resultado Operacional antes dos impostos
   const ebitda = margem - fixas - operacional;
 
   // 6. Impostos
-  const impostos = despPer.filter(d=>d.natureza==='imposto'||d.categoria==='Impostos').reduce((s,d)=>s+d.valor,0);
+  const impostos = despPer.filter(d=>d.natureza==='imposto'||IMPOSTO_CATS.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
 
   // 7. Resultado Líquido
   const liquido = ebitda - impostos;
@@ -2801,13 +2810,16 @@ function exportDRE(ini, fim){
   const recPer = receitas.filter(r=>r.data>=ini&&r.data<=fim);
   const despPer = despesas.filter(d=>d.data>=ini&&d.data<=fim&&d.status!=='Rejeitado');
   const recTotal = recPer.reduce((s,r)=>s+r.valor,0);
-  const cmv = despPer.filter(d=>d.categoria==='Insumos / Ingredientes'||d.categoria==='Embalagens'||d.natureza==='cmv').reduce((s,d)=>s+d.valor,0);
+  const CC_PROD = ['Cozinha','Produção / Operação','Estoque / Compras','Delivery'];
+  const CMV_C = ['Insumos / Ingredientes','Embalagens','Matéria-Prima','Insumos','Mercadorias'];
+  const FX_C = ['Aluguel','Folha de Pagamento','Energia / Água / Gás','Energia Elétrica','Água / Esgoto','Gás','Encargos Sociais','Vale Transporte','Vale Refeição','Condomínio','IPTU','Internet / Telefone'];
+  const IMP_C = ['Impostos','Taxas / Licenças','IOF / Juros'];
+  const cmv = despPer.filter(d=>d.natureza==='cmv'||(CC_PROD.includes(d.cc)&&CMV_C.includes(d.categoria))).reduce((s,d)=>s+d.valor,0);
   const margem = recTotal-cmv;
-  const fixas = despPer.filter(d=>d.categoria==='Aluguel'||d.categoria==='Folha de Pagamento'||d.categoria==='Energia / Água / Gás'||d.natureza==='fixa').reduce((s,d)=>s+d.valor,0);
-  const cmvCats=['Insumos / Ingredientes','Embalagens'],fixasCats=['Aluguel','Folha de Pagamento','Energia / Água / Gás'];
-  const operacional = despPer.filter(d=>!cmvCats.includes(d.categoria)&&!fixasCats.includes(d.categoria)&&d.natureza!=='cmv'&&d.natureza!=='fixa'&&d.natureza!=='imposto').reduce((s,d)=>s+d.valor,0);
+  const fixas = despPer.filter(d=>d.natureza==='fixa'||FX_C.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
+  const operacional = despPer.filter(d=>d.natureza!=='cmv'&&d.natureza!=='fixa'&&d.natureza!=='imposto'&&!(CC_PROD.includes(d.cc)&&CMV_C.includes(d.categoria))&&!FX_C.includes(d.categoria)&&!IMP_C.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
   const ebitda = margem-fixas-operacional;
-  const impostos = despPer.filter(d=>d.natureza==='imposto').reduce((s,d)=>s+d.valor,0);
+  const impostos = despPer.filter(d=>d.natureza==='imposto'||IMP_C.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
   const liquido = ebitda-impostos;
   const pct = v => recTotal>0?(v/recTotal*100).toFixed(1)+'%':'—';
   const rows = [
