@@ -377,6 +377,10 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           DRE
         </div>
+        <div class="nav-item" onclick="showPage('orcamento',this)" id="nav-orcamento">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h4M6 12h8M14 8h4"/></svg>
+          Orçado vs Realizado
+        </div>
         <div class="nav-sec" id="nav-sec-admin" style="display:none">Admin</div>
 
 
@@ -691,7 +695,63 @@ tbody tr:hover td{background:var(--surface2)}
         </div>
 
 
-        <!-- ══ PÁGINAS PESSOAIS ══ -->
+        <!-- ORÇADO VS REALIZADO -->
+        <div class="page" id="page-orcamento">
+          <div class="card" style="padding:16px;margin-bottom:20px">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Período</label>
+                <select class="form-control" id="orc-periodo" style="width:130px" onchange="toggleOrcPeriodo()">
+                  <option value="mensal">Mensal</option>
+                  <option value="anual">Anual</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0" id="orc-mes-group">
+                <label class="form-label">Mês</label>
+                <select class="form-control" id="orc-mes" style="width:130px">
+                  <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+                  <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+                  <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+                  <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Ano</label>
+                <select class="form-control" id="orc-ano" style="width:100px"></select>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-sm" onclick="showPage('orcamento',document.getElementById('nav-orcamento'))">🔄 Atualizar</button>
+                <button class="btn btn-primary btn-sm" onclick="openModalOrcamento()">+ Definir Orçamento</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs CC / Categoria -->
+          <div class="tabs" style="margin-bottom:18px">
+            <div class="tab active" onclick="switchOrcTab('cc',this)" id="orc-tab-cc">📦 Por Centro de Custo</div>
+            <div class="tab" onclick="switchOrcTab('categoria',this)" id="orc-tab-cat">🏷️ Por Categoria</div>
+          </div>
+
+          <!-- Métricas resumo -->
+          <div class="metrics" id="orc-metrics"></div>
+
+          <!-- Tabela -->
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Referência</th>
+                <th style="text-align:right">Orçado</th>
+                <th style="text-align:right">Realizado</th>
+                <th style="text-align:right">Diferença</th>
+                <th style="text-align:right">%</th>
+                <th style="min-width:140px">Progresso</th>
+                <th></th>
+              </tr></thead>
+              <tbody id="orc-tbody"></tbody>
+            </table>
+          </div>
+          <div id="orc-total" style="display:none;text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
+        </div>
 
         <!-- DASHBOARD PESSOAL -->
         <div class="page" id="page-pessoal-dashboard">
@@ -1238,7 +1298,7 @@ function showPage(id, navEl){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'DRE Pessoal'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',orcamento:'Orçado vs Realizado','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'DRE Pessoal'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
@@ -1246,6 +1306,7 @@ function showPage(id, navEl){
   if(id==='centros') renderCentros();
   if(id==='receitas') renderReceitas();
   if(id==='dre') initDRE();
+  if(id==='orcamento') initOrcamento();
   if(id==='relatorio') initRelatorio();
   if(id==='pessoal-dashboard') renderPessoalDashboard();
   if(id==='pessoal-extrato') renderExtratoPessoal();
@@ -2164,7 +2225,7 @@ async function alternarModo(){
 
   // IDs dos itens de nav da empresa para esconder/mostrar
   const navEmpresa = ['nav-dashboard','nav-lancar','nav-despesas','nav-receitas',
-    'nav-centros','nav-relatorio','nav-dre'];
+    'nav-centros','nav-relatorio','nav-dre','nav-orcamento'];
   const secEmpresa = document.querySelectorAll('.nav-sec');
 
   if(modoPainel === 'pessoal'){
@@ -2873,6 +2934,240 @@ function exportDRE(ini, fim){
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download=`DRE_${ini}_${fim}.csv`; a.click();
   toast('✅ DRE exportado!');
+}
+
+// ══ ORÇADO VS REALIZADO ══
+let orcamentos = [];
+let orcTabAtual = 'cc';
+
+async function loadOrcamentos(){
+  const { data } = await sb.from('orcamentos').select('*').eq('user_id', currentUser.id);
+  if(data) orcamentos = data;
+}
+
+function toggleOrcPeriodo(){
+  const p = document.getElementById('orc-periodo').value;
+  document.getElementById('orc-mes-group').style.display = p === 'mensal' ? 'flex' : 'none';
+}
+
+function switchOrcTab(tab, el){
+  orcTabAtual = tab;
+  document.querySelectorAll('#page-orcamento .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderOrcamento();
+}
+
+async function initOrcamento(){
+  // Preencher anos
+  const anoSel = document.getElementById('orc-ano');
+  const anoAtual = new Date().getFullYear();
+  anoSel.innerHTML = '';
+  for(let a = anoAtual-1; a <= anoAtual+2; a++){
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    if(a === anoAtual) opt.selected = true;
+    anoSel.appendChild(opt);
+  }
+  // Mês atual
+  document.getElementById('orc-mes').value = new Date().getMonth() + 1;
+  await loadOrcamentos();
+  renderOrcamento();
+}
+
+function renderOrcamento(){
+  const periodo = document.getElementById('orc-periodo').value;
+  const mes = parseInt(document.getElementById('orc-mes').value);
+  const ano = parseInt(document.getElementById('orc-ano').value);
+  const tipo = orcTabAtual; // 'cc' ou 'categoria'
+
+  // Filtrar orçamentos relevantes
+  const orcsF = orcamentos.filter(o =>
+    o.tipo === tipo && o.periodo === periodo && o.ano === ano &&
+    (periodo === 'anual' || o.mes === mes)
+  );
+
+  // Filtrar despesas realizadas no período
+  let despF;
+  if(periodo === 'mensal'){
+    despF = despesas.filter(d => {
+      const dt = new Date(d.data);
+      return dt.getMonth()+1 === mes && dt.getFullYear() === ano && d.status !== 'Rejeitado';
+    });
+  } else {
+    despF = despesas.filter(d => {
+      const dt = new Date(d.data);
+      return dt.getFullYear() === ano && d.status !== 'Rejeitado';
+    });
+  }
+
+  // Agrupar realizados por CC ou categoria
+  const realizado = {};
+  despF.forEach(d => {
+    const chave = tipo === 'cc' ? d.cc : d.categoria;
+    realizado[chave] = (realizado[chave]||0) + d.valor;
+  });
+
+  // Montar lista de referências: union de orçados + realizados
+  const refs = new Set([
+    ...orcsF.map(o=>o.referencia),
+    ...Object.keys(realizado)
+  ]);
+
+  const rows = [...refs].map(ref => {
+    const orc = orcsF.find(o=>o.referencia===ref);
+    const orcVal = orc ? orc.valor_orcado : 0;
+    const realVal = realizado[ref] || 0;
+    const diff = orcVal - realVal; // positivo = dentro do orçamento
+    const pct = orcVal > 0 ? (realVal/orcVal*100) : null;
+    return { ref, orcVal, realVal, diff, pct, orcId: orc?.id };
+  }).sort((a,b) => b.realVal - a.realVal);
+
+  // Métricas
+  const totalOrc = rows.reduce((s,r)=>s+r.orcVal,0);
+  const totalReal = rows.reduce((s,r)=>s+r.realVal,0);
+  const totalDiff = totalOrc - totalReal;
+  const itensAcima = rows.filter(r=>r.orcVal>0&&r.realVal>r.orcVal).length;
+  const itensSemOrc = rows.filter(r=>r.orcVal===0&&r.realVal>0).length;
+
+  document.getElementById('orc-metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">Total Orçado</div><div class="metric-value" style="color:var(--text)">${fmt(totalOrc)}</div></div>
+    <div class="metric"><div class="metric-label">Total Realizado</div><div class="metric-value accent">${fmt(totalReal)}</div></div>
+    <div class="metric"><div class="metric-label">Saldo Orçamento</div><div class="metric-value" style="${totalDiff>=0?'color:var(--green)':'color:var(--accent)'}">${totalDiff>=0?'+':''}${fmt(totalDiff)}</div><div class="metric-sub">${totalDiff>=0?'dentro do orçamento':'acima do orçado'}</div></div>
+    <div class="metric"><div class="metric-label">Acima do Orçado</div><div class="metric-value" style="${itensAcima>0?'color:var(--accent)':'color:var(--green)'}">${itensAcima}</div><div class="metric-sub">${itensSemOrc} sem orçamento</div></div>`;
+
+  const tbody = document.getElementById('orc-tbody');
+  if(!rows.length){
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Nenhum dado no período</div><span class="link" onclick="openModalOrcamento()">Definir orçamento →</span></div></td></tr>`;
+    document.getElementById('orc-total').style.display = 'none';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const pctVal = r.pct !== null ? Math.min(r.pct, 150) : null;
+    const cor = r.orcVal === 0 ? '#888' : r.realVal > r.orcVal ? 'var(--accent)' : 'var(--green)';
+    const statusBadge = r.orcVal === 0
+      ? `<span class="badge badge-gray">Sem orçamento</span>`
+      : r.realVal > r.orcVal
+        ? `<span class="badge" style="background:var(--red-bg);color:var(--red)">⚠ Acima</span>`
+        : `<span class="badge" style="background:var(--green-bg);color:var(--green)">✓ OK</span>`;
+
+    return `<tr>
+      <td>
+        <div style="font-weight:600">${r.ref}</div>
+        ${statusBadge}
+      </td>
+      <td style="text-align:right;color:var(--muted)">${r.orcVal>0?fmt(r.orcVal):'—'}</td>
+      <td style="text-align:right;font-weight:600">${fmt(r.realVal)}</td>
+      <td style="text-align:right;font-weight:600;${r.orcVal>0?(r.diff>=0?'color:var(--green)':'color:var(--accent)'):'color:var(--muted)'}">
+        ${r.orcVal>0?(r.diff>=0?'+':'')+fmt(r.diff):'—'}
+      </td>
+      <td style="text-align:right;color:var(--muted)">${r.pct!==null?r.pct.toFixed(1)+'%':'—'}</td>
+      <td>
+        ${r.pct !== null ? `
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;max-width:120px">
+          <div style="height:100%;width:${Math.min(pctVal,100)}%;background:${cor};border-radius:3px;transition:width .4s ease"></div>
+        </div>
+        <div style="font-size:10px;color:var(--hint);margin-top:2px">${r.pct.toFixed(0)}% do orçado</div>` : '<span style="color:var(--hint);font-size:11px">sem orçamento</span>'}
+      </td>
+      <td>
+        <button class="btn btn-xs" onclick="openModalOrcamento('${r.ref}',${r.orcVal},${r.orcId||'null'})">
+          ${r.orcId ? '✏️' : '+ Orçar'}
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const tot = document.getElementById('orc-total');
+  tot.style.display = 'block';
+  tot.innerHTML = `Orçado: <strong>${fmt(totalOrc)}</strong> &nbsp;|&nbsp; Realizado: <strong style="color:var(--accent)">${fmt(totalReal)}</strong> &nbsp;|&nbsp; Saldo: <strong style="${totalDiff>=0?'color:var(--green)':'color:var(--accent)'}">${fmt(totalDiff)}</strong>`;
+}
+
+function openModalOrcamento(ref='', valorAtual=0, orcId=null){
+  const periodo = document.getElementById('orc-periodo').value;
+  const mes = parseInt(document.getElementById('orc-mes').value);
+  const ano = parseInt(document.getElementById('orc-ano').value);
+  const tipo = orcTabAtual;
+  const meses = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  // Opções de referência (CCs ou categorias)
+  let opcoesRef = [];
+  if(tipo === 'cc'){
+    opcoesRef = todosCentros.map(c=>c.nome);
+  } else {
+    opcoesRef = Object.values(CC_CATEGORIAS).flat().filter((v,i,a)=>a.indexOf(v)===i).sort();
+    opcoesRef = [...new Set([...opcoesRef, ...CATEGORIAS_PADRAO])].sort();
+  }
+
+  document.getElementById('modal-title').textContent = ref ? `Orçamento — ${ref}` : '+ Definir Orçamento';
+  document.getElementById('modal-body').innerHTML = `
+    <div style="background:var(--surface2);border-radius:var(--rs);padding:10px 13px;margin-bottom:16px;font-size:12px;color:var(--muted)">
+      Período: <strong style="color:var(--text)">${periodo==='mensal'?meses[mes]+'/'+ano:ano} · ${tipo==='cc'?'Centro de Custo':'Categoria'}</strong>
+    </div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="form-group full">
+        <label class="form-label">${tipo==='cc'?'Centro de Custo':'Categoria'} <span style="color:var(--accent)">*</span></label>
+        <select class="form-control" id="orc-ref">
+          <option value="">Selecionar...</option>
+          ${opcoesRef.map(r=>`<option value="${r}" ${r===ref?'selected':''}>${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Valor Orçado <span style="color:var(--accent)">*</span></label>
+        <input type="text" class="form-control" id="orc-valor" placeholder="R$ 0,00"
+          value="${valorAtual>0?valorAtual.toLocaleString('pt-BR',{minimumFractionDigits:2}):''}">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      ${orcId?`<button class="btn btn-danger btn-sm" onclick="excluirOrcamento(${orcId})">🗑 Excluir</button>`:''}
+      <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarOrcamento(${orcId||'null'})">💾 Salvar</button>
+    </div>`;
+  document.getElementById('modal').classList.add('show');
+  setTimeout(()=>document.getElementById('orc-valor')?.focus(),100);
+}
+
+async function salvarOrcamento(orcId){
+  const ref = document.getElementById('orc-ref').value;
+  const valorRaw = document.getElementById('orc-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
+  const valor = parseFloat(valorRaw);
+  if(!ref){toast('⚠ Selecione a referência.');return;}
+  if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
+
+  const periodo = document.getElementById('orc-periodo').value;
+  const mes = parseInt(document.getElementById('orc-mes').value);
+  const ano = parseInt(document.getElementById('orc-ano').value);
+
+  const item = {
+    user_id: currentUser.id,
+    tipo: orcTabAtual,
+    referencia: ref,
+    periodo, mes: periodo==='mensal'?mes:null, ano,
+    valor_orcado: valor,
+    updated_at: new Date().toISOString(),
+  };
+
+  if(orcId && orcId !== 'null'){
+    const { error } = await sb.from('orcamentos').update(item).eq('id', orcId);
+    if(error){toast('❌ Erro: '+error.message);return;}
+    const idx = orcamentos.findIndex(o=>o.id===orcId);
+    if(idx>=0) orcamentos[idx] = {...orcamentos[idx], ...item};
+  } else {
+    const { data, error } = await sb.from('orcamentos').insert(item).select().single();
+    if(error){toast('❌ Erro: '+error.message);return;}
+    orcamentos.push(data);
+  }
+
+  closeModal();
+  toast('✅ Orçamento salvo!');
+  renderOrcamento();
+}
+
+async function excluirOrcamento(orcId){
+  if(!confirm('Excluir este orçamento?')) return;
+  const { error } = await sb.from('orcamentos').delete().eq('id', orcId);
+  if(error){toast('❌ Erro: '+error.message);return;}
+  orcamentos = orcamentos.filter(o=>o.id!==orcId);
+  closeModal(); toast('🗑 Orçamento excluído.'); renderOrcamento();
 }
 
 // ══ PWA ══
