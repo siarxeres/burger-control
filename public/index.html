@@ -216,18 +216,6 @@ tbody tr:hover td{background:var(--surface2)}
 .trial-banner-text{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
 .trial-banner-days{font-weight:700;color:var(--accent)}
 .trial-banner-link{font-size:12px;font-weight:700;color:#fff;background:var(--accent);padding:5px 12px;border-radius:6px;text-decoration:none;white-space:nowrap;flex-shrink:0}
-/* Modal Completar Cadastro */
-.modal-cadastro-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:center;justify-content:center;padding:20px}
-.modal-cadastro-overlay.show{display:flex}
-.modal-cadastro{background:var(--surface);border:1px solid var(--border);border-radius:16px;max-width:480px;width:100%;padding:32px;max-height:90vh;overflow-y:auto}
-.modal-cadastro h2{font-size:20px;font-weight:700;margin-bottom:6px}
-.modal-cadastro p{font-size:13px;color:var(--muted);margin-bottom:24px}
-.modal-cadastro .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.modal-cadastro .form-grid .full{grid-column:1/-1}
-.modal-cadastro label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
-.modal-cadastro input,.modal-cadastro select{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px}
-.modal-cadastro .btn-salvar{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-top:16px}
-.modal-cadastro .btn-pular{width:100%;background:none;color:var(--muted);border:none;font-size:12px;cursor:pointer;margin-top:8px;text-decoration:underline}
 .pwa-banner-text{flex:1}
 .pwa-banner-title{font-size:14px;font-weight:700}
 .pwa-banner-sub{font-size:12px;color:var(--muted);margin-top:1px}
@@ -520,6 +508,18 @@ tbody tr:hover td{background:var(--surface2)}
                 <select class="form-control" id="f-pagto"><option value="">—</option><option>Dinheiro</option><option>Cartão de Débito</option><option>Cartão de Crédito</option><option>PIX</option><option>Boleto</option><option>Transferência</option></select></div>
               <div class="form-group"><label class="form-label">Status</label>
                 <select class="form-control" id="f-status"><option>Aprovado</option><option>Pendente</option><option>Rejeitado</option></select></div>
+              <div class="form-group"><label class="form-label">Recorrente?</label>
+                <select class="form-control" id="f-recorrente" onchange="toggleRecorrencia()">
+                  <option value="">Não</option>
+                  <option value="mensal">Mensal</option>
+                  <option value="quinzenal">Quinzenal</option>
+                  <option value="semanal">Semanal</option>
+                  <option value="anual">Anual</option>
+                </select></div>
+              <div class="form-group" id="f-recorrencia-fim-group" style="display:none">
+                <label class="form-label">Repetir até <span style="color:var(--accent)">*</span></label>
+                <input type="date" class="form-control" id="f-recorrencia-fim">
+              </div>
               <div class="form-group full"><label class="form-label">Observações</label><input type="text" class="form-control" id="f-obs" placeholder="Opcional"></div>
             </div>
             <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -866,40 +866,6 @@ let currentProfile = null;
 let currentPlano = null;
 let isStarterLimitado = false; // true após 30 dias no starter
 
-function checkCadastroCompleto(){
-  if(isAdmin()) return; // admin não precisa preencher
-  const plano = currentProfile?.plano || 'starter';
-  if(plano !== 'pro' && plano !== 'enterprise') return; // só Pro e Enterprise
-  if(currentProfile?.cadastro_completo) return; // já preencheu
-  // Mostrar modal após 1 segundo
-  setTimeout(() => {
-    document.getElementById('modal-cadastro').classList.add('show');
-  }, 1000);
-}
-
-function fecharModalCadastro(){
-  document.getElementById('modal-cadastro').classList.remove('show');
-}
-
-async function salvarCadastroCompleto(){
-  const segmento = document.getElementById('cad-segmento').value;
-  if(!segmento){ toast('⚠ Selecione o segmento da empresa.'); return; }
-  const updates = {
-    razao_social: document.getElementById('cad-razao').value || null,
-    segmento,
-    cidade: document.getElementById('cad-cidade').value || null,
-    estado: document.getElementById('cad-estado').value || null,
-    whatsapp: document.getElementById('cad-whatsapp').value || null,
-    num_funcionarios: document.getElementById('cad-funcionarios').value || null,
-    cadastro_completo: true,
-  };
-  const { error } = await sb.from('profiles').update(updates).eq('id', currentUser.id);
-  if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
-  Object.assign(currentProfile, updates);
-  fecharModalCadastro();
-  toast('✅ Cadastro atualizado! Bem-vindo ao Pro!');
-}
-
 function showTrialBanner(){
   if(isAdmin()) return;
   const plano = currentProfile?.plano || 'starter';
@@ -1087,7 +1053,6 @@ async function loadPlanos(){
   // Verificar se trial de 30 dias expirou
   isStarterLimitado = checkTrialExpirado();
   showTrialBanner();
-  checkCadastroCompleto();
 }
 
 async function loadCentros(){
@@ -1327,11 +1292,26 @@ function fillFormFromAI(d){
 }
 
 // ══ FORM ══
+function toggleRecorrencia(){
+  const val = document.getElementById('f-recorrente').value;
+  const grupo = document.getElementById('f-recorrencia-fim-group');
+  grupo.style.display = val ? 'flex' : 'none';
+  if(val){
+    // Sugerir data fim: 12 meses à frente
+    const hoje = new Date();
+    const fim = new Date(hoje.getFullYear()+1, hoje.getMonth(), hoje.getDate());
+    document.getElementById('f-recorrencia-fim').value = fim.toISOString().split('T')[0];
+  }
+}
+
 function clearForm(){
-  ['f-fornecedor','f-cnpj','f-cc','f-cat','f-valor','f-data','f-ndoc','f-obs','f-pagto'].forEach(id=>{
-    const el=document.getElementById(id); if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
+  ['f-fornecedor','f-cnpj','f-cc','f-cat','f-valor','f-data','f-ndoc','f-obs','f-pagto','f-recorrencia-fim'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return; if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
   });
-  document.getElementById('f-tipo').selectedIndex=0; document.getElementById('f-status').selectedIndex=0;
+  document.getElementById('f-tipo').selectedIndex=0;
+  document.getElementById('f-status').selectedIndex=0;
+  document.getElementById('f-recorrente').selectedIndex=0;
+  document.getElementById('f-recorrencia-fim-group').style.display='none';
   document.getElementById('ai-box').classList.remove('show'); document.getElementById('progress').classList.remove('show');
   const img=document.getElementById('preview-img'); img.classList.remove('show'); img.src='';
   document.getElementById('file-input').value='';
@@ -1367,15 +1347,59 @@ async function salvarDespesa(){
     pagto: document.getElementById('f-pagto').value, status: document.getElementById('f-status').value,
     obs: document.getElementById('f-obs').value.trim(),
     ia: document.getElementById('ai-box').classList.contains('show'),
+    recorrente: !!document.getElementById('f-recorrente').value,
+    frequencia: document.getElementById('f-recorrente').value || null,
+    recorrencia_fim: document.getElementById('f-recorrencia-fim').value || null,
   };
 
   const { data: saved, error } = await sb.from('despesas').insert(item).select('*').single();
   if(saved) saved.profiles = { full_name: currentProfile?.full_name || '—' };
   if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
   despesas.unshift(saved);
-  clearForm(); toast('✅ Lançamento salvo!');
+
+  // Criar lançamentos futuros se recorrente
+  if(item.recorrente && item.frequencia && item.recorrencia_fim){
+    const futuros = gerarDatasRecorrentes(data, item.recorrencia_fim, item.frequencia);
+    if(futuros.length > 0){
+      const itemsSerie = futuros.map(d => ({
+        ...item,
+        data: d,
+        recorrencia_pai: saved.id,
+        status: 'Pendente', // futuros ficam pendentes
+      }));
+      const { data: savedSerie } = await sb.from('despesas').insert(itemsSerie).select('*');
+      if(savedSerie) savedSerie.forEach(s => { s.profiles = { full_name: currentProfile?.full_name || '—' }; despesas.unshift(s); });
+      toast(`✅ Lançamento salvo! +${futuros.length} recorrências criadas.`);
+    } else {
+      toast('✅ Lançamento salvo!');
+    }
+  } else {
+    toast('✅ Lançamento salvo!');
+  }
+
+  clearForm();
   showPage('dashboard', document.getElementById('nav-dashboard'));
   updateFooter();
+}
+
+function gerarDatasRecorrentes(dataInicio, dataFim, frequencia){
+  const datas = [];
+  let atual = new Date(dataInicio);
+  const fim = new Date(dataFim);
+
+  while(true){
+    // Avançar para próxima data
+    if(frequencia === 'mensal') atual = new Date(atual.getFullYear(), atual.getMonth()+1, atual.getDate());
+    else if(frequencia === 'quinzenal') atual = new Date(atual.getTime() + 15*24*60*60*1000);
+    else if(frequencia === 'semanal') atual = new Date(atual.getTime() + 7*24*60*60*1000);
+    else if(frequencia === 'anual') atual = new Date(atual.getFullYear()+1, atual.getMonth(), atual.getDate());
+    else break;
+
+    if(atual > fim) break;
+    datas.push(atual.toISOString().split('T')[0]);
+    if(datas.length >= 60) break; // limite de segurança
+  }
+  return datas;
 }
 
 // ══ DASHBOARD ══
@@ -1447,7 +1471,7 @@ function renderDespesas(){
       <td><div style="font-weight:600">${d.fornecedor}</div>${d.cnpj?`<div style="font-size:11px;color:var(--hint)">${d.cnpj}</div>`:''}</td>
       <td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td>
       <td style="color:var(--muted)">${d.categoria}</td>
-      <td><span class="badge badge-gray">${d.tipo}</span>${d.ia?' <span class="badge badge-ai">IA</span>':''}</td>
+      <td><span class="badge badge-gray">${d.tipo}</span>${d.ia?' <span class="badge badge-ai">IA</span>':''}${d.recorrente?' <span class="badge" style="background:#e6f1fb;color:#185fa5">🔄</span>':''}</td>
       <td style="color:var(--muted)">${d.pagto||'—'}</td>
       <td style="color:var(--muted)">${fmtDate(d.data)}</td>
       <td><span class="badge" style="${STATUS_STYLE[d.status]||''}">${d.status}</span></td>
@@ -2821,73 +2845,5 @@ window.addEventListener('appinstalled', () => {
   toast('🎉 Minha Firma instalado!');
 });
 </script>
-<!-- MODAL COMPLETAR CADASTRO -->
-<div class="modal-cadastro-overlay" id="modal-cadastro">
-  <div class="modal-cadastro">
-    <div style="font-size:32px;margin-bottom:12px">🎉</div>
-    <h2>Complete seu cadastro</h2>
-    <p>Você agora é um usuário Pro! Preencha os dados abaixo para personalizarmos sua experiência.</p>
-    <div class="form-grid">
-      <div class="full">
-        <label>Razão Social / Nome da Empresa</label>
-        <input type="text" id="cad-razao" placeholder="Ex: Restaurante Sabor & Arte Ltda">
-      </div>
-      <div class="full">
-        <label>Segmento</label>
-        <select id="cad-segmento">
-          <option value="">Selecione...</option>
-          <option>Restaurante</option>
-          <option>Lanchonete / Fast Food</option>
-          <option>Delivery</option>
-          <option>Bar / Pub</option>
-          <option>Padaria / Confeitaria</option>
-          <option>Salão de Beleza</option>
-          <option>Barbearia</option>
-          <option>Clínica / Saúde</option>
-          <option>Oficina Mecânica</option>
-          <option>Comércio / Varejo</option>
-          <option>Serviços</option>
-          <option>Educação</option>
-          <option>Tecnologia</option>
-          <option>Outro</option>
-        </select>
-      </div>
-      <div>
-        <label>Cidade</label>
-        <input type="text" id="cad-cidade" placeholder="Ex: Porto Velho">
-      </div>
-      <div>
-        <label>Estado</label>
-        <select id="cad-estado">
-          <option value="">UF</option>
-          <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
-          <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
-          <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
-          <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
-          <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
-          <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
-          <option>SP</option><option>SE</option><option>TO</option>
-        </select>
-      </div>
-      <div>
-        <label>WhatsApp</label>
-        <input type="text" id="cad-whatsapp" placeholder="(69) 99999-9999">
-      </div>
-      <div>
-        <label>Nº de Funcionários</label>
-        <select id="cad-funcionarios">
-          <option value="">Selecione...</option>
-          <option>1 a 5</option>
-          <option>6 a 20</option>
-          <option>21 a 50</option>
-          <option>Mais de 50</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn-salvar" onclick="salvarCadastroCompleto()">Salvar e continuar →</button>
-    <button class="btn-pular" onclick="fecharModalCadastro()">Preencher depois</button>
-  </div>
-</div>
-
 </body>
 </html>
