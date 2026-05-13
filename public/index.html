@@ -644,13 +644,14 @@ tbody tr:hover td{background:var(--surface2)}
           <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
             <select class="form-control" id="filtro-rec-cat" style="width:180px" onchange="renderReceitas()">
               <option value="">Todas as categorias</option>
-              <option>Vendas / Produtos</option>
-              <option>Delivery / Envio</option>
+              <option>Venda de Produtos</option>
               <option>Prestação de Serviços</option>
               <option>Contratos / Mensalidades</option>
-              <option>Eventos / Projetos</option>
               <option>Comissões Recebidas</option>
-              <option>Receitas Recorrentes</option>
+              <option>Aluguéis Recebidos</option>
+              <option>Receitas Financeiras</option>
+              <option>Eventos / Projetos</option>
+              <option>Exportação / Atacado</option>
               <option>Outras Receitas</option>
             </select>
             <button class="btn btn-sm" onclick="exportCSVReceitas()">⬇ CSV</button>
@@ -659,7 +660,7 @@ tbody tr:hover td{background:var(--surface2)}
           <div class="metrics" id="rec-metrics"></div>
           <div class="table-wrap">
             <table><thead><tr>
-              <th>Descrição</th><th>Categoria</th><th>Canal</th><th>Pagamento</th><th>Data</th><th style="text-align:right">Valor</th><th></th>
+              <th>Descrição</th><th>Categoria</th><th>Canal / Origem</th><th>Pagamento</th><th>Data</th><th style="text-align:right">Valor</th><th></th>
             </tr></thead>
             <tbody id="rec-tbody"></tbody></table>
           </div>
@@ -2539,17 +2540,27 @@ function openModalReceita(){
       <div class="form-group"><label class="form-label">Categoria <span style="color:var(--accent)">*</span></label>
         <select class="form-control" id="mr-cat">
           <option value="">Selecionar...</option>
-          <option>Vendas / Produtos</option>
-          <option>Delivery / Envio</option>
+          <option>Venda de Produtos</option>
           <option>Prestação de Serviços</option>
           <option>Contratos / Mensalidades</option>
-          <option>Eventos / Projetos</option>
           <option>Comissões Recebidas</option>
-          <option>Receitas Recorrentes</option>
+          <option>Aluguéis Recebidos</option>
+          <option>Receitas Financeiras</option>
+          <option>Eventos / Projetos</option>
+          <option>Exportação / Atacado</option>
           <option>Outras Receitas</option>
         </select></div>
-      <div class="form-group"><label class="form-label">Canal de venda</label>
-        <select class="form-control" id="mr-canal"><option value="">—</option><option>Balcão</option><option>iFood</option><option>Rappi</option><option>WhatsApp</option><option>Telefone</option><option>App próprio</option><option>Outros</option></select></div>
+      <div class="form-group"><label class="form-label">Canal / Origem</label>
+        <select class="form-control" id="mr-canal">
+          <option value="">—</option>
+          <option>Venda Direta / Balcão</option>
+          <option>Online / E-commerce</option>
+          <option>WhatsApp / Redes Sociais</option>
+          <option>Plataformas (iFood/Rappi/etc.)</option>
+          <option>Indicação / Parceria</option>
+          <option>Contrato / Proposta</option>
+          <option>Outros</option>
+        </select></div>
       <div class="form-group"><label class="form-label">Valor <span style="color:var(--accent)">*</span></label><input type="text" class="form-control" id="mr-valor" placeholder="R$ 0,00"></div>
       <div class="form-group"><label class="form-label">Data <span style="color:var(--accent)">*</span></label><input type="date" class="form-control" id="mr-data" value="${new Date().toISOString().split('T')[0]}"></div>
       <div class="form-group"><label class="form-label">Forma de pagamento</label>
