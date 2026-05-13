@@ -644,7 +644,14 @@ tbody tr:hover td{background:var(--surface2)}
           <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
             <select class="form-control" id="filtro-rec-cat" style="width:180px" onchange="renderReceitas()">
               <option value="">Todas as categorias</option>
-              <option>Salão</option><option>Delivery</option><option>Eventos</option><option>Outros</option>
+              <option>Vendas / Produtos</option>
+              <option>Delivery / Envio</option>
+              <option>Prestação de Serviços</option>
+              <option>Contratos / Mensalidades</option>
+              <option>Eventos / Projetos</option>
+              <option>Comissões Recebidas</option>
+              <option>Receitas Recorrentes</option>
+              <option>Outras Receitas</option>
             </select>
             <button class="btn btn-sm" onclick="exportCSVReceitas()">⬇ CSV</button>
             <button class="btn btn-primary btn-sm" onclick="openModalReceita()">+ Nova Receita</button>
@@ -2530,7 +2537,17 @@ function openModalReceita(){
     <div class="form-grid" style="grid-template-columns:1fr 1fr">
       <div class="form-group full"><label class="form-label">Descrição <span style="color:var(--accent)">*</span></label><input type="text" class="form-control" id="mr-desc" placeholder="Ex: Vendas do dia, iFood, Evento..."></div>
       <div class="form-group"><label class="form-label">Categoria <span style="color:var(--accent)">*</span></label>
-        <select class="form-control" id="mr-cat"><option value="">Selecionar...</option><option>Salão</option><option>Delivery</option><option>Eventos</option><option>Outros</option></select></div>
+        <select class="form-control" id="mr-cat">
+          <option value="">Selecionar...</option>
+          <option>Vendas / Produtos</option>
+          <option>Delivery / Envio</option>
+          <option>Prestação de Serviços</option>
+          <option>Contratos / Mensalidades</option>
+          <option>Eventos / Projetos</option>
+          <option>Comissões Recebidas</option>
+          <option>Receitas Recorrentes</option>
+          <option>Outras Receitas</option>
+        </select></div>
       <div class="form-group"><label class="form-label">Canal de venda</label>
         <select class="form-control" id="mr-canal"><option value="">—</option><option>Balcão</option><option>iFood</option><option>Rappi</option><option>WhatsApp</option><option>Telefone</option><option>App próprio</option><option>Outros</option></select></div>
       <div class="form-group"><label class="form-label">Valor <span style="color:var(--accent)">*</span></label><input type="text" class="form-control" id="mr-valor" placeholder="R$ 0,00"></div>
@@ -2624,12 +2641,14 @@ function renderDRE(){
   const recPer = receitas.filter(r=>r.data>=ini&&r.data<=fim);
   const despPer = despesas.filter(d=>d.data>=ini&&d.data<=fim&&d.status!=='Rejeitado');
 
-  // 1. Receitas totais
+  // 1. Receitas totais — agrupadas dinamicamente por categoria
   const recTotal = recPer.reduce((s,r)=>s+r.valor,0);
-  const recSalao = recPer.filter(r=>r.categoria==='Salão').reduce((s,r)=>s+r.valor,0);
-  const recDel = recPer.filter(r=>r.categoria==='Delivery').reduce((s,r)=>s+r.valor,0);
-  const recEv = recPer.filter(r=>r.categoria==='Eventos').reduce((s,r)=>s+r.valor,0);
-  const recOut = recPer.filter(r=>r.categoria==='Outros').reduce((s,r)=>s+r.valor,0);
+  const recPorCat = {};
+  recPer.forEach(r => { recPorCat[r.categoria] = (recPorCat[r.categoria]||0) + r.valor; });
+  const recSalao = recPer.filter(r=>r.categoria==='Salão'||r.categoria==='Vendas / Produtos').reduce((s,r)=>s+r.valor,0);
+  const recDel = recPer.filter(r=>r.categoria==='Delivery'||r.categoria==='Delivery / Envio').reduce((s,r)=>s+r.valor,0);
+  const recEv = recPer.filter(r=>r.categoria==='Eventos'||r.categoria==='Eventos / Projetos').reduce((s,r)=>s+r.valor,0);
+  const recOut = recPer.filter(r=>!['Salão','Vendas / Produtos','Delivery','Delivery / Envio','Eventos','Eventos / Projetos'].includes(r.categoria)).reduce((s,r)=>s+r.valor,0);
 
   // CCs de produção — onde insumos/embalagens são CMV
   const CC_PRODUCAO = ['Cozinha','Produção / Operação','Estoque / Compras','Delivery'];
@@ -2731,10 +2750,7 @@ function renderDRE(){
         </tr></thead>
         <tbody>
           ${fmtLinha('1. RECEITAS TOTAIS', recTotal, null, true, false, false)}
-          ${fmtLinha('Vendas no Salão', recSalao, null, false, true, false)}
-          ${fmtLinha('Delivery', recDel, null, false, true, false)}
-          ${fmtLinha('Eventos', recEv, null, false, true, false)}
-          ${recOut>0?fmtLinha('Outras receitas', recOut, null, false, true, false):''}
+          ${Object.entries(recPorCat).map(([cat,val])=>fmtLinha(cat, val, null, false, true, false)).join('')}
 
           ${fmtLinha('2. CUSTOS DE PRODUÇÃO (CMV)', cmv, 'Insumos, Embalagens', true, false, true)}
 
