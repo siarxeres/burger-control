@@ -496,7 +496,7 @@ tbody tr:hover td{background:var(--surface2)}
               <div class="form-group"><label class="form-label">Fornecedor <span>*</span></label><input type="text" class="form-control" id="f-fornecedor" placeholder="Razão social ou nome fantasia"></div>
               <div class="form-group"><label class="form-label">CNPJ / CPF</label><input type="text" class="form-control" id="f-cnpj" placeholder="00.000.000/0000-00"></div>
               <div class="form-group"><label class="form-label">Centro de Custo <span>*</span></label>
-                <select class="form-control" id="f-cc"><option value="">Selecionar...</option></select></div>
+                <select class="form-control" id="f-cc" onchange="atualizarCategoriasPorCC()"><option value="">Selecionar...</option></select></div>
               <div class="form-group"><label class="form-label">Categoria</label>
                 <select class="form-control" id="f-cat"><option value="">Selecionar...</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select></div>
               <div class="form-group"><label class="form-label">Valor Total <span>*</span></label><input type="text" class="form-control" id="f-valor" placeholder="R$ 0,00"></div>
@@ -588,7 +588,7 @@ tbody tr:hover td{background:var(--surface2)}
           </div>
           <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
             <select class="form-control" id="filtro-cc" style="width:175px" onchange="renderDespesas()"><option value="">Todos os centros</option><option>Cozinha</option><option>Salão / Atendimento</option><option>Delivery</option><option>Administrativo</option><option>Marketing</option><option>Manutenção</option></select>
-            <select class="form-control" id="filtro-cat" style="width:195px" onchange="renderDespesas()"><option value="">Todas as categorias</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select>
+            <select class="form-control" id="filtro-cat" style="width:195px" onchange="renderDespesas()"><option value="">Todas as categorias</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Impostos</option><option>Software / Licenças</option><option>Combustível</option><option>Taxas Bancárias</option><option>Comissões</option><option>Treinamento</option><option>Benefícios</option><option>Outros</option></select>
             <select class="form-control" id="filtro-status" style="width:145px" onchange="renderDespesas()"><option value="">Todos os status</option><option>Aprovado</option><option>Pendente</option><option>Rejeitado</option></select>
             <select class="form-control" id="filtro-usuario" style="width:180px" onchange="renderDespesas()" style="display:none"><option value="">Todos os usuários</option></select>
             <button class="btn btn-sm" onclick="exportCSV()">⬇ CSV</button>
@@ -896,6 +896,35 @@ let receitasPessoais = [];
 let modoPainel = 'empresa'; // 'empresa' ou 'pessoal'
 
 const CC_COLORS = {'Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922','Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'};
+
+// Categorias vinculadas por Centro de Custo
+const CC_CATEGORIAS = {
+  'Cozinha':                ['Insumos / Ingredientes','Embalagens','Equipamentos','Manutenção','Energia / Água / Gás','Higiene / Limpeza','Descartáveis','Outros'],
+  'Salão / Atendimento':    ['Equipamentos','Manutenção','Uniformes','Material de Limpeza','Decoração','Outros'],
+  'Delivery':               ['Embalagens','Combustível','Manutenção de Veículo','Plataformas (iFood/Rappi)','Equipamentos','Outros'],
+  'Administrativo':         ['Aluguel','Energia / Água / Gás','Internet / Telefone','Material de Escritório','Contabilidade / Honorários','Impostos','Taxas / Licenças','Seguros','Outros'],
+  'Marketing / Vendas':     ['Marketing / Publicidade','Redes Sociais','Materiais Gráficos','Brindes / Promoções','Plataformas Digitais','Outros'],
+  'Marketing':              ['Marketing / Publicidade','Redes Sociais','Materiais Gráficos','Brindes / Promoções','Plataformas Digitais','Outros'],
+  'Manutenção':             ['Manutenção Preventiva','Manutenção Corretiva','Peças / Materiais','Serviços Terceirizados','Outros'],
+  'Recursos Humanos':       ['Folha de Pagamento','Encargos Sociais','Vale Transporte','Vale Refeição','Benefícios','Rescisão','Treinamento','Outros'],
+  'Produção / Operação':    ['Matéria-Prima','Insumos','Embalagens','Equipamentos','Manutenção','Energia','Outros'],
+  'Estoque / Compras':      ['Mercadorias','Matéria-Prima','Embalagens','Fretes / Logística','Outros'],
+  'TI / Tecnologia':        ['Software / Licenças','Hardware','Suporte Técnico','Hospedagem / Servidores','Segurança Digital','Outros'],
+  'Financeiro':             ['Taxas Bancárias','IOF / Juros','Contabilidade / Honorários','Impostos','Seguros','Outros'],
+  'Logística / Entrega':    ['Combustível','Manutenção de Veículo','Pedágios / Fretes','Seguro de Veículo','Outros'],
+  'Energia / Utilities':    ['Energia Elétrica','Água / Esgoto','Gás','Internet','Telefone','Outros'],
+  'Aluguel / Instalações':  ['Aluguel','Condomínio','IPTU','Reformas','Manutenção Predial','Outros'],
+  'Treinamento / Capacitação':['Cursos / Treinamentos','Materiais Didáticos','Eventos / Congressos','Outros'],
+  'Saúde / Benefícios':     ['Plano de Saúde','Plano Odontológico','EPI / Segurança','Exames Médicos','Outros'],
+  'Comissões / Vendedores': ['Comissões','Bonificações','Premiações','Outros'],
+  'Pós-venda / Fidelização':['Brindes / Mimos','Programas de Fidelidade','SAC / Atendimento','Outros'],
+  'Jurídico / Contabilidade':['Honorários Advocatícios','Honorários Contábeis','Certidões / Documentos','Registros','Outros'],
+  'Sistemas / Software':    ['Assinaturas SaaS','Desenvolvimento','Manutenção de Sistemas','Outros'],
+  'Qualidade / Processos':  ['Certificações','Auditorias','Consultorias','Materiais de Qualidade','Outros'],
+};
+
+// Categorias padrão (quando CC não mapeado)
+const CATEGORIAS_PADRAO = ['Insumos / Ingredientes','Embalagens','Serviços','Equipamentos','Manutenção','Energia / Água / Gás','Folha de Pagamento','Aluguel','Marketing / Publicidade','Impostos','Outros'];
 const STATUS_STYLE = {'Aprovado':'background:#eaf3de;color:#3b6d11','Pendente':'background:#faeeda;color:#854f0b','Rejeitado':'background:#fcebeb;color:#a32d2d'};
 
 // ══ UTILS ══
@@ -1139,13 +1168,14 @@ function populateCCSelects(){
   if(!sel) return;
   const cur = sel.value;
   sel.innerHTML = '<option value="">Selecionar...</option>';
+  sel.onchange = atualizarCategoriasPorCC; // garantir onchange sempre
 
   todosCentros.forEach(c => {
     const permitido = centrosPermitidos.find(p=>p.id===c.id);
     const opt = document.createElement('option');
     opt.value = c.nome;
     if(permitido){
-      opt.textContent = c.icone + ' ' + c.nome;
+      opt.textContent = (c.icone||'') + ' ' + c.nome;
     } else {
       opt.textContent = '🔒 ' + c.nome + ' (requer upgrade)';
       opt.disabled = true;
@@ -1292,6 +1322,15 @@ function fillFormFromAI(d){
 }
 
 // ══ FORM ══
+function atualizarCategoriasPorCC(){
+  const cc = document.getElementById('f-cc').value;
+  const sel = document.getElementById('f-cat');
+  const valorAtual = sel.value;
+  const cats = CC_CATEGORIAS[cc] || CATEGORIAS_PADRAO;
+  sel.innerHTML = '<option value="">Selecionar...</option>' +
+    cats.map(c => `<option value="${c}" ${c===valorAtual?'selected':''}>${c}</option>`).join('');
+}
+
 function toggleRecorrencia(){
   const val = document.getElementById('f-recorrente').value;
   const grupo = document.getElementById('f-recorrencia-fim-group');
@@ -1582,20 +1621,11 @@ function openModalVisualizacao(d, podEditar){
         <div class="form-group"><label class="form-label">CNPJ/CPF</label>
           <input type="text" class="form-control" id="ed-cnpj" value="${(d.cnpj||'').replace(/"/g,'&quot;')}"></div>
         <div class="form-group"><label class="form-label">Centro de Custo <span style="color:var(--accent)">*</span></label>
-          <select class="form-control" id="ed-cc"><option value="">Selecionar...</option>${ccOpts}</select></div>
+          <select class="form-control" id="ed-cc" onchange="atualizarCatsEdicao(this.value)"><option value="">Selecionar...</option>${ccOpts}</select></div>
         <div class="form-group"><label class="form-label">Categoria</label>
           <select class="form-control" id="ed-cat">
             <option value="">—</option>
-            <option ${d.categoria==='Insumos / Ingredientes'?'selected':''}>Insumos / Ingredientes</option>
-            <option ${d.categoria==='Embalagens'?'selected':''}>Embalagens</option>
-            <option ${d.categoria==='Serviços'?'selected':''}>Serviços</option>
-            <option ${d.categoria==='Equipamentos'?'selected':''}>Equipamentos</option>
-            <option ${d.categoria==='Manutenção'?'selected':''}>Manutenção</option>
-            <option ${d.categoria==='Energia / Água / Gás'?'selected':''}>Energia / Água / Gás</option>
-            <option ${d.categoria==='Folha de Pagamento'?'selected':''}>Folha de Pagamento</option>
-            <option ${d.categoria==='Aluguel'?'selected':''}>Aluguel</option>
-            <option ${d.categoria==='Marketing / Publicidade'?'selected':''}>Marketing / Publicidade</option>
-            <option ${d.categoria==='Outros'?'selected':''}>Outros</option>
+            ${(CC_CATEGORIAS[d.cc]||CATEGORIAS_PADRAO).map(c=>`<option ${d.categoria===c?'selected':''}>${c}</option>`).join('')}
           </select></div>
         <div class="form-group"><label class="form-label">Valor <span style="color:var(--accent)">*</span></label>
           <input type="text" class="form-control" id="ed-valor" value="${d.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}"></div>
@@ -1637,6 +1667,15 @@ function openModalVisualizacao(d, podEditar){
       </div>
     </div>`;
   document.getElementById('modal').classList.add('show');
+}
+
+function atualizarCatsEdicao(cc){
+  const sel = document.getElementById('ed-cat');
+  if(!sel) return;
+  const valorAtual = sel.value;
+  const cats = CC_CATEGORIAS[cc] || CATEGORIAS_PADRAO;
+  sel.innerHTML = '<option value="">—</option>' +
+    cats.map(c => `<option ${c===valorAtual?'selected':''}>${c}</option>`).join('');
 }
 
 function abrirEdicao(id){
