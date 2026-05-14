@@ -248,8 +248,21 @@ tbody tr:hover td{background:var(--surface2)}
 .s-pe{background:var(--yellow-bg);color:var(--yellow)}
 .s-re{background:var(--red-bg);color:var(--red)}
 
+/* BANNER DESTAQUE */
+.destaque-banner{display:none;padding:0 20px;flex-shrink:0;animation:fadeIn .3s ease}
+.destaque-banner.show{display:block}
+.destaque-inner{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:var(--rs);margin:8px 0 0;cursor:pointer;transition:opacity .15s;position:relative;overflow:hidden}
+.destaque-inner:hover{opacity:.92}
+.destaque-badge{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.2);white-space:nowrap;flex-shrink:0}
+.destaque-titulo{font-size:13px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.destaque-desc{font-size:12px;opacity:.85;flex:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.destaque-cta{font-size:12px;font-weight:700;padding:5px 12px;border-radius:6px;background:rgba(255,255,255,.2);white-space:nowrap;flex-shrink:0;border:1px solid rgba(255,255,255,.3)}
+.destaque-fechar{background:none;border:none;cursor:pointer;opacity:.6;font-size:16px;padding:2px 4px;flex-shrink:0;color:inherit}
+.destaque-fechar:hover{opacity:1}
 @media(max-width:720px){
-  .sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%)}
+  .destaque-desc{display:none}
+  .destaque-banner{padding:0 12px}
+}
   .sidebar.open{transform:none;box-shadow:4px 0 20px rgba(0,0,0,.2)}
   .hamburger{display:flex}
   .overlay-sb{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49;display:none}
@@ -439,6 +452,17 @@ tbody tr:hover td{background:var(--surface2)}
           🎁 <span>Você está no <strong>período de teste gratuito</strong> — <span id="trial-dias" class="trial-banner-days"></span> dias restantes. Após esse período, alguns recursos serão limitados.</span>
         </div>
         <a href="/pricing.html" class="trial-banner-link">⬆ Fazer upgrade</a>
+      </div>
+
+      <!-- BANNER DESTAQUE -->
+      <div class="destaque-banner" id="destaque-banner">
+        <div class="destaque-inner" id="destaque-inner" onclick="abrirDestaque()">
+          <span class="destaque-badge">⭐ Destaque</span>
+          <span class="destaque-titulo" id="destaque-titulo"></span>
+          <span class="destaque-desc" id="destaque-desc"></span>
+          <span class="destaque-cta" id="destaque-cta">Ver oferta →</span>
+          <button class="destaque-fechar" onclick="event.stopPropagation();fecharDestaque()" title="Fechar">×</button>
+        </div>
       </div>
 
       <main class="content">
@@ -1206,6 +1230,7 @@ function initApp(){
   populateUserFilter();
   updateFooter();
   updateDashboard();
+  loadDestaque();
 }
 
 function populateUserFilter(){
@@ -3171,6 +3196,39 @@ async function excluirOrcamento(orcId){
   if(error){toast('❌ Erro: '+error.message);return;}
   orcamentos = orcamentos.filter(o=>o.id!==orcId);
   closeModal(); toast('🗑 Orçamento excluído.'); renderOrcamento();
+}
+
+// ══ BANNER DESTAQUE ══
+let destaqueAtivo = null;
+
+async function loadDestaque(){
+  try {
+    const { data } = await sb.from('destaques').select('*').eq('ativo', true).order('ordem').limit(1).single();
+    if(data){
+      destaqueAtivo = data;
+      const inner = document.getElementById('destaque-inner');
+      const banner = document.getElementById('destaque-banner');
+      document.getElementById('destaque-titulo').textContent = data.titulo;
+      document.getElementById('destaque-desc').textContent = data.descricao || '';
+      document.getElementById('destaque-cta').textContent = data.cta || 'Ver oferta →';
+      inner.style.background = data.cor_fundo || '#1a3a1a';
+      inner.style.color = data.cor_texto || '#ffffff';
+      // Verificar se o usuário já fechou esse destaque nessa sessão
+      const fechado = sessionStorage.getItem('destaque_fechado_' + data.id);
+      if(!fechado) banner.classList.add('show');
+    }
+  } catch(e){ /* sem destaque ativo */ }
+}
+
+function abrirDestaque(){
+  if(destaqueAtivo?.link){
+    window.open(destaqueAtivo.link, '_blank');
+  }
+}
+
+function fecharDestaque(){
+  document.getElementById('destaque-banner').classList.remove('show');
+  if(destaqueAtivo) sessionStorage.setItem('destaque_fechado_' + destaqueAtivo.id, '1');
 }
 
 // ══ PWA ══
