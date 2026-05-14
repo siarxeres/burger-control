@@ -3203,20 +3203,21 @@ let destaqueAtivo = null;
 
 async function loadDestaque(){
   try {
-    const { data } = await sb.from('destaques').select('*').eq('ativo', true).order('ordem').limit(1).single();
-    if(data){
-      destaqueAtivo = data;
+    const { data, error } = await sb.from('destaques').select('*').eq('ativo', true).order('ordem').limit(1);
+    if(error || !data || !data.length) return;
+    const destaque = data[0];
+    destaqueAtivo = destaque;
       const inner = document.getElementById('destaque-inner');
       const banner = document.getElementById('destaque-banner');
-      document.getElementById('destaque-titulo').textContent = data.titulo;
-      document.getElementById('destaque-desc').textContent = data.descricao || '';
-      document.getElementById('destaque-cta').textContent = data.cta || 'Ver oferta →';
-      inner.style.background = data.cor_fundo || '#1a3a1a';
-      inner.style.color = data.cor_texto || '#ffffff';
-      // Verificar se o usuário já fechou esse destaque nessa sessão
-      const fechado = sessionStorage.getItem('destaque_fechado_' + data.id);
+      const inner = document.getElementById('destaque-inner');
+    const banner = document.getElementById('destaque-banner');
+    document.getElementById('destaque-titulo').textContent = destaque.titulo;
+      document.getElementById('destaque-desc').textContent = destaque.descricao || '';
+      document.getElementById('destaque-cta').textContent = destaque.cta || 'Ver oferta →';
+      inner.style.background = destaque.cor_fundo || '#1a3a1a';
+      inner.style.color = destaque.cor_texto || '#ffffff';
+      const fechado = sessionStorage.getItem('destaque_fechado_' + destaque.id);
       if(!fechado) banner.classList.add('show');
-    }
   } catch(e){ /* sem destaque ativo */ }
 }
 
