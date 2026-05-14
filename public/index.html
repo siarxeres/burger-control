@@ -277,7 +277,9 @@ tbody tr:hover td{background:var(--surface2)}
   .destaque-desc{display:none}
   .destaque-banner{padding:0 12px}
 }
-  .sidebar.open{transform:none;box-shadow:4px 0 20px rgba(0,0,0,.2)}
+@media(max-width:768px){
+  .sidebar{position:fixed;top:0;left:0;height:100vh;transform:translateX(-100%);z-index:50}
+  .sidebar.open{transform:translateX(0);box-shadow:4px 0 20px rgba(0,0,0,.2)}
   .hamburger{display:flex}
   .overlay-sb{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49;display:none}
   .overlay-sb.show{display:block}
