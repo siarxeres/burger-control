@@ -248,6 +248,20 @@ tbody tr:hover td{background:var(--surface2)}
 .s-pe{background:var(--yellow-bg);color:var(--yellow)}
 .s-re{background:var(--red-bg);color:var(--red)}
 
+/* ALERTAS INTELIGENTES */
+.alertas-box{margin-bottom:20px}
+.alerta-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--rs);margin-bottom:8px;border:.5px solid transparent;animation:fadeIn .2s ease}
+.alerta-item:last-child{margin-bottom:0}
+.alerta-red{background:#fcebeb;border-color:rgba(163,45,45,.25);color:#a32d2d}
+.alerta-yellow{background:var(--yellow-bg);border-color:rgba(133,79,11,.25);color:var(--yellow)}
+.alerta-green{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.alerta-blue{background:#e6f1fb;border-color:#b5d4f4;color:#185fa5}
+.alerta-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.alerta-body{flex:1;min-width:0}
+.alerta-titulo{font-size:12px;font-weight:700;margin-bottom:2px}
+.alerta-desc{font-size:11px;opacity:.85;line-height:1.4}
+.alerta-dim{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.6;margin-top:3px}
+
 /* BANNER DESTAQUE */
 .destaque-banner{display:none;padding:0 20px;flex-shrink:0;animation:fadeIn .3s ease}
 .destaque-banner.show{display:block}
@@ -469,6 +483,7 @@ tbody tr:hover td{background:var(--surface2)}
 
         <!-- DASHBOARD -->
         <div class="page active" id="page-dashboard">
+          <div class="alertas-box" id="dash-alertas"></div>
           <div class="metrics" id="dash-metrics"></div>
           <div style="margin-bottom:22px">
             <div class="sec-title">Despesas por Centro de Custo</div>
@@ -1535,6 +1550,107 @@ function gerarDatasRecorrentes(dataInicio, dataFim, frequencia){
   return datas;
 }
 
+// ══ ALERTAS INTELIGENTES ══
+// Cada alerta tem: nivel (red/yellow/green/blue), icone, titulo, desc, dimensao (Diagnóstico 360°)
+function gerarAlertas(){
+  const alertas = [];
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+  const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1;
+  const anoAnterior = mesAtual === 0 ? anoAtual - 1 : anoAtual;
+
+  const despMes = despesas.filter(d => { const dt=new Date(d.data); return dt.getMonth()===mesAtual&&dt.getFullYear()===anoAtual&&d.status!=='Rejeitado'; });
+  const despMesAnt = despesas.filter(d => { const dt=new Date(d.data); return dt.getMonth()===mesAnterior&&dt.getFullYear()===anoAnterior&&d.status!=='Rejeitado'; });
+  const recMes = receitas.filter(r => { const dt=new Date(r.data); return dt.getMonth()===mesAtual&&dt.getFullYear()===anoAtual; });
+  const recMesAnt = receitas.filter(r => { const dt=new Date(r.data); return dt.getMonth()===mesAnterior&&dt.getFullYear()===anoAnterior; });
+
+  const totalDesp = despMes.reduce((s,d)=>s+d.valor,0);
+  const totalDespAnt = despMesAnt.reduce((s,d)=>s+d.valor,0);
+  const totalRec = recMes.reduce((s,r)=>s+r.valor,0);
+  const totalRecAnt = recMesAnt.reduce((s,r)=>s+r.valor,0);
+  const resultado = totalRec - totalDesp;
+
+  // 1. Resultado negativo → Financeiro
+  if(totalRec > 0 && resultado < 0){
+    alertas.push({nivel:'red', icone:'🔴', titulo:'Resultado negativo no mês', desc:`Suas despesas (${fmt(totalDesp)}) superam as receitas (${fmt(totalRec)}) em ${fmt(Math.abs(resultado))}.`, dimensao:'Financeiro'});
+  }
+
+  // 2. Sem receitas lançadas → Comercial
+  if(totalRec === 0 && despesas.length > 0){
+    alertas.push({nivel:'yellow', icone:'🟡', titulo:'Nenhuma receita lançada este mês', desc:'Lance suas receitas para acompanhar o resultado real do negócio.', dimensao:'Comercial'});
+  }
+
+  // 3. Despesas crescendo > 15% vs mês anterior → Gestão
+  if(totalDespAnt > 0 && totalDesp > 0){
+    const varDesp = ((totalDesp - totalDespAnt) / totalDespAnt) * 100;
+    if(varDesp > 15){
+      alertas.push({nivel:'yellow', icone:'🟡', titulo:`Despesas cresceram ${varDesp.toFixed(0)}% vs mês anterior`, desc:`Mês atual: ${fmt(totalDesp)} · Mês anterior: ${fmt(totalDespAnt)}. Revise os centros de custo.`, dimensao:'Gestão'});
+    }
+  }
+
+  // 4. Receitas caindo > 15% → Comercial
+  if(totalRecAnt > 0 && totalRec > 0){
+    const varRec = ((totalRec - totalRecAnt) / totalRecAnt) * 100;
+    if(varRec < -15){
+      alertas.push({nivel:'red', icone:'🔴', titulo:`Receitas caíram ${Math.abs(varRec).toFixed(0)}% vs mês anterior`, desc:`Mês atual: ${fmt(totalRec)} · Mês anterior: ${fmt(totalRecAnt)}. Atenção ao faturamento.`, dimensao:'Comercial'});
+    }
+  }
+
+  // 5. Um CC concentra > 60% das despesas → Processos
+  const byCC = {};
+  despMes.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
+  const sortedCC = Object.entries(byCC).sort((a,b)=>b[1]-a[1]);
+  if(sortedCC.length > 1 && totalDesp > 0){
+    const [ccMaior, valMaior] = sortedCC[0];
+    const pct = (valMaior/totalDesp)*100;
+    if(pct > 60){
+      alertas.push({nivel:'yellow', icone:'🟡', titulo:`${ccMaior} concentra ${pct.toFixed(0)}% das despesas`, desc:`${fmt(valMaior)} de ${fmt(totalDesp)} estão neste centro. Alta concentração de custos.`, dimensao:'Processos'});
+    }
+  }
+
+  // 6. Abaixo do ponto de equilíbrio → Financeiro
+  if(totalRec > 0 && totalDesp > 0){
+    const fixas = despMes.filter(d=>['Aluguel','Folha de Pagamento','Energia / Água / Gás','Internet / Telefone'].includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
+    const mcPct = totalRec > 0 ? (totalRec - totalDesp) / totalRec + 1 : 0;
+    const pe = mcPct > 0 && mcPct < 1 ? fixas / (1 - (totalDesp-fixas)/totalRec) : 0;
+    if(pe > 0 && totalRec < pe){
+      alertas.push({nivel:'red', icone:'🔴', titulo:'Abaixo do Ponto de Equilíbrio', desc:`Você precisa de ${fmt(pe - totalRec)} a mais em receitas para cobrir todos os custos.`, dimensao:'Financeiro'});
+    }
+  }
+
+  // 7. Muitos lançamentos pendentes → Operações
+  const pendentes = despesas.filter(d=>d.status==='Pendente').length;
+  if(pendentes >= 3){
+    alertas.push({nivel:'blue', icone:'🔵', titulo:`${pendentes} lançamentos pendentes de aprovação`, desc:'Revise e aprove os lançamentos pendentes para manter o controle financeiro atualizado.', dimensao:'Operações'});
+  }
+
+  // 8. Resultado positivo e crescendo → Financeiro
+  if(resultado > 0 && totalRecAnt > 0 && totalRec > totalRecAnt && totalDesp <= totalDespAnt){
+    alertas.push({nivel:'green', icone:'🟢', titulo:'Ótimo desempenho no mês!', desc:`Resultado positivo de ${fmt(resultado)} com receitas crescendo e despesas controladas.`, dimensao:'Financeiro'});
+  }
+
+  // 9. Sem lançamentos — orientar usuário
+  if(despesas.length === 0 && receitas.length === 0){
+    alertas.push({nivel:'blue', icone:'💡', titulo:'Comece lançando suas despesas e receitas', desc:'Quanto mais dados, mais precisos serão os alertas e análises do seu negócio.', dimensao:'Gestão'});
+  }
+
+  // Renderizar
+  const el = document.getElementById('dash-alertas');
+  if(!el) return;
+  if(!alertas.length){ el.innerHTML=''; return; }
+
+  el.innerHTML = alertas.map(a=>`
+    <div class="alerta-item alerta-${a.nivel}">
+      <span class="alerta-icon">${a.icone}</span>
+      <div class="alerta-body">
+        <div class="alerta-titulo">${a.titulo}</div>
+        <div class="alerta-desc">${a.desc}</div>
+        <div class="alerta-dim">📊 Diagnóstico: ${a.dimensao}</div>
+      </div>
+    </div>`).join('');
+}
+
 // ══ DASHBOARD ══
 function updateDashboard(){
   const hoje = new Date();
@@ -1579,6 +1695,7 @@ function updateDashboard(){
   const tbody=document.getElementById('dash-tbody');
   if(!despesas.length){ tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum lançamento</div><span class="link" onclick="showPage('lancar',document.getElementById('nav-lancar'))">Lançar →</span></div></td></tr>`; }
   else { tbody.innerHTML=despesas.slice(0,8).map(d=>`<tr><td>${d.fornecedor}</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td><td style="color:var(--muted)">${d.categoria}</td><td style="color:var(--muted)">${fmtDate(d.data)}</td><td style="text-align:right;font-weight:700">${fmt(d.valor)}</td></tr>`).join(''); }
+  gerarAlertas();
 }
 
 // ══ DESPESAS ══
