@@ -3207,17 +3207,15 @@ async function loadDestaque(){
     if(error || !data || !data.length) return;
     const destaque = data[0];
     destaqueAtivo = destaque;
-      const inner = document.getElementById('destaque-inner');
-      const banner = document.getElementById('destaque-banner');
-      const inner = document.getElementById('destaque-inner');
+    const inner = document.getElementById('destaque-inner');
     const banner = document.getElementById('destaque-banner');
     document.getElementById('destaque-titulo').textContent = destaque.titulo;
-      document.getElementById('destaque-desc').textContent = destaque.descricao || '';
-      document.getElementById('destaque-cta').textContent = destaque.cta || 'Ver oferta →';
-      inner.style.background = destaque.cor_fundo || '#1a3a1a';
-      inner.style.color = destaque.cor_texto || '#ffffff';
-      const fechado = sessionStorage.getItem('destaque_fechado_' + destaque.id);
-      if(!fechado) banner.classList.add('show');
+    document.getElementById('destaque-desc').textContent = destaque.descricao || '';
+    document.getElementById('destaque-cta').textContent = destaque.cta || 'Ver oferta →';
+    inner.style.background = destaque.cor_fundo || '#1a3a1a';
+    inner.style.color = destaque.cor_texto || '#ffffff';
+    const fechado = sessionStorage.getItem('destaque_fechado_' + destaque.id);
+    if(!fechado) banner.classList.add('show');
   } catch(e){ /* sem destaque ativo */ }
 }
 
