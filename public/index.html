@@ -1601,6 +1601,12 @@ function gerarAlertas(){
   const totalRecAnt = recMesAnt.reduce((s,r)=>s+r.valor,0);
   const resultado = totalRec - totalDesp;
 
+  // ── ALERTA PRÓ-LABORE ──
+  const proLaboreDoMes = despMes.filter(d => d.categoria === 'Pró-labore');
+  if(proLaboreDoMes.length === 0 && despesas.length > 0){
+    alertas.push({nivel:'red', icone:'⚠️', titulo:'Pró-labore não lançado este mês!', desc:'Você ainda não registrou o pró-labore do sócio. Lembre-se: o pró-labore deve ser separado das finanças pessoais.', dimensao:'Financeiro'});
+  }
+
   // 1. Resultado negativo → Financeiro
   if(totalRec > 0 && resultado < 0){
     alertas.push({nivel:'red', icone:'🔴', titulo:'Resultado negativo no mês', desc:`Suas despesas (${fmt(totalDesp)}) superam as receitas (${fmt(totalRec)}) em ${fmt(Math.abs(resultado))}.`, dimensao:'Financeiro'});
