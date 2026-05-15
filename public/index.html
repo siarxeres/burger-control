@@ -3442,6 +3442,7 @@ function renderConfigPage(){
   </div>`;
   document.getElementById('page-config').innerHTML = html;
 }
+  window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
   // Mostrar banner apenas se não foi dispensado antes
