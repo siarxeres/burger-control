@@ -1015,7 +1015,7 @@ const CC_CATEGORIAS = {
   'Marketing / Vendas':     ['Marketing / Publicidade','Redes Sociais','Materiais Gráficos','Brindes / Promoções','Plataformas Digitais','Outros'],
   'Marketing':              ['Marketing / Publicidade','Redes Sociais','Materiais Gráficos','Brindes / Promoções','Plataformas Digitais','Outros'],
   'Manutenção':             ['Manutenção Preventiva','Manutenção Corretiva','Peças / Materiais','Serviços Terceirizados','Outros'],
-  'Recursos Humanos':       ['Folha de Pagamento','Encargos Sociais','Vale Transporte','Vale Refeição','Benefícios','Rescisão','Treinamento','Outros'],
+  'Recursos Humanos':       ['Pró-labore','Folha de Pagamento','Encargos Sociais','Vale Transporte','Vale Refeição','Benefícios','Rescisão','Treinamento','Outros'],
   'Produção / Operação':    ['Matéria-Prima','Insumos','Embalagens','Equipamentos','Manutenção','Energia','Outros'],
   'Estoque / Compras':      ['Mercadorias','Matéria-Prima','Embalagens','Fretes / Logística','Outros'],
   'TI / Tecnologia':        ['Software / Licenças','Hardware','Suporte Técnico','Hospedagem / Servidores','Segurança Digital','Outros'],
@@ -1527,6 +1527,34 @@ async function salvarDespesa(){
     toast('✅ Lançamento salvo!');
   }
 
+  // ── PRÓ-LABORE: lançar automaticamente nas receitas pessoais ──
+  if(item.categoria === 'Pró-labore'){
+    const confirma = confirm(`💼 Deseja lançar R$ ${valor.toLocaleString('pt-BR',{minimumFractionDigits:2})} como Pró-labore nas suas receitas pessoais?`);
+    if(confirma){
+      const proLaboreItem = {
+        user_id: currentUser.id,
+        tipo: 'receita',
+        descricao: `Pró-labore — ${fmtDate(data)}`,
+        categoria: 'Pró-labore',
+        valor,
+        data,
+        forma_pagamento: item.pagto || null,
+        recorrente: false,
+        obs: 'Lançado automaticamente a partir da despesa empresarial.',
+      };
+      const { error: erroPL } = await sb.from('despesas_pessoais').insert(proLaboreItem);
+      if(erroPL){
+        toast('⚠️ Pró-labore salvo na empresa, mas erro ao lançar no pessoal: ' + erroPL.message);
+      } else {
+        toast('✅ Lançamento salvo! Pró-labore também registrado nas finanças pessoais.');
+      }
+    } else {
+      toast('✅ Lançamento salvo!');
+    }
+  } else {
+    toast('✅ Lançamento salvo!');
+  }
+
   clearForm();
   showPage('dashboard', document.getElementById('nav-dashboard'));
   updateFooter();
@@ -1572,6 +1600,12 @@ function gerarAlertas(){
   const totalRec = recMes.reduce((s,r)=>s+r.valor,0);
   const totalRecAnt = recMesAnt.reduce((s,r)=>s+r.valor,0);
   const resultado = totalRec - totalDesp;
+
+  // ── ALERTA PRÓ-LABORE ──
+  const proLaboreDoMes = despMes.filter(d => d.categoria === 'Pró-labore');
+  if(proLaboreDoMes.length === 0 && despesas.length > 0){
+    alertas.push({nivel:'red', icone:'⚠️', titulo:'Pró-labore não lançado este mês!', desc:'Você ainda não registrou o pró-labore do sócio. Lembre-se: o pró-labore deve ser separado das finanças pessoais.', dimensao:'Financeiro'});
+  }
 
   // 1. Resultado negativo → Financeiro
   if(totalRec > 0 && resultado < 0){
