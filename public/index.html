@@ -410,6 +410,10 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h4M6 12h8M14 8h4"/></svg>
           Orçado vs Realizado
         </div>
+       <div class="nav-item" onclick="showPage('config',this);renderConfigPage()" id="nav-config">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  Configurações
+</div>
         <div class="nav-sec" id="nav-sec-admin" style="display:none">Admin</div>
 
 
@@ -736,6 +740,7 @@ tbody tr:hover td{background:var(--surface2)}
         </div>
 
 
+     <div class="page" id="page-config"></div>
         <!-- ORÇADO VS REALIZADO -->
         <div class="page" id="page-orcamento">
           <div class="card" style="padding:16px;margin-bottom:20px">
@@ -3395,8 +3400,48 @@ if('serviceWorker' in navigator){
   });
 }
 
-// Capturar evento de instalação
-window.addEventListener('beforeinstallprompt', e => {
+// ══ CONFIGURAÇÕES DO PERFIL ══
+async function salvarPerfil(){
+  const nome = document.getElementById('cfg-nome').value.trim();
+  const tipoEmpresa = document.getElementById('cfg-tipo-empresa').value;
+  if(!nome){ toast('⚠️ Preencha o nome.'); return; }
+  const { error } = await sb.from('profiles').update({ full_name: nome, tipo_empresa: tipoEmpresa }).eq('id', currentUser.id);
+  if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
+  currentProfile.full_name = nome;
+  currentProfile.tipo_empresa = tipoEmpresa;
+  document.getElementById('sf-user').textContent = nome;
+  toast('✅ Perfil atualizado!');
+}
+
+function renderConfigPage(){
+  const tipoEmpresa = currentProfile?.tipo_empresa || 'mei';
+  const html = `
+  <div class="page-header">
+    <h2>Configurações</h2>
+    <p>Gerencie seu perfil e preferências</p>
+  </div>
+  <div class="card" style="max-width:600px;margin:0 auto">
+    <h3 style="margin-bottom:16px">👤 Perfil do Usuário</h3>
+    <div class="form-group">
+      <label>Nome Completo</label>
+      <input id="cfg-nome" class="form-control" value="${currentProfile?.full_name||''}" placeholder="Seu nome completo">
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label>E-mail</label>
+      <input class="form-control" value="${currentUser?.email||''}" disabled style="opacity:.6">
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label>Tipo de Empresa</label>
+      <select id="cfg-tipo-empresa" class="form-control">
+        <option value="mei" ${tipoEmpresa==='mei'?'selected':''}>MEI — Microempreendedor Individual</option>
+        <option value="me" ${tipoEmpresa==='me'?'selected':''}>ME — Microempresa</option>
+        <option value="epp" ${tipoEmpresa==='epp'?'selected':''}>EPP — Empresa de Pequeno Porte</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="margin-top:16px;width:100%" onclick="salvarPerfil()">💾 Salvar Perfil</button>
+  </div>`;
+  document.getElementById('page-config').innerHTML = html;
+}
   e.preventDefault();
   deferredPrompt = e;
   // Mostrar banner apenas se não foi dispensado antes
