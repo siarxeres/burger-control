@@ -2762,7 +2762,7 @@ function renderReceitas(){
   tr.style.display='block'; tr.textContent=`Total: ${fmt(list.reduce((s,r)=>s+r.valor,0))} (${list.length} lançamento${list.length>1?'s':''})`;
   tbody.innerHTML=list.map(r=>`<tr>
     <td style="font-weight:600">${r.descricao}</td>
-    <td><span class="badge badge-ai">${r.categoria}</span></td>
+    <td><span class="badge" style="background:var(--accent-bg);color:var(--accent)">${r.tipo_receita||'—'}</span></td><td><span class="badge badge-ai">${r.categoria}</span></td>
     <td style="color:var(--muted)">${r.canal||'—'}</td>
     <td style="color:var(--muted)">${r.forma_pagamento||'—'}</td>
     <td style="color:var(--muted)">${fmtDate(r.data)}</td>
@@ -2788,7 +2788,14 @@ function openModalReceita(){
           <option>Eventos / Projetos</option>
           <option>Exportação / Atacado</option>
           <option>Outras Receitas</option>
-        </select></div>
+      </select></div>
+<div class="form-group"><label class="form-label">Tipo de Receita *</label>
+<select class="form-control" id="mr-tipo">
+<option value="">Selecionar...</option>
+<option value="comercio">Comércio</option>
+<option value="industria">Indústria</option>
+<option value="servicos">Prestação de Serviços</option>
+</select></div>
       <div class="form-group"><label class="form-label">Canal / Origem</label>
         <select class="form-control" id="mr-canal">
           <option value="">—</option>
@@ -2836,6 +2843,7 @@ async function salvarReceita(){
     valor, data,
     forma_pagamento: document.getElementById('mr-pagto').value,
     obs: document.getElementById('mr-obs').value.trim(),
+    tipo_receita: document.getElementById('mr-tipo').value,
   };
   const { data: saved, error } = await sb.from('receitas').insert(item).select().single();
   if(error){toast('❌ Erro: '+error.message);return;}
