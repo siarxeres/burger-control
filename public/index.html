@@ -2688,7 +2688,7 @@ function renderDREPessoal(){
   const totalNaoEss=despPer.filter(d=>naoEssenciais.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
 
   const saldo=totalRec-totalDesp;
-  const pct=v=>totalRec>0?`${(v/totalRec*100).toFixed(1)}%`:'—';
+  const pct=v=>totalRec>0?`${(v/totalRec*100).toFixed(1)}%`:'-';
   const cor=v=>v>=0?'color:var(--green)':'color:var(--accent)';
 
   const linha=(label,valor,sub,bold,indent,borderTop)=>`
@@ -3115,7 +3115,7 @@ function exportDRE(ini, fim){
   const ebitda = margem-fixas-operacional;
   const impostos = despPer.filter(d=>d.natureza==='imposto'||IMP_C.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
   const liquido = ebitda-impostos;
-  const pct = v => recTotal>0?(v/recTotal*100).toFixed(1)+'%':'—';
+  const pct = v => recTotal>0?(v/recTotal*100).toFixed(1)+'%':'-';
   const rows = [
     ['DRE — Demonstrativo de Resultado','',''],
     [`Período: ${fmtDate(ini)} a ${fmtDate(fim)}`,'',''],
