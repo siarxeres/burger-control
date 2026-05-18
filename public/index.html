@@ -406,6 +406,10 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           DRE
         </div>
+        <div class="nav-item" onclick="showPage('dasn',this)" id="nav-dasn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Declaração Anual
+        </div>
         <div class="nav-item" onclick="showPage('orcamento',this)" id="nav-orcamento">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h4M6 12h8M14 8h4"/></svg>
           Orçado vs Realizado
@@ -733,6 +737,8 @@ tbody tr:hover td{background:var(--surface2)}
         </div>
 
 
+       <!-- DECLARAÇÃO ANUAL MEI/ME -->
+        <div class="page" id="page-dasn"></div>
         <!-- ORÇADO VS REALIZADO -->
         <div class="page" id="page-orcamento">
           <div class="card" style="padding:16px;margin-bottom:20px">
@@ -1344,7 +1350,8 @@ function showPage(id, navEl){
   if(id==='despesas') renderDespesas();
   if(id==='centros') renderCentros();
   if(id==='receitas') renderReceitas();
-  if(id==='dre') initDRE();
+ if(id==='dre') initDRE();
+if(id==='dasn') renderDASN();
   if(id==='orcamento') initOrcamento();
   if(id==='relatorio') initRelatorio();
   if(id==='pessoal-dashboard') renderPessoalDashboard();
@@ -2625,7 +2632,20 @@ function exportCSVPessoal(){
   toast('✅ CSV exportado!');
 }
 
-// ══ DRE PESSOAL ══
+// ══ DECLARAÇÃO ANUAL MEI/ME ══
+function renderDASN(){
+  const ano = new Date().getFullYear();
+  const recAnuais = receitas.filter(r => r.data && r.data.startsWith(ano));
+  const comercio = recAnuais.filter(r=>r.tipo_receita==='comercio').reduce((s,r)=>s+r.valor,0);
+  const industria = recAnuais.filter(r=>r.tipo_receita==='industria').reduce((s,r)=>s+r.valor,0);
+  const servicos = recAnuais.filter(r=>r.tipo_receita==='servicos').reduce((s,r)=>s+r.valor,0);
+  const total = comercio + industria + servicos;
+  document.getElementById('page-dasn').innerHTML = `
+  <div class="page-header"><h2>📋 Declaração Anual — DASN ${ano}</h2><p>Resumo de receitas para preenchimento na Receita Federal</p></div>
+  <div class="card" style="max-width:600px;margin:0 auto;padding:20px">
+    <h3 style="margin-bottom:16px">Receitas Brutas por Atividade</h3>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px"><span>Comércio</span><strong>${fmt(comercio)}</strong></div><div style="display:flex;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px"><span>Indústria</span><strong>${fmt(industria)}</strong></div><div style="display:flex;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px"><span>Serviços</span><strong>${fmt(servicos)}</strong></div><div style="display:flex;justify-content:space-between;padding:12px;background:var(--accent-bg);border-radius:8px;font-weight:700"><span>Total</span><strong>${fmt(total)}</strong></div></div></div></div>`; }
 function initDREPessoal(){
   const hoje=new Date();
   const ini=new Date(hoje.getFullYear(),hoje.getMonth(),1);
@@ -2668,7 +2688,7 @@ function renderDREPessoal(){
   const totalNaoEss=despPer.filter(d=>naoEssenciais.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
 
   const saldo=totalRec-totalDesp;
-  const pct=v=>totalRec>0?`${(v/totalRec*100).toFixed(1)}%`:'—';
+  const pct=v=>totalRec>0?`${(v/totalRec*100).toFixed(1)}%`:'-';
   const cor=v=>v>=0?'color:var(--green)':'color:var(--accent)';
 
   const linha=(label,valor,sub,bold,indent,borderTop)=>`
@@ -3095,7 +3115,7 @@ function exportDRE(ini, fim){
   const ebitda = margem-fixas-operacional;
   const impostos = despPer.filter(d=>d.natureza==='imposto'||IMP_C.includes(d.categoria)).reduce((s,d)=>s+d.valor,0);
   const liquido = ebitda-impostos;
-  const pct = v => recTotal>0?(v/recTotal*100).toFixed(1)+'%':'—';
+  const pct = v => recTotal>0?(v/recTotal*100).toFixed(1)+'%':'-';
   const rows = [
     ['DRE — Demonstrativo de Resultado','',''],
     [`Período: ${fmtDate(ini)} a ${fmtDate(fim)}`,'',''],
