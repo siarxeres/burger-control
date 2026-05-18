@@ -1712,7 +1712,7 @@ function updateDashboard(){
   const resultado = totalRec - totalDesp;
   const positivo = resultado >= 0;
 
-  const byCC={}; despesas.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
+  const byCC={}; despMes.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
   const sorted=Object.entries(byCC).sort((a,b)=>b[1]-a[1]);
   const pend=despesas.filter(d=>d.status==='Pendente').length;
   const ia=despesas.filter(d=>d.ia).length;
@@ -2787,12 +2787,13 @@ function renderReceitas(){
     <td style="color:var(--muted)">${r.forma_pagamento||'—'}</td>
     <td style="color:var(--muted)">${fmtDate(r.data)}</td>
     <td style="text-align:right;font-weight:700;color:var(--green)">${fmt(r.valor)}</td>
-    <td><button class="btn btn-xs" onclick="excluirReceita(${r.id})">🗑</button></td>
+    <td style="display:flex;gap:4px"><button class="btn btn-xs" onclick="editarReceita(${r.id})">✏️</button><button class="btn btn-xs" onclick="excluirReceita(${r.id})">🗑</button></td>
   </tr>`).join('');
 }
 
-function openModalReceita(){
-  document.getElementById('modal-title').textContent = 'Nova Receita';
+
+ function editarReceita(id){const r=receitas.find(x=>x.id===id);if(!r)return;openModalReceita();setTimeout(()=>{document.getElementById('mr-desc').value=r.descricao||'';document.getElementById('mr-cat').value=r.categoria||'';document.getElementById('mr-tipo').value=r.tipo_receita||'';document.getElementById('mr-canal').value=r.canal||'';document.getElementById('mr-valor').value=r.valor||'';document.getElementById('mr-data').value=r.data||'';document.getElementById('mr-pagamento').value=r.forma_pagamento||'';document.getElementById('mr-obs').value=r.obs||'';document.getElementById('mr-save').onclick=async()=>{const dados={descricao:document.getElementById('mr-desc').value,categoria:document.getElementById('mr-cat').value,tipo_receita:document.getElementById('mr-tipo').value,canal:document.getElementById('mr-canal').value,valor:parseFloat(document.getElementById('mr-valor').value),data:document.getElementById('mr-data').value,forma_pagamento:document.getElementById('mr-pagamento').value,obs:document.getElementById('mr-obs').value};const{error}=await sb.from('receitas').update(dados).eq('id',id);if(error){toast('❌ Erro: '+error.message);return;}receitas=receitas.map(x=>x.id===id?{...x,...dados}:x);closeModal();renderReceitas();toast('✅ Receita atualizada!');};},100);}
+function openModalReceita(){document.getElementById('modal-title').textContent = 'Nova Receita';document.getElementById('modal').classList.add('show');
   document.getElementById('modal-body').innerHTML = `
     <div class="form-grid" style="grid-template-columns:1fr 1fr">
       <div class="form-group full"><label class="form-label">Descrição <span style="color:var(--accent)">*</span></label><input type="text" class="form-control" id="mr-desc" placeholder="Ex: Vendas do dia, iFood, Evento..."></div>
@@ -2836,11 +2837,11 @@ function openModalReceita(){
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
       <button class="btn" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarReceita()">💾 Salvar Receita</button>
-    </div>`;
+   </div>`;
   document.getElementById('modal').classList.add('show');
 }
 
-async function salvarReceita(){
+  async function salvarReceita(){
   const descricao = document.getElementById('mr-desc').value.trim();
   const categoria = document.getElementById('mr-cat').value;
   const valorRaw = document.getElementById('mr-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
@@ -2871,7 +2872,6 @@ async function salvarReceita(){
   closeModal(); toast('✅ Receita salva!');
   renderReceitas(); updateFooter();
 }
-
 async function excluirReceita(id){
   if(!confirm('Excluir esta receita?')) return;
   const { error } = await sb.from('receitas').delete().eq('id', id);
