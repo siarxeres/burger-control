@@ -2865,7 +2865,7 @@ async function salvarReceita(){
     obs: document.getElementById('mr-obs').value.trim(),
     tipo_receita: document.getElementById('mr-tipo').value,
   };
-  const editId = document.getElementById('mr-save').getAttribute('data-edit'); if(editId){ return; } const { data: saved, error } = await sb.from('receitas').insert(item).select().single();
+  const { data: saved, error } = await sb.from('receitas').insert(item).select().single();
   if(error){toast('❌ Erro: '+error.message);return;}
   receitas.unshift(saved);
   closeModal(); toast('✅ Receita salva!');
