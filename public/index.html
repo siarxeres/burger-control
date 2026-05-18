@@ -2838,8 +2838,7 @@ function renderReceitas(){
       <button class="btn btn-primary" onclick="salvarReceita()">💾 Salvar Receita</button>
     </div>`;
   document.getElementById('modal').classList.add('show');
-  }
-async function salvarReceita(){
+  async function salvarReceita(){
   const descricao = document.getElementById('mr-desc').value.trim();
   const categoria = document.getElementById('mr-cat').value;
   const valorRaw = document.getElementById('mr-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
