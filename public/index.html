@@ -706,7 +706,7 @@ tbody tr:hover td{background:var(--surface2)}
           <div class="metrics" id="rec-metrics"></div>
           <div class="table-wrap">
             <table><thead><tr>
-              <th>Descrição</th><th>Categoria</th><th>Canal / Origem</th><th>Pagamento</th><th>Data</th><th style="text-align:right">Valor</th><th></th>
+              <th>Descrição</th><th>Tipo</th><th>Categoria</th><th>Canal / Origem</th><th>Pagamento</th><th>Data</th><th style="text-align:right">Valor</th><th></th>
             </tr></thead>
             <tbody id="rec-tbody"></tbody></table>
           </div>
@@ -1001,6 +1001,7 @@ function checkTrialExpirado(){
 let despesas = [];
 let todosPlanos = [];
 let receitas = [];
+let receitaEditId = null;
 let todosCentros = [];
 let centrosPermitidos = [];
 let despesasPessoais = [];
@@ -2776,7 +2777,7 @@ function renderReceitas(){
 
   const tbody=document.getElementById('rec-tbody'), tr=document.getElementById('rec-total');
   if(!list.length){
-    tbody.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="empty-icon">💰</div><div class="empty-title">Nenhuma receita lançada</div><span class="link" onclick="openModalReceita()">Lançar receita →</span></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-icon">💰</div><div class="empty-title">Nenhuma receita lançada</div><span class="link" onclick="openModalReceita()">Lançar receita →</span></div></td></tr>`;
     tr.style.display='none'; return;
   }
   tr.style.display='block'; tr.textContent=`Total: ${fmt(list.reduce((s,r)=>s+r.valor,0))} (${list.length} lançamento${list.length>1?'s':''})`;
@@ -2787,11 +2788,30 @@ function renderReceitas(){
     <td style="color:var(--muted)">${r.forma_pagamento||'—'}</td>
     <td style="color:var(--muted)">${fmtDate(r.data)}</td>
     <td style="text-align:right;font-weight:700;color:var(--green)">${fmt(r.valor)}</td>
-    <td><button class="btn btn-xs" onclick="excluirReceita(${r.id})">🗑</button></td>
+    <td style="display:flex;gap:4px"><button class="btn btn-xs" onclick="editarReceita(${r.id})">✏️</button><button class="btn btn-xs" onclick="excluirReceita(${r.id})">🗑</button></td>
   </tr>`).join('');
 }
 
+function editarReceita(id){
+  const r = receitas.find(x => x.id === id);
+  if(!r) return;
+  openModalReceita();
+  receitaEditId = id;
+  setTimeout(() => {
+    document.getElementById('modal-title').textContent = 'Editar Receita';
+    document.getElementById('mr-desc').value = r.descricao || '';
+    document.getElementById('mr-cat').value = r.categoria || '';
+    document.getElementById('mr-tipo').value = r.tipo_receita || '';
+    document.getElementById('mr-canal').value = r.canal || '';
+    document.getElementById('mr-valor').value = r.valor || '';
+    document.getElementById('mr-data').value = r.data || '';
+    document.getElementById('mr-pagto').value = r.forma_pagamento || '';
+    document.getElementById('mr-obs').value = r.obs || '';
+  }, 100);
+}
+
 function openModalReceita(){
+  receitaEditId = null;
   document.getElementById('modal-title').textContent = 'Nova Receita';
   document.getElementById('modal-body').innerHTML = `
     <div class="form-grid" style="grid-template-columns:1fr 1fr">
@@ -2835,7 +2855,7 @@ function openModalReceita(){
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
       <button class="btn" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="salvarReceita()">💾 Salvar Receita</button>
+      <button class="btn btn-primary" id="mr-save" onclick="salvarReceita()">💾 Salvar Receita</button>
     </div>`;
   document.getElementById('modal').classList.add('show');
 }
@@ -2865,6 +2885,16 @@ async function salvarReceita(){
     obs: document.getElementById('mr-obs').value.trim(),
     tipo_receita: document.getElementById('mr-tipo').value,
   };
+  if(receitaEditId){
+    const { data: saved, error } = await sb.from('receitas').update(item).eq('id', receitaEditId).select().single();
+    if(error){toast('❌ Erro: '+error.message);return;}
+    receitas = receitas.map(x => x.id === receitaEditId ? { ...x, ...item } : x);
+    receitaEditId = null;
+    closeModal(); toast('✅ Receita atualizada!');
+    renderReceitas(); updateFooter();
+    return;
+  }
+
   const { data: saved, error } = await sb.from('receitas').insert(item).select().single();
   if(error){toast('❌ Erro: '+error.message);return;}
   receitas.unshift(saved);
