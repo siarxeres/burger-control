@@ -1698,13 +1698,23 @@ function updateDashboard(){
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
 
-  // Filtrar pelo mês atual
+  // Filtrar pelo mês atual (usar parsing robusto para datas no formato YYYY-MM-DD)
+  const parseDateLocal = (v) => {
+    if(!v) return new Date(0);
+    if(typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)){
+      const [y,m,day] = v.split('-').map(Number);
+      return new Date(y, m-1, day);
+    }
+    return new Date(v);
+  };
+
   const despMes = despesas.filter(d => {
-    const dt = new Date(d.data);
+    const dt = parseDateLocal(d.data);
     return dt.getMonth() === mesAtual && dt.getFullYear() === anoAtual && d.status !== 'Rejeitado';
   });
+
   const recMes = receitas.filter(r => {
-    const dt = new Date(r.data);
+    const dt = parseDateLocal(r.data);
     return dt.getMonth() === mesAtual && dt.getFullYear() === anoAtual;
   });
 
