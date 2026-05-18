@@ -8,9 +8,13 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Chave Asaas não configurada.' });
   }
 
-  const { cliente, valor, vencimento, tipo } = req.body || {};
-  if (!cliente || !valor || !vencimento || !tipo) {
-    return res.status(400).json({ error: 'Dados incompletos. Forneça cliente, valor, vencimento e tipo.' });
+  const { cliente, email, valor, vencimento, tipo } = req.body || {};
+  if (!cliente || !email || !valor || !vencimento || !tipo) {
+    return res.status(400).json({ error: 'Dados incompletos. Forneça cliente, email, valor, vencimento e tipo.' });
+  }
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return res.status(400).json({ error: 'Email do cliente inválido.' });
   }
 
   const billingTypeMap = {
@@ -23,7 +27,7 @@ export default async function handler(req, res) {
   const createCustomer = async () => {
     const body = {
       name: cliente,
-      email: `${cliente.replace(/\s+/g, '.').toLowerCase()}@example.com`,
+      email,
       externalReference: `app-${Date.now()}`
     };
 

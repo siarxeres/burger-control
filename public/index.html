@@ -725,6 +725,10 @@ tbody tr:hover td{background:var(--surface2)}
                 <label class="form-label">Cliente / Nome</label>
                 <input type="text" class="form-control" id="cobranca-cliente" placeholder="Nome do cliente ou empresa">
               </div>
+              <div class="form-group" style="flex:1;min-width:220px;margin:0">
+                <label class="form-label">Email do cliente</label>
+                <input type="email" class="form-control" id="cobranca-email" placeholder="cliente@exemplo.com" required>
+              </div>
               <div class="form-group" style="flex:1;min-width:180px;margin:0">
                 <label class="form-label">Valor</label>
                 <input type="text" class="form-control" id="cobranca-valor" placeholder="R$ 0,00">
@@ -1887,12 +1891,13 @@ function limparFormCobranca(){
 
 async function criarCobranca(){
   const cliente = document.getElementById('cobranca-cliente').value.trim();
+  const email = document.getElementById('cobranca-email').value.trim();
   const valor = document.getElementById('cobranca-valor').value.trim();
   const vencimento = document.getElementById('cobranca-vencimento').value;
   const tipo = document.getElementById('cobranca-tipo').value;
 
-  if(!cliente || !valor || !vencimento){
-    alert('Preencha cliente, valor e data de vencimento.');
+  if(!cliente || !email || !valor || !vencimento){
+    alert('Preencha cliente, email, valor e data de vencimento.');
     return;
   }
 
@@ -1904,6 +1909,7 @@ async function criarCobranca(){
 
   const payload = {
     cliente,
+    email,
     valor: parsedValor,
     vencimento,
     tipo
