@@ -2645,7 +2645,7 @@ function renderDASN(){
   <div class="card" style="max-width:600px;margin:0 auto;padding:20px">
     <h3 style="margin-bottom:16px">Receitas Brutas por Atividade</h3>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="display:flex;jus
+      <div style="display:flex;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px"><span>Comércio</span><strong>${fmt(comercio)}</strong></div><div style="display:flex;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px"><span>Indústria</span><strong>${fmt(industria)}</strong></div><div style="display:flex;justify-content:space-between;padding:12px;background:var(--accent-bg);border-radius:8px;font-weight:700"><span>Total</span><strong>${fmt(total)}</strong></div></div></div></div>`; }
 function initDREPessoal(){
   const hoje=new Date();
   const ini=new Date(hoje.getFullYear(),hoje.getMonth(),1);
