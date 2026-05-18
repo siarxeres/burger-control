@@ -2872,7 +2872,6 @@ function openModalReceita(){document.getElementById('modal-title').textContent =
   closeModal(); toast('✅ Receita salva!');
   renderReceitas(); updateFooter();
 }
-}
 async function excluirReceita(id){
   if(!confirm('Excluir esta receita?')) return;
   const { error } = await sb.from('receitas').delete().eq('id', id);
