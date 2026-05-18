@@ -2838,7 +2838,7 @@ function openModalReceita(){document.getElementById('modal-title').textContent =
       <button class="btn" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarReceita()">💾 Salvar Receita</button>
     </div>`;
-  document.getElementById('modal').classList.add('show');
+
   async function salvarReceita(){
   const descricao = document.getElementById('mr-desc').value.trim();
   const categoria = document.getElementById('mr-cat').value;
