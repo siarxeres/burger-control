@@ -1712,7 +1712,7 @@ function updateDashboard(){
   const resultado = totalRec - totalDesp;
   const positivo = resultado >= 0;
 
-  const byCC={}; despesas.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
+  const byCC={}; despMes.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
   const sorted=Object.entries(byCC).sort((a,b)=>b[1]-a[1]);
   const pend=despesas.filter(d=>d.status==='Pendente').length;
   const ia=despesas.filter(d=>d.ia).length;
