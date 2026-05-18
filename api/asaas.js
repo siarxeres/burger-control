@@ -8,13 +8,18 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Chave Asaas não configurada.' });
   }
 
-  const { cliente, email, valor, vencimento, tipo } = req.body || {};
-  if (!cliente || !email || !valor || !vencimento || !tipo) {
-    return res.status(400).json({ error: 'Dados incompletos. Forneça cliente, email, valor, vencimento e tipo.' });
+  const { cliente, email, cpfcnpj, valor, vencimento, tipo } = req.body || {};
+  if (!cliente || !email || !cpfcnpj || !valor || !vencimento || !tipo) {
+    return res.status(400).json({ error: 'Dados incompletos. Forneça cliente, email, CPF/CNPJ, valor, vencimento e tipo.' });
   }
 
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return res.status(400).json({ error: 'Email do cliente inválido.' });
+  }
+
+  const cleanCpfCnpj = cpfcnpj.replace(/[^0-9]/g, '');
+  if (cleanCpfCnpj.length !== 11 && cleanCpfCnpj.length !== 14) {
+    return res.status(400).json({ error: 'CPF ou CNPJ inválido. Use apenas números.' });
   }
 
   const billingTypeMap = {
@@ -28,6 +33,7 @@ export default async function handler(req, res) {
     const body = {
       name: cliente,
       email,
+      cpfCnpj: cleanCpfCnpj,
       externalReference: `app-${Date.now()}`
     };
 

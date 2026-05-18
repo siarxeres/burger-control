@@ -730,6 +730,10 @@ tbody tr:hover td{background:var(--surface2)}
                 <input type="email" class="form-control" id="cobranca-email" placeholder="cliente@exemplo.com" required>
               </div>
               <div class="form-group" style="flex:1;min-width:180px;margin:0">
+                <label class="form-label">CPF/CNPJ do cliente</label>
+                <input type="text" class="form-control" id="cobranca-cpfcnpj" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+              </div>
+              <div class="form-group" style="flex:1;min-width:180px;margin:0">
                 <label class="form-label">Valor</label>
                 <input type="text" class="form-control" id="cobranca-valor" placeholder="R$ 0,00">
               </div>
@@ -1892,12 +1896,13 @@ function limparFormCobranca(){
 async function criarCobranca(){
   const cliente = document.getElementById('cobranca-cliente').value.trim();
   const email = document.getElementById('cobranca-email').value.trim();
+  const cpfcnpj = document.getElementById('cobranca-cpfcnpj').value.trim();
   const valor = document.getElementById('cobranca-valor').value.trim();
   const vencimento = document.getElementById('cobranca-vencimento').value;
   const tipo = document.getElementById('cobranca-tipo').value;
 
-  if(!cliente || !email || !valor || !vencimento){
-    alert('Preencha cliente, email, valor e data de vencimento.');
+  if(!cliente || !email || !cpfcnpj || !valor || !vencimento){
+    alert('Preencha cliente, email, CPF/CNPJ, valor e data de vencimento.');
     return;
   }
 
@@ -1910,6 +1915,7 @@ async function criarCobranca(){
   const payload = {
     cliente,
     email,
+    cpfcnpj,
     valor: parsedValor,
     vencimento,
     tipo
