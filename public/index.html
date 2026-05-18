@@ -1701,7 +1701,7 @@ function updateDashboard(){
   // Filtrar pelo mês atual
   const despMes = despesas.filter(d => {
     const dt = new Date(d.data);
-    return dt.getMonth() === mesAtual && dt.getFullYear() === anoAtual;
+    return dt.getMonth() === mesAtual && dt.getFullYear() === anoAtual && d.status !== 'Rejeitado';
   });
   const recMes = receitas.filter(r => {
     const dt = new Date(r.data);
