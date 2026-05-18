@@ -494,7 +494,7 @@ tbody tr:hover td{background:var(--surface2)}
           </div>
           <div>
             <div class="sec-title">Últimos Lançamentos</div>
-            <div class="table-wrap">
+            <div class="table-wrap" style="overflow-x:auto">
               <table><thead><tr><th>Fornecedor</th><th>Centro de Custo</th><th>Categoria</th><th>Data</th><th style="text-align:right">Valor</th></tr></thead>
               <tbody id="dash-tbody"></tbody></table>
             </div>
@@ -639,7 +639,7 @@ tbody tr:hover td{background:var(--surface2)}
             <select class="form-control" id="filtro-usuario" style="width:180px" onchange="renderDespesas()" style="display:none"><option value="">Todos os usuários</option></select>
             <button class="btn btn-sm" onclick="exportCSV()">⬇ CSV</button>
           </div>
-          <div class="table-wrap">
+          <div class="table-wrap" style="overflow-x:auto">
             <table><thead><tr><th>Fornecedor</th><th>CC</th><th>Categoria</th><th>Tipo</th><th>Pagamento</th><th>Data</th><th>Status</th><th>Usuário</th><th style="text-align:right">Valor</th><th></th></tr></thead>
             <tbody id="desp-tbody"></tbody></table>
           </div>
@@ -704,7 +704,7 @@ tbody tr:hover td{background:var(--surface2)}
             <button class="btn btn-primary btn-sm" onclick="openModalReceita()">+ Nova Receita</button>
           </div>
           <div class="metrics" id="rec-metrics"></div>
-          <div class="table-wrap">
+          <div class="table-wrap" style="overflow-x:auto">
             <table><thead><tr>
               <th>Descrição</th><th>Categoria</th><th>Canal / Origem</th><th>Pagamento</th><th>Data</th><th style="text-align:right">Valor</th><th></th>
             </tr></thead>
