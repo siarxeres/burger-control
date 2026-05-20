@@ -2292,7 +2292,7 @@ async function gerarRelatorio(tipo){
     anomalias:`Você é auditor financeiro e consultor empresarial. Dados de ${nomeEmpresa}:\nDESPESAS: ${resumo}\nRECEITAS: ${resumoRec}\n\nIdentifique anomalias, valores atípicos, despesas suspeitas, concentrações de custo e desequilíbrios financeiros. Pontue cada item por nível de atenção (🔴 Alto / 🟡 Médio / 🟢 Baixo) com justificativa. Se não houver dados suficientes, informe. Responda em português com linguagem executiva.`,
     tendencias:`Você é analista estratégico e consultor de gestão empresarial. Dados de ${nomeEmpresa}:\nDESPESAS: ${resumo}\nRECEITAS: ${resumoRec}\n\nAnalise: 1) Tendências de crescimento ou queda de receitas e despesas, 2) Concentração de custos por centro, 3) Equilíbrio entre receitas e despesas, 4) Padrões que merecem atenção. Sugira 3 ações estratégicas baseadas nos dados. Português, linguagem gerencial.`,
     economia:`Você é consultor especializado em redução de custos e eficiência operacional. Dados de ${nomeEmpresa}:\nDESPESAS: ${resumo}\nTotal Despesas: R$${totalDesp.toFixed(2)}\n\nSugira 5 ações concretas e priorizadas para redução de custos, com: estimativa de impacto percentual, prazo de implementação (curto/médio/longo prazo) e nível de dificuldade. Use benchmarks de mercado. Português, formato estruturado e executivo.`,
-    dre:`Você é contador e consultor financeiro especializado em análise de resultados. Dados de ${nomeEmpresa}:\nRECEITAS: ${resumoRec} (Total: R$${totalRec.toFixed(2)})\nDESPESAS: ${resumo} (Total: R$${totalDesp.toFixed(2)})\n\nMonte um DRE gerencial simplificado agrupando por natureza (Receitas, CMV, Margem de Contribuição, Despesas Fixas, Despesas Operacionais, EBITDA, Resultado Líquido). Apresente em formato de tabela textual com valores e percentuais sobre a receita. Adicione um parecer de 2 linhas sobre a saúde financeira. Português.`
+    dre:`Você é contador e consultor financeiro especializado em análise de resultados. Dados de ${nomeEmpresa}:\nRECEITAS: ${resumoRec} (Total: R$${totalRec.toFixed(2)})\nDESPESAS: ${resumo} (Total: R$${totalDesp.toFixed(2)})\n\nMonte um DRE gerencial simplificado agrupando por natureza (Receitas, CMV, Margem de Contribuição, Despesas Fixas, Despesas Variáveis, EBITDA, Resultado Líquido). Apresente em formato de tabela textual com valores e percentuais sobre a receita. Adicione um parecer de 2 linhas sobre a saúde financeira. Português.`
   };
   try {
     const resp = await fetch('/api/claude', {
@@ -3197,7 +3197,7 @@ function renderDRE(){
     FIXAS_CATS.includes(d.categoria)
   ).reduce((s,d)=>s+d.valor,0);
 
-  // Despesas Operacionais — tudo que não é CMV, Fixas ou Impostos
+  // Despesas Variáveis — tudo que não é CMV, Fixas ou Impostos
   const operacional = despPer.filter(d=>
     d.natureza!=='cmv' && d.natureza!=='fixa' && d.natureza!=='imposto' &&
     !(CC_PRODUCAO.includes(d.cc) && CMV_CATS.includes(d.categoria)) &&
@@ -3282,7 +3282,7 @@ function renderDRE(){
           ${fmtLinha('3. MARGEM DE CONTRIBUIÇÃO', margem, `${margemPct.toFixed(1)}% da receita`, true, false, true)}
 
           ${fmtLinha('4. DESPESAS FIXAS', fixas, 'Aluguel, Folha, Energia', true, false, true)}
-          ${fmtLinha('Despesas Operacionais', operacional, 'Serviços, Manutenção, Marketing etc.', false, true, false)}
+          ${fmtLinha('Despesas Variáveis', operacional, 'Serviços, Manutenção, Marketing etc.', false, true, false)}
 
           ${fmtLinha('5. RESULTADO OPERACIONAL (EBITDA)', ebitda, 'Antes dos impostos', true, false, true)}
 
@@ -3372,7 +3372,7 @@ function exportDRE(ini, fim){
     ['2. CUSTOS DE PRODUÇÃO (CMV)',cmv.toFixed(2).replace('.',','),pct(cmv)],
     ['3. MARGEM DE CONTRIBUIÇÃO',margem.toFixed(2).replace('.',','),pct(margem)],
     ['4. DESPESAS FIXAS',fixas.toFixed(2).replace('.',','),pct(fixas)],
-    ['   Despesas Operacionais',operacional.toFixed(2).replace('.',','),pct(operacional)],
+    ['   Despesas Variáveis',operacional.toFixed(2).replace('.',','),pct(operacional)],
     ['5. RESULTADO OPERACIONAL (EBITDA)',ebitda.toFixed(2).replace('.',','),pct(ebitda)],
     ['6. IMPOSTOS',impostos.toFixed(2).replace('.',','),pct(impostos)],
     ['7. RESULTADO LÍQUIDO',liquido.toFixed(2).replace('.',','),pct(liquido)],
