@@ -3433,13 +3433,15 @@ function renderOrcamento(){
   let despF;
   if(periodo === 'mensal'){
     despF = despesas.filter(d => {
-      const dt = new Date(d.data);
-      return dt.getMonth()+1 === mes && dt.getFullYear() === ano && d.status !== 'Rejeitado';
+      if(!d.data) return false;
+      const [y,m] = d.data.split('-').map(Number);
+      return m === mes && y === ano && d.status !== 'Rejeitado';
     });
   } else {
     despF = despesas.filter(d => {
-      const dt = new Date(d.data);
-      return dt.getFullYear() === ano && d.status !== 'Rejeitado';
+      if(!d.data) return false;
+      const [y] = d.data.split('-').map(Number);
+      return y === ano && d.status !== 'Rejeitado';
     });
   }
 
