@@ -3340,6 +3340,17 @@ function renderDRE(){
       ${recTotal===0&&despesas.length===0?`<div class="empty" style="padding:30px"><div class="empty-icon">📊</div><div class="empty-title">Sem dados no período</div>Lance receitas e despesas para gerar o DRE.</div>`:''}
     </div>
 
+    ${!isAdmin() && isStarterLimitado ? '' : `
+    <div style="background:#e6f1fb;border:.5px solid #b5d4f4;border-radius:8px;padding:14px 16px;margin-top:16px;font-size:13px;color:#185fa5;line-height:1.6">
+      <strong>💡 O que isso significa?</strong><br>
+      Para cobrir todos os seus custos (fixos + variáveis), você precisa faturar
+      <strong>${fmt(pe)}</strong> por mês. Cada <strong>R$ 1,00</strong> vendido gera
+      <strong>R$ ${(mcPct).toFixed(2).replace('.',',')}</strong> de margem após pagar
+      os insumos — por isso você precisa vender esse volume mínimo para não ter prejuízo.
+      ${recTotal >= pe ? '✅ <strong>Você já atingiu o ponto de equilíbrio este mês!</strong>' :
+      `⚠️ Faltam <strong>${fmt(pe - recTotal)}</strong> para atingir o equilíbrio.`}
+    </div>`}
+
     <div class="metrics" style="margin-top:16px">
       <div class="metric"><div class="metric-label">Receita Total</div><div class="metric-value green">${fmt(recTotal)}</div></div>
       <div class="metric"><div class="metric-label">Ponto de Equilíbrio</div>${!isAdmin() && isStarterLimitado ? '<div class="metric-value" style="font-size:13px;color:var(--accent);cursor:pointer" onclick="alertPlano(\'Ponto de Equilíbrio\')">🔒 Upgrade Pro</div>' : `<div class="metric-value" style="${cor(recTotal-pe)}">${fmt(pe)}</div><div class="metric-sub">${peAtingidoPct.toFixed(1)}% atingido</div>`}</div>
