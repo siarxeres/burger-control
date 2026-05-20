@@ -3218,7 +3218,7 @@ function renderDRE(){
   // PE = Despesas Fixas / Margem de Contribuição %
   const totalDespesas = cmv + fixas + operacional + impostos;
   const mcPct = recTotal > 0 ? margem / recTotal : 0;
-  const pe = mcPct > 0 ? fixas / mcPct : totalDespesas; // Ponto de equilíbrio financeiro
+  const pe = mcPct > 0 ? (fixas + operacional) / mcPct : totalDespesas; // Ponto de equilíbrio financeiro
 
   // Dias no período
   const diasPeriodo = Math.max(1, Math.ceil((new Date(fim) - new Date(ini)) / (1000*60*60*24)) + 1);
