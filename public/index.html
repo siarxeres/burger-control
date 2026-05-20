@@ -3281,8 +3281,9 @@ function renderDRE(){
 
           ${fmtLinha('3. MARGEM DE CONTRIBUIÇÃO', margem, `${margemPct.toFixed(1)}% da receita`, true, false, true)}
 
-          ${fmtLinha('4. DESPESAS FIXAS', fixas, 'Aluguel, Folha, Energia', true, false, true)}
-          ${fmtLinha('Despesas Variáveis', operacional, 'Serviços, Manutenção, Marketing etc.', false, true, false)}
+          ${fmtLinha('4. DESPESAS TOTAIS', fixas + operacional, 'Fixas + Variáveis', true, false, true)}
+          ${fmtLinha('4.1 Despesas Fixas', fixas, 'Aluguel, Folha, Energia', false, true, false)}
+          ${fmtLinha('4.2 Despesas Variáveis', operacional, 'Serviços, Manutenção, Marketing etc.', false, true, false)}
 
           ${fmtLinha('5. RESULTADO OPERACIONAL (EBITDA)', ebitda, 'Antes dos impostos', true, false, true)}
 
@@ -3371,8 +3372,9 @@ function exportDRE(ini, fim){
     ['1. RECEITAS TOTAIS',recTotal.toFixed(2).replace('.',','),pct(recTotal)],
     ['2. CUSTOS DE PRODUÇÃO (CMV)',cmv.toFixed(2).replace('.',','),pct(cmv)],
     ['3. MARGEM DE CONTRIBUIÇÃO',margem.toFixed(2).replace('.',','),pct(margem)],
-    ['4. DESPESAS FIXAS',fixas.toFixed(2).replace('.',','),pct(fixas)],
-    ['   Despesas Variáveis',operacional.toFixed(2).replace('.',','),pct(operacional)],
+    ['4. DESPESAS TOTAIS',(fixas+operacional).toFixed(2).replace('.',','),pct(fixas+operacional)],
+    ['   4.1 Despesas Fixas',fixas.toFixed(2).replace('.',','),pct(fixas)],
+    ['   4.2 Despesas Variáveis',operacional.toFixed(2).replace('.',','),pct(operacional)],
     ['5. RESULTADO OPERACIONAL (EBITDA)',ebitda.toFixed(2).replace('.',','),pct(ebitda)],
     ['6. IMPOSTOS',impostos.toFixed(2).replace('.',','),pct(impostos)],
     ['7. RESULTADO LÍQUIDO',liquido.toFixed(2).replace('.',','),pct(liquido)],
