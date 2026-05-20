@@ -1335,11 +1335,18 @@ function populateCCSelects(){
   sel.innerHTML = '<option value="">Selecionar...</option>';
   sel.onchange = atualizarCategoriasPorCC; // garantir onchange sempre
 
+  const STARTER_CCS = ['Operacional', 'Administrativo'];
+  const isStarter = !isAdmin() && (currentProfile?.plano || 'starter') === 'starter';
+
   todosCentros.forEach(c => {
     const permitido = centrosPermitidos.find(p=>p.id===c.id);
     const opt = document.createElement('option');
     opt.value = c.nome;
-    if(permitido){
+    if(isStarter && !STARTER_CCS.includes(c.nome)){
+      opt.textContent = '🔒 ' + c.nome + ' — Disponível no Pro';
+      opt.disabled = true;
+      opt.style.color = 'var(--hint)';
+    } else if(permitido){
       opt.textContent = (c.icone||'') + ' ' + c.nome;
     } else {
       opt.textContent = '🔒 ' + c.nome + ' (requer upgrade)';
@@ -2859,20 +2866,6 @@ function exportCSVPessoal(){
   toast('✅ CSV exportado!');
 }
 
-// ══ DECLARAÇÃO ANUAL MEI/ME ══
-function renderDASN(){
-  const ano = new Date().getFullYear();
-  const recAnuais = receitas.filter(r => r.data && r.data.startsWith(ano));
-  const comercio = recAnuais.filter(r=>r.tipo_receita==='comercio').reduce((s,r)=>s+r.valor,0);
-  const industria = recAnuais.filter(r=>r.tipo_receita==='industria').reduce((s,r)=>s+r.valor,0);
-  const servicos = recAnuais.filter(r=>r.tipo_receita==='servicos').reduce((s,r)=>s+r.valor,0);
-  const total = comercio + industria + servicos;
-  document.getElementById('page-dasn').innerHTML = `
-  <div class="page-header"><h2>📋 Declaração Anual — DASN ${ano}</h2><p>Resumo de receitas para preenchimento na Receita Federal</p></div>
-  <div class="card" style="max-width:600px;margin:0 auto;padding:20px">
-    <h3 style="margin-bottom:16px">Receitas Brutas por Atividade</h3>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="display:flex;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px"><span>Comércio</span><strong>${fmt(comercio)}</strong></div><div style="display:flex;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px"><span>Indústria</span><strong>${fmt(industria)}</strong></div><div style="display:flex;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px"><span>Serviços</span><strong>${fmt(servicos)}</strong></div><div style="display:flex;justify-content:space-between;padding:12px;background:var(--accent-bg);border-radius:8px;font-weight:700"><span>Total</span><strong>${fmt(total)}</strong></div></div></div></div>`; }
 function initDREPessoal(){
   const hoje=new Date();
   const ini=new Date(hoje.getFullYear(),hoje.getMonth(),1);
@@ -3418,6 +3411,14 @@ function switchOrcTab(tab, el){
 }
 
 async function initOrcamento(){
+  if(!isAdmin()){
+    const plano = currentProfile?.plano || 'starter';
+    if(plano === 'starter' || plano === 'pro'){
+      alertPlano('Orçado vs Realizado — disponível apenas no plano Enterprise');
+      showPage('dashboard', document.getElementById('nav-dashboard'));
+      return;
+    }
+  }
   // Preencher anos
   const anoSel = document.getElementById('orc-ano');
   const anoAtual = new Date().getFullYear();
