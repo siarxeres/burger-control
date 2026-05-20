@@ -799,7 +799,7 @@ async function carregarPlanos(){
       <div class="plano-feat">🤖 Scans IA: ${p.max_scans_ia===-1?'Ilimitado':p.max_scans_ia}</div>
       <div class="plano-feat">🏷️ Centros CC: ${p.max_cc===-1?'Ilimitado':p.max_cc}</div>
       <div class="plano-feat">📊 Relatórios IA: ${p.tem_relatorios_ia?'✅':'❌'}</div>
-      <div class="plano-feat">📝 Máx. Relatórios IA/mês: ${p.max_relatorios_ia>0?p.max_relatorios_ia:'Ilimitado'}</div>
+      <div class="plano-feat">📝 Máx. Relatórios IA/mês: ${p.max_relatorios_ia>=999999?'Ilimitado':p.max_relatorios_ia>0?p.max_relatorios_ia:'Bloqueado'}</div>
       <div class="plano-feat">📤 Exportar CSV: ${p.tem_export_csv?'✅':'❌'}</div>
       <div class="plano-actions">
         <button class="btn btn-sm btn-ghost" onclick='editarPlano(${JSON.stringify(p)})'>✏️ Editar</button>

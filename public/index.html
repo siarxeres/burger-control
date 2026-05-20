@@ -2233,15 +2233,22 @@ async function gerarRelatorioPro(tipo){
     alertPlano('Relatórios avançados de IA — disponível no plano Pro. Seu período de teste gratuito encerrou.');
     return;
   }
-  if(!isAdmin() && currentPlano?.max_relatorios_ia > 0){
-    const usados = currentProfile?.relatorios_mes || 0;
-    if(usados >= currentPlano.max_relatorios_ia){
-      alertPlano(`Limite de ${currentPlano.max_relatorios_ia} relatórios IA/mês atingido`);
+  if(!isAdmin() && currentPlano){
+    const max = currentPlano.max_relatorios_ia ?? 0;
+    if(max === 0){
+      alertPlano('Relatórios IA não disponíveis no seu plano atual');
       return;
     }
-    const novoTotal = usados + 1;
-    await sb.from('profiles').update({ relatorios_mes: novoTotal }).eq('id', currentUser.id);
-    currentProfile.relatorios_mes = novoTotal;
+    if(max < 999999){
+      const usados = currentProfile?.relatorios_mes || 0;
+      if(usados >= max){
+        alertPlano(`Limite de ${max} relatórios IA/mês atingido`);
+        return;
+      }
+      const novoTotal = usados + 1;
+      await sb.from('profiles').update({ relatorios_mes: novoTotal }).eq('id', currentUser.id);
+      currentProfile.relatorios_mes = novoTotal;
+    }
   }
   gerarRelatorio(tipo);
 }
