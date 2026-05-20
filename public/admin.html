@@ -520,14 +520,21 @@
       </div>
     </div>
     <div class="form-row">
+      <div class="form-group">
+        <label>Máx. Relatórios IA/mês</label>
+        <input type="number" id="plano-max-relatorios" min="0" value="0">
+      </div>
       <div>
         <label>Máx. centros de custo</label>
         <input type="number" id="plano-max-cc" placeholder="-1 = ilimitado">
       </div>
+    </div>
+    <div class="form-row">
       <div>
         <label>Ordem</label>
         <input type="number" id="plano-ordem" value="1">
       </div>
+      <div></div>
     </div>
     <div class="form-row">
       <div>
@@ -792,6 +799,7 @@ async function carregarPlanos(){
       <div class="plano-feat">🤖 Scans IA: ${p.max_scans_ia===-1?'Ilimitado':p.max_scans_ia}</div>
       <div class="plano-feat">🏷️ Centros CC: ${p.max_cc===-1?'Ilimitado':p.max_cc}</div>
       <div class="plano-feat">📊 Relatórios IA: ${p.tem_relatorios_ia?'✅':'❌'}</div>
+      <div class="plano-feat">📝 Máx. Relatórios IA/mês: ${p.max_relatorios_ia>0?p.max_relatorios_ia:'Ilimitado'}</div>
       <div class="plano-feat">📤 Exportar CSV: ${p.tem_export_csv?'✅':'❌'}</div>
       <div class="plano-actions">
         <button class="btn btn-sm btn-ghost" onclick='editarPlano(${JSON.stringify(p)})'>✏️ Editar</button>
@@ -809,6 +817,7 @@ function abrirModalPlano(){
   document.getElementById('plano-max-lanc').value = '-1';
   document.getElementById('plano-max-scans').value = '-1';
   document.getElementById('plano-max-cc').value = '-1';
+  document.getElementById('plano-max-relatorios').value = '0';
   document.getElementById('plano-ordem').value = todosPlanos.length + 1;
   document.getElementById('plano-relatorios').value = 'false';
   document.getElementById('plano-csv').value = 'false';
@@ -823,6 +832,7 @@ function editarPlano(p){
   document.getElementById('plano-max-lanc').value = p.max_lancamentos ?? -1;
   document.getElementById('plano-max-scans').value = p.max_scans_ia ?? -1;
   document.getElementById('plano-max-cc').value = p.max_cc ?? -1;
+  document.getElementById('plano-max-relatorios').value = p.max_relatorios_ia ?? 0;
   document.getElementById('plano-ordem').value = p.ordem || 1;
   document.getElementById('plano-relatorios').value = p.tem_relatorios_ia ? 'true' : 'false';
   document.getElementById('plano-csv').value = p.tem_export_csv ? 'true' : 'false';
@@ -837,6 +847,7 @@ async function salvarPlano(){
     max_lancamentos: parseInt(document.getElementById('plano-max-lanc').value),
     max_scans_ia: parseInt(document.getElementById('plano-max-scans').value),
     max_cc: parseInt(document.getElementById('plano-max-cc').value),
+    max_relatorios_ia: parseInt(document.getElementById('plano-max-relatorios').value) || 0,
     ordem: parseInt(document.getElementById('plano-ordem').value),
     tem_relatorios_ia: document.getElementById('plano-relatorios').value === 'true',
     tem_export_csv: document.getElementById('plano-csv').value === 'true',
