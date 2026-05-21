@@ -55,7 +55,7 @@ h1 em{font-style:normal;color:var(--accent)}
 .toggle-save{background:var(--gold-bg);color:var(--gold);border:.5px solid var(--gold-border);border-radius:999px;font-size:11px;font-weight:600;padding:3px 10px;margin-left:-4px}
 
 /* PLANS */
-.plans-wrap{position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.plans-wrap{position:relative;z-index:10;max-width:1400px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
 
 .plan{background:var(--surface);border:.5px solid var(--border2);border-radius:20px;padding:28px;position:relative;transition:border-color .2s}
 .plan:hover{border-color:rgba(255,255,255,0.2)}
@@ -135,6 +135,9 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
 .footer-copy{font-size:12px;color:var(--muted)}
 
 /* RESPONSIVE */
+@media(max-width:1200px){
+  .plans-wrap{grid-template-columns:repeat(2,1fr);max-width:860px}
+}
 @media(max-width:900px){
   .plans-wrap{grid-template-columns:1fr;max-width:420px}
   header{padding:16px 20px}
@@ -173,19 +176,19 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
 
   <div class="toggle-wrap">
     <button class="toggle-btn active" id="btn-mensal" onclick="setPlano('mensal')">Mensal</button>
-    <button class="toggle-btn" id="btn-anual" onclick="setPlano('anual')">Anual <span class="toggle-save">−20%</span></button>
+    <button class="toggle-btn" id="btn-anual" onclick="setPlano('anual')">Anual <span class="toggle-save">2 meses grátis</span></button>
   </div>
 </section>
 
 <section class="plans-wrap" id="planos">
 
-  <!-- STARTER -->
+  <!-- GRÁTIS -->
   <div class="plan">
-    <div class="plan-tier">Gratuito</div>
-    <div class="plan-name">Starter</div>
-    <div class="plan-desc">Para quem quer experimentar antes de assinar.</div>
+    <div class="plan-tier">Permanente</div>
+    <div class="plan-name">Grátis</div>
+    <div class="plan-desc">Para conhecer o sistema sem compromisso.</div>
     <div class="plan-price">
-      <div class="plan-amount free">Grátis</div>
+      <div class="plan-amount free">R$ 0</div>
       <div class="plan-period">para sempre</div>
       <div class="plan-annual">&nbsp;</div>
     </div>
@@ -193,14 +196,38 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
     <hr class="divider">
     <div class="feat-title">Incluído</div>
     <ul class="feat-list">
-      <li class="yes"><span class="feat-icon">✓</span>Até 20 lançamentos/mês</li>
-      <li class="yes"><span class="feat-icon">✓</span>2 centros de custo</li>
-      <li class="yes"><span class="feat-icon">✓</span>3 scans por IA/mês</li>
-      <li class="yes"><span class="feat-icon">✓</span>Dashboard básico</li>
+      <li class="yes"><span class="feat-icon">✓</span>2 setores do negócio</li>
+      <li class="yes"><span class="feat-icon">✓</span>10 lançamentos/mês</li>
+      <li class="yes"><span class="feat-icon">✓</span>DRE básico</li>
       <li class="yes"><span class="feat-icon">✓</span>1 usuário</li>
-      <li class="no"><span class="feat-icon">–</span>Lançamento de receitas</li>
-      <li class="no"><span class="feat-icon">–</span>DRE e relatórios</li>
-      <li class="no"><span class="feat-icon">–</span>Exportação CSV</li>
+      <li class="no"><span class="feat-icon">–</span>Scans por IA</li>
+      <li class="no"><span class="feat-icon">–</span>DASN</li>
+      <li class="no"><span class="feat-icon">–</span>Financeiro Pessoal</li>
+    </ul>
+  </div>
+
+  <!-- STARTER -->
+  <div class="plan">
+    <div class="plan-tier">Básico</div>
+    <div class="plan-name">Starter</div>
+    <div class="plan-desc">Para quem quer controle completo do dia a dia.</div>
+    <div class="plan-price">
+      <div class="plan-amount" id="starter-price"><sup>R$</sup>17</div>
+      <div class="plan-period">/mês por estabelecimento</div>
+      <div class="plan-annual" id="starter-annual">&nbsp;</div>
+    </div>
+    <a href="#contato" class="plan-cta cta-ghost" onclick="openWpp('Starter')">Assinar Starter</a>
+    <hr class="divider">
+    <div class="feat-title">Tudo do Grátis, mais</div>
+    <ul class="feat-list">
+      <li class="yes"><span class="feat-icon">✓</span>Setores ilimitados</li>
+      <li class="yes"><span class="feat-icon">✓</span>Lançamentos ilimitados</li>
+      <li class="yes"><span class="feat-icon">✓</span>Scans por IA</li>
+      <li class="yes"><span class="feat-icon">✓</span>DRE completo</li>
+      <li class="yes"><span class="feat-icon">✓</span>Lançamento de receitas</li>
+      <li class="yes"><span class="feat-icon">✓</span>Exportação CSV</li>
+      <li class="no"><span class="feat-icon">–</span>DASN</li>
+      <li class="no"><span class="feat-icon">–</span>Financeiro Pessoal</li>
     </ul>
   </div>
 
@@ -210,7 +237,7 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
     <div class="plan-name">Pro</div>
     <div class="plan-desc">Para restaurantes que querem controle total das finanças.</div>
     <div class="plan-price">
-      <div class="plan-amount" id="pro-price"><sup>R$</sup>59</div>
+      <div class="plan-amount" id="pro-price"><sup>R$</sup>44</div>
       <div class="plan-period">/mês por estabelecimento</div>
       <div class="plan-annual" id="pro-annual">&nbsp;</div>
     </div>
@@ -218,13 +245,9 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
     <hr class="divider">
     <div class="feat-title">Tudo do Starter, mais</div>
     <ul class="feat-list">
-      <li class="yes"><span class="feat-icon">✓</span>Lançamentos ilimitados</li>
-      <li class="yes"><span class="feat-icon">✓</span>Todos os centros de custo</li>
-      <li class="yes"><span class="feat-icon">✓</span>Scans ilimitados por IA</li>
-      <li class="yes"><span class="feat-icon">✓</span>Lançamento de receitas</li>
-      <li class="yes"><span class="feat-icon">✓</span>DRE completo</li>
+      <li class="yes"><span class="feat-icon">✓</span>DASN</li>
+      <li class="yes"><span class="feat-icon">✓</span>Financeiro Pessoal</li>
       <li class="yes"><span class="feat-icon">✓</span>Relatórios inteligentes IA</li>
-      <li class="yes"><span class="feat-icon">✓</span>Exportação CSV</li>
       <li class="yes"><span class="feat-icon">✓</span>Até 5 usuários</li>
     </ul>
   </div>
@@ -235,7 +258,7 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
     <div class="plan-name">Enterprise</div>
     <div class="plan-desc">Para quem opera múltiplas unidades e precisa de visão consolidada.</div>
     <div class="plan-price">
-      <div class="plan-amount" id="ent-price"><sup>R$</sup>179</div>
+      <div class="plan-amount" id="ent-price"><sup>R$</sup>69</div>
       <div class="plan-period">/mês por rede</div>
       <div class="plan-annual" id="ent-annual">&nbsp;</div>
     </div>
@@ -263,24 +286,27 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
     <thead>
       <tr>
         <th>Recurso</th>
+        <th>Grátis</th>
         <th>Starter</th>
         <th class="hl">Pro</th>
         <th>Enterprise</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td>Lançamentos/mês</td><td>20</td><td class="hl-col">Ilimitado</td><td>Ilimitado</td></tr>
-      <tr><td>Centros de custo</td><td>2</td><td class="hl-col">Todos</td><td>Todos</td></tr>
-      <tr><td>Scan por IA (foto)</td><td>3/mês</td><td class="hl-col">Ilimitado</td><td>Ilimitado</td></tr>
-      <tr><td>Usuários</td><td>1</td><td class="hl-col">5</td><td>Ilimitado</td></tr>
-      <tr><td>Controle de acesso</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-      <tr><td>Receitas</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-      <tr><td>DRE</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-      <tr><td>Relatórios IA</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-      <tr><td>Exportação CSV</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-      <tr><td>Múltiplas unidades</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
-      <tr><td>Dashboard consolidado</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
-      <tr><td>Suporte WhatsApp</td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Lançamentos/mês</td><td>10</td><td>Ilimitado</td><td class="hl-col">Ilimitado</td><td>Ilimitado</td></tr>
+      <tr><td>Setores</td><td>2</td><td>Todos</td><td class="hl-col">Todos</td><td>Todos</td></tr>
+      <tr><td>Scan por IA (foto)</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td class="hl-col">Ilimitado</td><td>Ilimitado</td></tr>
+      <tr><td>Usuários</td><td>1</td><td>1</td><td class="hl-col">5</td><td>Ilimitado</td></tr>
+      <tr><td>DRE</td><td>Básico</td><td>Completo</td><td class="hl-col">Completo</td><td>Completo</td></tr>
+      <tr><td>Receitas</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Exportação CSV</td><td><span class="cross">✕</span></td><td><span class="check">✓</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>DASN</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Financeiro Pessoal</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Relatórios IA</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Controle de acesso</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="hl-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Múltiplas unidades</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Dashboard consolidado</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
+      <tr><td>Suporte WhatsApp</td><td><span class="cross">✕</span></td><td><span class="cross">✕</span></td><td class="hl-col"><span class="cross">✕</span></td><td><span class="check">✓</span></td></tr>
     </tbody>
   </table>
 </section>
@@ -333,35 +359,85 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
 </footer>
 
 <script>
-const WHATSAPP = '5569999834306'; // ⚠️ SUBSTITUA pelo seu número
+const SUPABASE_URL  = 'https://wxmkjnfiggwxefyhccqv.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bWtqbmZpZ2d3eGVmeWhjY3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTczMTksImV4cCI6MjA5MjEzMzMxOX0.3TWRrufebRD6ZAIVOgSoY3Uv5RiXxpOGIYchCrNVwHo';
+const WHATSAPP      = '5569999834306';
 
 let planoAtual = 'mensal';
+let planosData = {};
+
+// plan id → IDs dos elementos no DOM
+const PLAN_DOM = {
+  starter:    { priceEl: 'starter-price', annualEl: 'starter-annual' },
+  pro:        { priceEl: 'pro-price',     annualEl: 'pro-annual'     },
+  enterprise: { priceEl: 'ent-price',     annualEl: 'ent-annual'     },
+};
+
+// Valores de fallback (iguais ao HTML inicial — usados se o fetch falhar)
+const FALLBACK = {
+  starter:    { preco_mensal: 17, preco_anual: 14 },
+  pro:        { preco_mensal: 44, preco_anual: 34 },
+  enterprise: { preco_mensal: 69, preco_anual: 54 },
+};
+
+async function loadPlanosMarketing(){
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/planos?select=id,nome,preco_mensal,preco_anual&order=ordem`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    if(!res.ok) return;
+    const planos = await res.json();
+    planos.forEach(p => { planosData[p.id] = p; });
+    setPlano(planoAtual);
+  } catch(e) {
+    // rede indisponível — mantém fallback estático já exibido no HTML
+  }
+}
 
 function setPlano(p){
   planoAtual = p;
-  document.getElementById('btn-mensal').classList.toggle('active', p==='mensal');
-  document.getElementById('btn-anual').classList.toggle('active', p==='anual');
-  const proPrice = p==='mensal' ? '59' : '47';
-  const entPrice = p==='mensal' ? '179' : '143';
-  document.getElementById('pro-price').innerHTML = '<sup>R$</sup>' + proPrice;
-  document.getElementById('ent-price').innerHTML = '<sup>R$</sup>' + entPrice;
-  document.getElementById('pro-annual').textContent = p==='anual' ? 'R$ 564/ano — economia de R$ 144' : '\u00a0';
-  document.getElementById('ent-annual').textContent = p==='anual' ? 'R$ 1.716/ano — economia de R$ 432' : '\u00a0';
+  document.getElementById('btn-mensal').classList.toggle('active', p === 'mensal');
+  document.getElementById('btn-anual').classList.toggle('active', p === 'anual');
+
+  Object.entries(PLAN_DOM).forEach(([id, els]) => {
+    const d = planosData[id] || FALLBACK[id];
+    const priceEl  = document.getElementById(els.priceEl);
+    const annualEl = document.getElementById(els.annualEl);
+    if(!priceEl || !annualEl) return;
+
+    const mensal = d.preco_mensal || 0;
+    const anual  = d.preco_anual  || 0;
+
+    if(p === 'mensal'){
+      priceEl.innerHTML    = `<sup>R$</sup>${mensal}`;
+      annualEl.textContent = '\u00a0';
+    } else {
+      priceEl.innerHTML    = `<sup>R$</sup>${anual}`;
+      const totalAnual = anual * 12;
+      const economia   = (mensal - anual) * 12;
+      annualEl.textContent = `R$ ${totalAnual.toLocaleString('pt-BR')}/ano \u2014 economia de R$ ${economia.toLocaleString('pt-BR')}`;
+    }
+  });
 }
 
 function openWpp(plano){
-  const msg = encodeURIComponent(`Olá! Tenho interesse no plano ${plano} (${planoAtual}) do Food Control. Pode me dar mais informações?`);
+  const msg = encodeURIComponent(`Ol\u00e1! Tenho interesse no plano ${plano} (${planoAtual}) do Food Control. Pode me dar mais informa\u00e7\u00f5es?`);
   window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, '_blank');
 }
 
-document.getElementById('btn-wpp-main').href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Olá! Quero conhecer o Food Control. Pode me ajudar?')}`;
+document.getElementById('btn-wpp-main').href =
+  `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Ol\u00e1! Quero conhecer o Food Control. Pode me ajudar?')}`;
 
 function toggleFaq(el){
-  const item = el.parentElement;
+  const item   = el.parentElement;
   const isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
   if(!isOpen) item.classList.add('open');
 }
+
+loadPlanosMarketing();
 </script>
+
 </body>
 </html>

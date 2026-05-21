@@ -472,7 +472,8 @@
       <div>
         <label>Plano mínimo</label>
         <select id="cc-plano">
-          <option value="starter">🆓 Starter</option>
+          <option value="gratis">🆓 Grátis</option>
+          <option value="starter">⭐ Starter</option>
           <option value="pro">💰 Pro</option>
           <option value="enterprise">💎 Enterprise</option>
         </select>
@@ -504,9 +505,16 @@
         <label>Nome do plano</label>
         <input type="text" id="plano-nome" placeholder="Ex: Pro">
       </div>
+      <div></div>
+    </div>
+    <div class="form-row">
       <div>
         <label>Preço mensal (R$)</label>
         <input type="number" id="plano-preco" placeholder="0.00" step="0.01">
+      </div>
+      <div>
+        <label>Preço anual (R$/mês)</label>
+        <input type="number" id="plano-preco-anual" placeholder="0.00" step="0.01">
       </div>
     </div>
     <div class="form-row">
@@ -549,6 +557,22 @@
         <select id="plano-csv">
           <option value="true">Sim</option>
           <option value="false">Não</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>DASN</label>
+        <select id="plano-dasn">
+          <option value="false">Não</option>
+          <option value="true">Sim</option>
+        </select>
+      </div>
+      <div>
+        <label>Financeiro Pessoal</label>
+        <select id="plano-fp">
+          <option value="false">Não</option>
+          <option value="true">Sim</option>
         </select>
       </div>
     </div>
@@ -801,6 +825,9 @@ async function carregarPlanos(){
       <div class="plano-feat">📊 Relatórios IA: ${p.tem_relatorios_ia?'✅':'❌'}</div>
       <div class="plano-feat">📝 Máx. Relatórios IA/mês: ${p.max_relatorios_ia>=999999?'Ilimitado':p.max_relatorios_ia>0?p.max_relatorios_ia:'Bloqueado'}</div>
       <div class="plano-feat">📤 Exportar CSV: ${p.tem_export_csv?'✅':'❌'}</div>
+      <div class="plano-feat">📑 DASN: ${p.tem_dasn?'✅':'❌'}</div>
+      <div class="plano-feat">👤 Fin. Pessoal: ${p.tem_financeiro_pessoal?'✅':'❌'}</div>
+      <div class="plano-feat" style="color:var(--text2)">💰 Anual: R$ ${(p.preco_anual||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}/mês</div>
       <div class="plano-actions">
         <button class="btn btn-sm btn-ghost" onclick='editarPlano(${JSON.stringify(p)})'>✏️ Editar</button>
         <button class="btn btn-sm btn-danger" onclick="deletarPlano('${p.id}','${p.nome}')">🗑️</button>
@@ -821,6 +848,9 @@ function abrirModalPlano(){
   document.getElementById('plano-ordem').value = todosPlanos.length + 1;
   document.getElementById('plano-relatorios').value = 'false';
   document.getElementById('plano-csv').value = 'false';
+  document.getElementById('plano-dasn').value = 'false';
+  document.getElementById('plano-fp').value = 'false';
+  document.getElementById('plano-preco-anual').value = '';
   document.getElementById('modal-plano').classList.add('show');
 }
 
@@ -829,6 +859,7 @@ function editarPlano(p){
   document.getElementById('plano-id').value = p.id;
   document.getElementById('plano-nome').value = p.nome;
   document.getElementById('plano-preco').value = p.preco_mensal || 0;
+  document.getElementById('plano-preco-anual').value = p.preco_anual || 0;
   document.getElementById('plano-max-lanc').value = p.max_lancamentos ?? -1;
   document.getElementById('plano-max-scans').value = p.max_scans_ia ?? -1;
   document.getElementById('plano-max-cc').value = p.max_cc ?? -1;
@@ -836,6 +867,8 @@ function editarPlano(p){
   document.getElementById('plano-ordem').value = p.ordem || 1;
   document.getElementById('plano-relatorios').value = p.tem_relatorios_ia ? 'true' : 'false';
   document.getElementById('plano-csv').value = p.tem_export_csv ? 'true' : 'false';
+  document.getElementById('plano-dasn').value = p.tem_dasn ? 'true' : 'false';
+  document.getElementById('plano-fp').value = p.tem_financeiro_pessoal ? 'true' : 'false';
   document.getElementById('modal-plano').classList.add('show');
 }
 
@@ -844,6 +877,7 @@ async function salvarPlano(){
   const dados = {
     nome: document.getElementById('plano-nome').value,
     preco_mensal: parseFloat(document.getElementById('plano-preco').value) || 0,
+    preco_anual: parseFloat(document.getElementById('plano-preco-anual').value) || 0,
     max_lancamentos: parseInt(document.getElementById('plano-max-lanc').value),
     max_scans_ia: parseInt(document.getElementById('plano-max-scans').value),
     max_cc: parseInt(document.getElementById('plano-max-cc').value),
@@ -851,6 +885,8 @@ async function salvarPlano(){
     ordem: parseInt(document.getElementById('plano-ordem').value),
     tem_relatorios_ia: document.getElementById('plano-relatorios').value === 'true',
     tem_export_csv: document.getElementById('plano-csv').value === 'true',
+    tem_dasn: document.getElementById('plano-dasn').value === 'true',
+    tem_financeiro_pessoal: document.getElementById('plano-fp').value === 'true',
   };
   if(id){ await sb.from('planos').update(dados).eq('id', id); }
   else { dados.id = dados.nome.toLowerCase().replace(/\s+/g,'-'); await sb.from('planos').insert(dados); }
@@ -896,7 +932,8 @@ async function carregarCentros(){
             <td><input type="text" value="${c.icone||'📦'}" style="width:50px;text-align:center;padding:4px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:16px" onchange="atualizarCCAdmin(${c.id},'icone',this.value)"></td>
             <td>
               <select style="padding:5px 8px;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text)" onchange="atualizarCCAdmin(${c.id},'plano_minimo',this.value)">
-                <option value="starter" ${(c.plano_minimo||'starter')==='starter'?'selected':''}>🆓 Starter</option>
+                <option value="gratis" ${(c.plano_minimo||'gratis')==='gratis'?'selected':''}>🆓 Grátis</option>
+                <option value="starter" ${c.plano_minimo==='starter'?'selected':''}>⭐ Starter</option>
                 <option value="pro" ${c.plano_minimo==='pro'?'selected':''}>💰 Pro</option>
                 <option value="enterprise" ${c.plano_minimo==='enterprise'?'selected':''}>💎 Enterprise</option>
               </select>

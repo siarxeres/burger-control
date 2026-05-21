@@ -1044,7 +1044,10 @@ function showTrialBanner(){
 
 function checkTrialExpirado(){
   if(isAdmin() || !currentProfile) return false;
-  if(currentProfile.plano && currentProfile.plano !== 'starter') return false;
+  // 'gratis' é permanente — nunca expira
+  if(!currentProfile.plano || currentProfile.plano === 'gratis') return false;
+  // qualquer plano pago também não expira
+  if(currentProfile.plano !== 'starter') return false;
   const criado = new Date(currentProfile.created_at);
   const dias = (new Date() - criado) / (1000*60*60*24);
   return dias > 30;
@@ -1117,6 +1120,8 @@ function podeScanIA(){
 }
 function podeVerRelatorios(){ return isAdmin() || !checkTrialExpirado() || currentPlano?.tem_relatorios_ia; }
 function podeExportarCSV(){ return isAdmin() || currentPlano?.tem_export_csv; }
+function podeDASN(){ return isAdmin() || !!currentPlano?.tem_dasn; }
+function podeFinanceiroPessoal(){ return isAdmin() || !!currentPlano?.tem_financeiro_pessoal; }
 function alertPlano(recurso){
   // Remove existing alert if any
   const existing = document.getElementById('plano-alert-banner');
@@ -1233,15 +1238,15 @@ async function loadProfile(){
   if(data) currentProfile = data;
   else {
     const name = currentUser.user_metadata?.full_name || currentUser.email;
-    await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'starter' });
-    currentProfile = { id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'starter', scans_mes: 0 };
+    await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'gratis' });
+    currentProfile = { id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'gratis', scans_mes: 0 };
   }
 }
 
 async function loadPlanos(){
   const { data } = await sb.from('planos').select('*').order('ordem');
   if(data) todosPlanos = data;
-  const planoId = currentProfile?.plano || 'starter';
+  const planoId = currentProfile?.plano || 'gratis';
   currentPlano = todosPlanos.find(p=>p.id===planoId) || null;
   // Verificar se trial de 30 dias expirou
   isStarterLimitado = checkTrialExpirado();
@@ -1252,12 +1257,12 @@ async function loadCentros(){
   const { data } = await sb.from('centros_custo').select('*').eq('ativo', true).order('ordem');
   if(data){
     todosCentros = data;
-    const planoId = currentProfile?.plano || 'starter';
+    const planoId = currentProfile?.plano || 'gratis';
     // Admin e usuários em trial veem tudo
     if(isAdmin() || !checkTrialExpirado()){
       centrosPermitidos = todosCentros;
     } else {
-      const prioridade = ['starter','pro','enterprise'];
+      const prioridade = ['gratis','starter','pro','enterprise'];
       const nivel = prioridade.indexOf(planoId);
       centrosPermitidos = todosCentros.filter(c => {
         const cnivel = prioridade.indexOf(c.plano_minimo);
@@ -1297,6 +1302,12 @@ function initApp(){
   const navSecAdmin = document.getElementById('nav-sec-admin');
   if(navSecAdmin) navSecAdmin.style.display = isAdmin() ? '' : 'none';
   document.getElementById('despesas-aviso-op').style.display = isAdmin() ? 'none' : 'flex';
+  // Gate DASN: esconde item de nav se plano não tem tem_dasn
+  const navDasn = document.getElementById('nav-dasn');
+  if(navDasn) navDasn.style.display = podeDASN() ? '' : 'none';
+  // Gate Financeiro Pessoal: esconde toggle se plano não tem tem_financeiro_pessoal
+  const toggleModo = document.getElementById('toggle-modo');
+  if(toggleModo) toggleModo.style.display = podeFinanceiroPessoal() ? '' : 'none';
   document.getElementById('f-data').value = new Date().toISOString().split('T')[0];
   populateCCSelects();
   populateUserFilter();
@@ -1411,7 +1422,7 @@ function showPage(id, navEl){
   if(id==='receitas') renderReceitas();
   if(id==='cobrancas') renderCobrancas();
   if(id==='dre') initDRE();
-  if(id==='dasn') renderDASN();
+  if(id==='dasn'){ if(!podeDASN()){ alertPlano('Declaração Anual (DASN)'); return; } renderDASN(); }
   if(id==='orcamento') initOrcamento();
   if(id==='relatorio') initRelatorio();
   if(id==='pessoal-dashboard') renderPessoalDashboard();
@@ -2638,6 +2649,10 @@ async function confirmarCSVImport(){
 
 // ══ MODO EMPRESA / PESSOAL ══
 async function alternarModo(){
+  if(modoPainel === 'empresa' && !podeFinanceiroPessoal()){
+    alertPlano('Financeiro Pessoal');
+    return;
+  }
   modoPainel = modoPainel === 'empresa' ? 'pessoal' : 'empresa';
   const btn = document.getElementById('toggle-modo');
   const label = document.getElementById('toggle-modo-label');
