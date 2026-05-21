@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Minha Firma — Planos e Preços</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 
@@ -307,6 +308,81 @@ body{
   .header{padding:0 20px}
   .compare-table{overflow-x:auto}
 }
+
+/* ── MODAL CHECKOUT ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.45);z-index:500;
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.show{display:flex}
+.modal-card{
+  background:var(--surface);border-radius:var(--r);
+  box-shadow:var(--shadow-lg);width:100%;max-width:460px;
+  animation:fadeUp .2s ease;
+}
+.modal-head{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  padding:24px 24px 0;
+}
+.modal-plan-badge{
+  display:inline-block;background:var(--accent);color:#fff;
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  padding:3px 10px;border-radius:999px;margin-bottom:4px;
+}
+.modal-title{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.4px}
+.modal-close{
+  background:none;border:none;cursor:pointer;color:var(--hint);
+  font-size:20px;line-height:1;padding:4px;margin-top:-2px;
+}
+.modal-close:hover{color:var(--text)}
+.modal-summary{
+  margin:16px 24px;padding:12px 14px;
+  background:var(--accent-bg);border:.5px solid rgba(216,90,48,.2);
+  border-radius:10px;font-size:13px;color:var(--accent);font-weight:600;
+}
+.modal-body{padding:0 24px}
+.field-label{font-size:12px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.field-input{
+  width:100%;padding:11px 13px;border:.5px solid var(--border2);
+  border-radius:8px;font-size:15px;font-family:'DM Sans',sans-serif;
+  background:var(--surface);color:var(--text);outline:none;
+  transition:border-color .15s;margin-bottom:20px;
+}
+.field-input:focus{border-color:var(--accent)}
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.method-btn{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:12px 8px;border:.5px solid var(--border2);border-radius:10px;
+  background:var(--surface);cursor:pointer;font-size:12px;font-weight:600;
+  color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif;
+}
+.method-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.method-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.method-icon{font-size:20px}
+.modal-erro{
+  font-size:13px;color:#a32d2d;background:#fcebeb;
+  border:.5px solid rgba(163,45,45,.25);border-radius:8px;
+  padding:10px 13px;margin-bottom:16px;display:none;
+}
+.modal-erro.show{display:block}
+.btn-confirmar{
+  width:100%;padding:13px;background:var(--accent);color:#fff;
+  border:none;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;
+  margin-bottom:10px;
+}
+.btn-confirmar:hover:not(:disabled){background:var(--accent-d)}
+.btn-confirmar:disabled{opacity:.6;cursor:not-allowed}
+.btn-cancelar{
+  width:100%;padding:8px;background:none;border:none;
+  font-size:13px;color:var(--hint);cursor:pointer;font-family:'DM Sans',sans-serif;
+}
+.btn-cancelar:hover{color:var(--muted)}
+.modal-note{
+  font-size:11px;color:var(--hint);text-align:center;
+  padding:12px 24px 20px;line-height:1.5;
+}
 </style>
 </head>
 <body>
@@ -422,7 +498,7 @@ body{
         <span class="feat-text" style="color:var(--hint)">Relatórios IA<span class="feat-sub">Disponível no Pro</span></span>
       </li>
     </ul>
-    <a href="https://burger-control.vercel.app" class="plan-cta">Assinar Starter</a>
+    <button class="plan-cta" onclick="abrirCheckout('starter','Starter')">Assinar Starter</button>
   </div>
 
   <!-- PRO -->
@@ -456,7 +532,7 @@ body{
         <span class="feat-text"><strong>Até 5 usuários</strong></span>
       </li>
     </ul>
-    <a href="https://burger-control.vercel.app" class="plan-cta primary">Assinar Pro</a>
+    <button class="plan-cta primary" onclick="abrirCheckout('pro','Pro')">Assinar Pro</button>
   </div>
 
   <!-- ENTERPRISE -->
@@ -493,7 +569,7 @@ body{
         <span class="feat-text"><strong>Onboarding personalizado</strong></span>
       </li>
     </ul>
-    <a href="https://burger-control.vercel.app" class="plan-cta">Falar com consultor</a>
+    <button class="plan-cta" onclick="abrirCheckout('enterprise','Enterprise')">Falar com consultor</button>
   </div>
 
 </div>
@@ -594,12 +670,52 @@ body{
   </a>
 </footer>
 
+<!-- MODAL CHECKOUT -->
+<div class="modal-overlay" id="modal-overlay" onclick="fecharCheckout()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <div class="modal-plan-badge" id="modal-plano-badge">Pro</div>
+        <div class="modal-title">Confirmar assinatura</div>
+      </div>
+      <button class="modal-close" onclick="fecharCheckout()">&#10005;</button>
+    </div>
+    <div class="modal-summary" id="modal-summary">Plano Pro &mdash; R$ 44/mês</div>
+    <div class="modal-body">
+      <div class="field-label">CPF ou CNPJ</div>
+      <input class="field-input" id="modal-doc" type="text" inputmode="numeric"
+             placeholder="000.000.000-00 ou 00.000.000/0000-00"
+             oninput="mascaraDoc(this)" maxlength="18">
+      <div class="field-label">Método de pagamento</div>
+      <div class="method-grid">
+        <button class="method-btn active" data-method="pix" onclick="selecionarMetodo('pix',this)">
+          <span class="method-icon">&#9889;</span>PIX
+        </button>
+        <button class="method-btn" data-method="boleto" onclick="selecionarMetodo('boleto',this)">
+          <span class="method-icon">&#128190;</span>Boleto
+        </button>
+        <button class="method-btn" data-method="cartao" onclick="selecionarMetodo('cartao',this)">
+          <span class="method-icon">&#128179;</span>Cart&atilde;o
+        </button>
+      </div>
+      <div class="modal-erro" id="modal-erro"></div>
+      <button class="btn-confirmar" id="btn-confirmar" onclick="confirmarAssinatura()">Confirmar assinatura</button>
+      <button class="btn-cancelar" onclick="fecharCheckout()">Cancelar</button>
+    </div>
+    <div class="modal-note">Voc&ecirc; ser&aacute; redirecionado para concluir o pagamento.<br>Assinatura recorrente &mdash; cancele quando quiser.</div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = 'https://wxmkjnfiggwxefyhccqv.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bWtqbmZpZ2d3eGVmeWhjY3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTczMTksImV4cCI6MjA5MjEzMzMxOX0.3TWRrufebRD6ZAIVOgSoY3Uv5RiXxpOGIYchCrNVwHo';
 
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let planoAtual = 'mensal';
 let planosData = {};
+let sessionUser = null;
+let checkoutState = {};
 
 const FALLBACK = {
   starter:    { preco_mensal: 17, preco_anual: 14 },
@@ -607,6 +723,22 @@ const FALLBACK = {
   enterprise: { preco_mensal: 69, preco_anual: 54 },
 };
 
+// ── Verifica sessão ao carregar ──
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    sessionUser = session.user;
+    // Fluxo de redirect-back: plano pendente salvo antes de ir para signup
+    const raw = sessionStorage.getItem('checkout_pendente');
+    if (raw) {
+      sessionStorage.removeItem('checkout_pendente');
+      const { planoId, planoNome } = JSON.parse(raw);
+      setTimeout(() => abrirCheckout(planoId, planoNome), 300);
+    }
+  }
+})();
+
+// ── Preços do Supabase ──
 async function loadPlanosMarketing(){
   try {
     const res = await fetch(
@@ -633,22 +765,132 @@ function setPlano(tipo){
     const anualEl  = document.getElementById('anual-' + id);
     const econEl   = document.getElementById('economy-' + id);
     if(!priceEl) return;
-
     if(tipo === 'mensal'){
-      priceEl.innerHTML = `<sup>R$</sup>${mensal}<span style="font-size:13px;color:var(--muted)">/mês</span>`;
+      priceEl.innerHTML = `<sup>R$</sup>${mensal}<span style="font-size:13px;color:var(--muted)">/m&ecirc;s</span>`;
       if(anualEl) anualEl.classList.remove('show');
       if(econEl)  econEl.classList.remove('show');
     } else {
-      priceEl.innerHTML = `<sup>R$</sup>${anual}<span style="font-size:13px;color:var(--muted)">/mês</span>`;
+      priceEl.innerHTML = `<sup>R$</sup>${anual}<span style="font-size:13px;color:var(--muted)">/m&ecirc;s</span>`;
       if(anualEl){ anualEl.textContent = `R$ ${(anual*12).toLocaleString('pt-BR')}/ano`; anualEl.classList.add('show'); }
       if(econEl) { econEl.textContent  = `Economia de R$ ${((mensal-anual)*12).toLocaleString('pt-BR')}`; econEl.classList.add('show'); }
     }
   });
 }
 
+// ── Checkout ──
+function abrirCheckout(planoId, planoNome) {
+  if (!sessionUser) {
+    sessionStorage.setItem('checkout_pendente', JSON.stringify({ planoId, planoNome }));
+    window.location.href = '/?signup=true';
+    return;
+  }
+
+  const d = planosData[planoId] || FALLBACK[planoId] || {};
+  const preco = planoAtual === 'anual' ? (d.preco_anual ?? 0) : (d.preco_mensal ?? 0);
+  const cicloLabel = planoAtual === 'anual' ? 'cobrança anual' : 'mensal';
+
+  checkoutState = { planoId, planoNome, metodo: 'pix' };
+
+  document.getElementById('modal-plano-badge').textContent = planoNome;
+  document.getElementById('modal-summary').textContent = `Plano ${planoNome} — R$ ${preco}/mês (${cicloLabel})`;
+  document.getElementById('modal-doc').value = '';
+  const erroEl = document.getElementById('modal-erro');
+  erroEl.textContent = ''; erroEl.classList.remove('show');
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.method-btn[data-method="pix"]').classList.add('active');
+  document.getElementById('btn-confirmar').textContent = 'Confirmar assinatura';
+  document.getElementById('btn-confirmar').disabled = false;
+  document.getElementById('modal-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharCheckout(){
+  document.getElementById('modal-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function selecionarMetodo(metodo, btn){
+  document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  checkoutState.metodo = metodo;
+}
+
+function mascaraDoc(input){
+  let v = input.value.replace(/\D/g, '').slice(0, 14);
+  if(v.length <= 11){
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  } else {
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    v = v.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+  }
+  input.value = v;
+}
+
+async function confirmarAssinatura(){
+  const erroEl = document.getElementById('modal-erro');
+  const btnEl  = document.getElementById('btn-confirmar');
+  erroEl.textContent = ''; erroEl.classList.remove('show');
+
+  const docVal   = document.getElementById('modal-doc').value;
+  const cleanDoc = docVal.replace(/\D/g, '');
+  if(cleanDoc.length !== 11 && cleanDoc.length !== 14){
+    erroEl.textContent = 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.';
+    erroEl.classList.add('show');
+    return;
+  }
+
+  btnEl.textContent = 'Processando...';
+  btnEl.disabled = true;
+
+  try {
+    const { data: profile } = await sb.from('profiles')
+      .select('full_name, email').eq('id', sessionUser.id).single();
+
+    const d      = planosData[checkoutState.planoId] || FALLBACK[checkoutState.planoId] || {};
+    const ciclo  = planoAtual === 'anual' ? 'YEARLY' : 'MONTHLY';
+    const valor  = planoAtual === 'anual' ? (d.preco_anual ?? 0) * 12 : (d.preco_mensal ?? 0);
+
+    const resp = await fetch('/api/asaas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cliente:   profile?.full_name || sessionUser.email,
+        email:     profile?.email     || sessionUser.email,
+        cpfcnpj:  docVal,
+        planoId:  checkoutState.planoId,
+        valor,
+        ciclo,
+        metodo:   checkoutState.metodo,
+        descricao: `Plano ${checkoutState.planoNome} - Minha Firma`
+      })
+    });
+
+    const data = await resp.json();
+
+    if(!resp.ok || data.error){
+      erroEl.textContent = data.error || 'Erro ao processar. Tente novamente.';
+      erroEl.classList.add('show');
+    } else if(data.paymentLink){
+      window.location.href = data.paymentLink;
+    } else {
+      erroEl.textContent = 'Assinatura criada! Verifique seu email para o link de pagamento.';
+      erroEl.classList.add('show');
+    }
+  } catch(e){
+    erroEl.textContent = 'Erro de conexão. Tente novamente.';
+    erroEl.classList.add('show');
+  }
+
+  btnEl.textContent = 'Confirmar assinatura';
+  btnEl.disabled = false;
+}
+
 function toggleFaq(el){
-  const item = el.parentElement;
-  item.classList.toggle('open');
+  el.parentElement.classList.toggle('open');
 }
 
 loadPlanosMarketing();
