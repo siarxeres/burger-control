@@ -829,8 +829,8 @@ async function carregarPlanos(){
       <div class="plano-feat">👤 Fin. Pessoal: ${p.tem_financeiro_pessoal?'✅':'❌'}</div>
       <div class="plano-feat" style="color:var(--text2)">💰 Anual: R$ ${(p.preco_anual||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}/mês</div>
       <div class="plano-actions">
-        <button class="btn btn-sm btn-ghost" onclick='editarPlano(${JSON.stringify(p)})'>✏️ Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="deletarPlano('${p.id}','${p.nome}')">🗑️</button>
+        <button class="btn btn-sm btn-ghost" onclick="editarPlanoById('${p.id}')">✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="deletarPlanoById('${p.id}')">🗑️</button>
       </div>
     </div>
   `).join('') || '<div class="loading">Nenhum plano cadastrado.</div>';
@@ -852,6 +852,15 @@ function abrirModalPlano(){
   document.getElementById('plano-fp').value = 'false';
   document.getElementById('plano-preco-anual').value = '';
   document.getElementById('modal-plano').classList.add('show');
+}
+
+function editarPlanoById(id){
+  const p = todosPlanos.find(x => x.id === id);
+  if(p) editarPlano(p);
+}
+function deletarPlanoById(id){
+  const p = todosPlanos.find(x => x.id === id);
+  if(p) deletarPlano(id, p.nome);
 }
 
 function editarPlano(p){
