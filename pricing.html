@@ -188,9 +188,9 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
     <div class="plan-name">Grátis</div>
     <div class="plan-desc">Para conhecer o sistema sem compromisso.</div>
     <div class="plan-price">
-      <div class="plan-amount free">R$ 0</div>
+      <div class="plan-amount free" id="gratis-price">R$ 0</div>
       <div class="plan-period">para sempre</div>
-      <div class="plan-annual">&nbsp;</div>
+      <div class="plan-annual" id="gratis-annual">&nbsp;</div>
     </div>
     <a href="https://burger-control.vercel.app" class="plan-cta cta-ghost">Começar grátis</a>
     <hr class="divider">
@@ -226,8 +226,6 @@ footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:
       <li class="yes"><span class="feat-icon">✓</span>DRE completo</li>
       <li class="yes"><span class="feat-icon">✓</span>Lançamento de receitas</li>
       <li class="yes"><span class="feat-icon">✓</span>Exportação CSV</li>
-      <li class="no"><span class="feat-icon">–</span>DASN</li>
-      <li class="no"><span class="feat-icon">–</span>Financeiro Pessoal</li>
     </ul>
   </div>
 
@@ -368,6 +366,7 @@ let planosData = {};
 
 // plan id → IDs dos elementos no DOM
 const PLAN_DOM = {
+  gratis:     { priceEl: 'gratis-price',  annualEl: 'gratis-annual'  },
   starter:    { priceEl: 'starter-price', annualEl: 'starter-annual' },
   pro:        { priceEl: 'pro-price',     annualEl: 'pro-annual'     },
   enterprise: { priceEl: 'ent-price',     annualEl: 'ent-annual'     },
@@ -375,6 +374,7 @@ const PLAN_DOM = {
 
 // Valores de fallback (iguais ao HTML inicial — usados se o fetch falhar)
 const FALLBACK = {
+  gratis:     { preco_mensal: 0,  preco_anual: 0  },
   starter:    { preco_mensal: 17, preco_anual: 14 },
   pro:        { preco_mensal: 44, preco_anual: 34 },
   enterprise: { preco_mensal: 69, preco_anual: 54 },
@@ -406,10 +406,13 @@ function setPlano(p){
     const annualEl = document.getElementById(els.annualEl);
     if(!priceEl || !annualEl) return;
 
-    const mensal = d.preco_mensal || 0;
-    const anual  = d.preco_anual  || 0;
+    const mensal = d.preco_mensal ?? 0;
+    const anual  = d.preco_anual  ?? 0;
 
-    if(p === 'mensal'){
+    if(id === 'gratis'){
+      priceEl.innerHTML    = 'R$ 0';
+      annualEl.textContent = '\u00a0';
+    } else if(p === 'mensal'){
       priceEl.innerHTML    = `<sup>R$</sup>${mensal}`;
       annualEl.textContent = '\u00a0';
     } else {
