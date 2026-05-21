@@ -3,8 +3,8 @@
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/sw.js", "dest": "/public/sw.js" },
     { "src": "/manifest.json", "dest": "/public/manifest.json" },
-    { "src": "/pricing.html", "dest": "/pricing.html" },
-    { "src": "/pricing", "dest": "/pricing.html" },
+    { "src": "/pricing.html", "dest": "/public/pricing.html" },
+    { "src": "/pricing", "dest": "/public/pricing.html" },
     { "src": "/admin", "dest": "/public/admin.html" },
     { "src": "/admin.html", "dest": "/public/admin.html" },
     { "src": "/(.*)", "dest": "/public/index.html" }

@@ -3,702 +3,442 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planos — Minha Firma</title>
+<title>Food Control — Planos e Preços</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
-
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f5f4f0;
-  --surface:#ffffff;
-  --text:#1a1a18;
-  --muted:#6b6b67;
-  --hint:#9b9b96;
-  --accent:#d85a30;
-  --accent-d:#b84820;
-  --accent-bg:rgba(216,90,48,.08);
-  --green:#3b6d11;
-  --green-bg:#eaf3de;
-  --border:rgba(0,0,0,.08);
-  --border2:rgba(0,0,0,.15);
-  --r:16px;
-  --shadow:0 2px 20px rgba(0,0,0,.07),0 0 0 .5px rgba(0,0,0,.05);
-  --shadow-lg:0 8px 48px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.06);
+  --bg:#0e0d0b;
+  --surface:#161512;
+  --surface2:#1e1c18;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.13);
+  --text:#f2ede6;
+  --muted:#b5b0aa;
+  --hint:#8a8680;
+  --accent:#e8672a;
+  --accent2:#f59044;
+  --gold:#c9a84c;
+  --gold-bg:rgba(201,168,76,0.10);
+  --gold-border:rgba(201,168,76,0.25);
 }
-
 html{scroll-behavior:smooth}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  font-size:15px;
-  line-height:1.6;
-  min-height:100vh;
-}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
 
-/* ── HEADER ── */
-.header{
-  background:var(--surface);
-  border-bottom:.5px solid var(--border);
-  padding:0 40px;
-  height:60px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  position:sticky;
-  top:0;
-  z-index:100;
-}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
-.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center}
-.logo-name{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;letter-spacing:-.3px}
-.back-btn{
-  display:flex;align-items:center;gap:6px;
-  font-size:13px;font-weight:500;color:var(--muted);
-  text-decoration:none;padding:6px 14px;
-  border:.5px solid var(--border2);border-radius:8px;
-  transition:all .15s;
-}
-.back-btn:hover{color:var(--text);border-color:var(--accent);background:var(--accent-bg)}
+/* GRAIN OVERLAY */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
 
-/* ── HERO ── */
-.hero{
-  text-align:center;
-  padding:72px 20px 48px;
-  max-width:700px;
-  margin:0 auto;
-}
-.hero-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  background:#fff3ee;color:var(--accent);
-  border:.5px solid rgba(216,90,48,.25);
-  border-radius:999px;padding:5px 14px;
-  font-size:12px;font-weight:600;letter-spacing:.02em;
-  margin-bottom:20px;
-  animation:fadeDown .5s ease;
-}
-.hero h1{
-  font-family:'Sora',sans-serif;
-  font-size:clamp(32px,5vw,48px);
-  font-weight:800;
-  letter-spacing:-1.5px;
-  line-height:1.1;
-  margin-bottom:16px;
-  animation:fadeDown .5s .1s ease both;
-}
-.hero h1 span{color:var(--accent)}
-.hero p{
-  font-size:17px;color:var(--muted);
-  max-width:520px;margin:0 auto 32px;
-  line-height:1.65;
-  animation:fadeDown .5s .2s ease both;
-}
+/* HEADER */
+header{position:relative;z-index:10;padding:20px 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--border)}
+.header-logo{display:flex;align-items:center;gap:10px}
+.header-logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.header-logo-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.3px}
+.header-nav{display:flex;align-items:center;gap:24px}
+.header-nav a{font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s}
+.header-nav a:hover{color:var(--text)}
+.btn-header{padding:8px 18px;border-radius:8px;background:var(--surface2);border:.5px solid var(--border2);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .15s}
+.btn-header:hover{background:var(--surface);border-color:var(--muted)}
 
-/* ── TOGGLE ANUAL/MENSAL ── */
-.toggle-wrap{
-  display:inline-flex;align-items:center;gap:12px;
-  background:var(--surface);border:.5px solid var(--border2);
-  border-radius:999px;padding:4px;
-  animation:fadeDown .5s .3s ease both;
-  margin-bottom:56px;
-}
-.toggle-btn{
-  padding:7px 20px;border-radius:999px;font-size:13px;font-weight:600;
-  cursor:pointer;border:none;background:none;color:var(--muted);
-  transition:all .2s;
-}
+/* HERO */
+.hero{position:relative;z-index:10;text-align:center;padding:90px 40px 70px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-bg);border:.5px solid var(--gold-border);border-radius:999px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--gold);margin-bottom:28px;letter-spacing:.03em}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+h1{font-family:'Syne',sans-serif;font-size:clamp(38px,6vw,68px);font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;color:var(--text)}
+h1 em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:clamp(15px,2vw,18px);color:var(--muted);max-width:520px;margin:0 auto 36px;font-weight:400;line-height:1.7}
+.toggle-wrap{display:inline-flex;align-items:center;gap:12px;background:var(--surface2);border:.5px solid var(--border2);border-radius:999px;padding:4px;margin-bottom:60px}
+.toggle-btn{padding:7px 20px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--muted);transition:all .2s}
 .toggle-btn.active{background:var(--accent);color:#fff}
-.promo-tag{
-  background:#fff3ee;color:var(--accent);
-  font-size:11px;font-weight:700;
-  padding:2px 8px;border-radius:999px;
-  border:.5px solid rgba(216,90,48,.25);
-  white-space:nowrap;
-}
+.toggle-save{background:var(--gold-bg);color:var(--gold);border:.5px solid var(--gold-border);border-radius:999px;font-size:11px;font-weight:600;padding:3px 10px;margin-left:-4px}
 
-/* ── CARDS ── */
-.plans{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px;
-  max-width:1060px;
-  margin:0 auto;
-  padding:0 24px 80px;
-  animation:fadeUp .6s .2s ease both;
-}
+/* PLANS */
+.plans-wrap{position:relative;z-index:10;max-width:1400px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
 
-.plan-card{
-  background:var(--surface);
-  border:.5px solid var(--border2);
-  border-radius:var(--r);
-  padding:28px;
-  box-shadow:var(--shadow);
-  position:relative;
-  transition:transform .2s,box-shadow .2s;
-  display:flex;
-  flex-direction:column;
-}
-.plan-card:hover{
-  transform:translateY(-4px);
-  box-shadow:var(--shadow-lg);
-}
-.plan-card.featured{
-  border-color:var(--accent);
-  box-shadow:0 0 0 2px rgba(216,90,48,.15),var(--shadow-lg);
-}
+.plan{background:var(--surface);border:.5px solid var(--border2);border-radius:20px;padding:28px;position:relative;transition:border-color .2s}
+.plan:hover{border-color:rgba(255,255,255,0.2)}
+.plan.featured{border-color:var(--accent);border-width:1.5px;background:linear-gradient(145deg,#1a1410 0%,#161210 100%)}
+.plan.featured::before{content:'Mais popular';position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:999px;letter-spacing:.05em;white-space:nowrap}
 
-.plan-badge{
-  position:absolute;top:-13px;left:50%;transform:translateX(-50%);
-  background:var(--accent);color:#fff;
-  font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-  padding:4px 14px;border-radius:999px;
-  white-space:nowrap;
-}
+.plan-tier{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px}
+.plan-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px}
+.plan-desc{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;min-height:40px;font-weight:400}
 
-.plan-name{
-  font-family:'Sora',sans-serif;
-  font-size:13px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.08em;
-  color:var(--muted);margin-bottom:8px;
-}
-.plan-price{
-  font-family:'Sora',sans-serif;
-  font-size:40px;font-weight:800;
-  letter-spacing:-1.5px;line-height:1;
-  margin-bottom:4px;
-}
-.plan-price sup{font-size:18px;font-weight:600;vertical-align:top;margin-top:6px}
-.plan-price span{font-size:15px;font-weight:400;color:var(--muted)}
-.plan-price-anual{display:none;font-size:13px;color:var(--muted);margin-bottom:4px}
-.plan-price-anual.show{display:block}
-.plan-economy{
-  display:none;
-  font-size:12px;font-weight:600;color:var(--green);
-  background:var(--green-bg);padding:3px 10px;border-radius:999px;
-  width:fit-content;margin-bottom:12px;
-}
-.plan-economy.show{display:block}
-.plan-perday{
-  font-size:12px;color:var(--hint);margin-bottom:20px;
-}
-.plan-desc{
-  font-size:13px;color:var(--muted);
-  padding-bottom:20px;margin-bottom:20px;
-  border-bottom:.5px solid var(--border);
-  line-height:1.55;
-}
+.plan-price{margin-bottom:24px}
+.plan-amount{font-family:'Syne',sans-serif;font-size:46px;font-weight:800;letter-spacing:-2px;line-height:1}
+.plan-amount sup{font-size:20px;font-weight:600;letter-spacing:0;vertical-align:super;margin-right:2px;opacity:.7}
+.plan-amount.free{font-size:36px;color:var(--muted)}
+.plan-period{font-size:13px;color:var(--muted);margin-top:4px;font-weight:500}
+.plan-annual{font-size:12px;color:var(--gold);margin-top:3px;min-height:18px}
 
-.features{list-style:none;flex:1;margin-bottom:24px}
-.features li{
-  display:flex;align-items:flex-start;gap:9px;
-  font-size:13px;padding:6px 0;
-  border-bottom:.5px solid var(--border);
-  line-height:1.4;
-}
-.features li:last-child{border-bottom:none}
-.feat-icon{
-  width:18px;height:18px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;margin-top:1px;font-size:10px;
-}
-.feat-ok{background:var(--green-bg);color:var(--green)}
-.feat-no{background:#f5f5f3;color:var(--hint)}
-.feat-text{flex:1}
-.feat-text strong{font-weight:600;color:var(--text)}
-.feat-text .feat-sub{font-size:11px;color:var(--hint);display:block;margin-top:1px}
+.plan-cta{display:block;width:100%;padding:13px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;transition:all .2s;margin-bottom:24px;border:none}
+.cta-ghost{background:none;border:.5px solid var(--border2);color:var(--text)}
+.cta-ghost:hover{background:var(--surface2);border-color:var(--muted)}
+.cta-primary{background:var(--accent);color:#fff}
+.cta-primary:hover{background:#d05820;transform:translateY(-1px)}
+.cta-gold{background:var(--gold-bg);border:.5px solid var(--gold-border);color:var(--gold)}
+.cta-gold:hover{background:rgba(201,168,76,0.18)}
 
-.plan-cta{
-  width:100%;padding:12px;border-radius:10px;
-  font-size:14px;font-weight:700;cursor:pointer;
-  border:1.5px solid var(--border2);background:none;color:var(--text);
-  transition:all .18s;font-family:'DM Sans',sans-serif;
-}
-.plan-cta:hover{background:var(--surface2);border-color:var(--text)}
-.plan-cta.primary{
-  background:var(--accent);color:#fff;border-color:var(--accent);
-}
-.plan-cta.primary:hover{background:var(--accent-d);border-color:var(--accent-d)}
+.divider{border:none;border-top:.5px solid var(--border);margin-bottom:20px}
 
-/* ── PROMO BANNER ── */
-.promo-banner{
-  max-width:1060px;margin:0 auto 48px;padding:0 24px;
-  animation:fadeUp .6s .1s ease both;
-}
-.promo-inner{
-  background:linear-gradient(135deg,#1a3a1a,#2d5a1d);
-  border-radius:var(--r);padding:20px 28px;
-  display:flex;align-items:center;gap:16px;
-  color:#fff;flex-wrap:wrap;
-}
-.promo-icon{font-size:28px;flex-shrink:0}
-.promo-text{flex:1;min-width:200px}
-.promo-text strong{font-size:15px;font-weight:700;display:block;margin-bottom:2px}
-.promo-text span{font-size:13px;opacity:.8}
-.promo-timer{
-  background:rgba(255,255,255,.15);border-radius:8px;
-  padding:8px 16px;font-size:13px;font-weight:600;
-  white-space:nowrap;border:.5px solid rgba(255,255,255,.2);
-}
+.feat-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--hint);margin-bottom:12px}
+.feat-list{list-style:none;display:flex;flex-direction:column;gap:9px}
+.feat-list li{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--muted);line-height:1.4;font-weight:400}
+.feat-list li.yes{color:var(--text)}
+.feat-list li.yes .feat-icon{color:var(--accent)}
+.feat-list li.no .feat-icon{color:var(--hint)}
+.feat-icon{flex-shrink:0;width:16px;height:16px;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.feat-badge{display:inline-block;background:var(--gold-bg);color:var(--gold);border:.5px solid var(--gold-border);border-radius:4px;font-size:10px;font-weight:700;padding:1px 5px;margin-left:5px;vertical-align:middle}
 
-/* ── COMPARATIVO ── */
-.compare-section{
-  max-width:1060px;margin:0 auto 80px;padding:0 24px;
-}
-.compare-title{
-  font-family:'Sora',sans-serif;
-  font-size:22px;font-weight:700;
-  letter-spacing:-.5px;margin-bottom:6px;text-align:center;
-}
-.compare-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:28px}
-.compare-table{
-  background:var(--surface);border:.5px solid var(--border2);
-  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);
-}
-.compare-table table{width:100%;border-collapse:collapse;font-size:13px}
-.compare-table th{
-  padding:14px 16px;font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.06em;color:var(--hint);
-  background:var(--bg);border-bottom:.5px solid var(--border2);
-  text-align:center;
-}
+/* COMPARISON */
+.compare-wrap{position:relative;z-index:10;max-width:900px;margin:0 auto;padding:0 24px 100px}
+.compare-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;text-align:center;margin-bottom:8px;letter-spacing:-.5px}
+.compare-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:40px}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th{padding:10px 16px;text-align:center;font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;border-bottom:.5px solid var(--border)}
 .compare-table th:first-child{text-align:left}
-.compare-table th.featured-col{background:#fff3ee;color:var(--accent)}
-.compare-table td{
-  padding:12px 16px;border-bottom:.5px solid var(--border);
-  text-align:center;vertical-align:middle;
-}
-.compare-table td:first-child{text-align:left;font-weight:500}
+.compare-table th.hl{color:var(--accent)}
+.compare-table td{padding:12px 16px;border-bottom:.5px solid var(--border);text-align:center;color:var(--muted);font-weight:400}
+.compare-table td:first-child{text-align:left;color:var(--text);font-weight:500}
 .compare-table tr:last-child td{border-bottom:none}
-.compare-table tr:hover td{background:var(--bg)}
-.compare-table td.featured-col{background:rgba(216,90,48,.03)}
-.check{color:var(--green);font-size:15px}
-.cross{color:var(--hint);font-size:13px}
-.cat-row td{
-  background:var(--bg);font-size:10px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.07em;color:var(--hint);
-  padding:8px 16px;
-}
+.compare-table tr:hover td{background:var(--surface2)}
+.check{color:#4ade80;font-size:16px}
+.cross{color:var(--hint);font-size:16px}
+.hl-col{background:rgba(232,103,42,0.04)}
 
-/* ── FAQ ── */
-.faq-section{
-  max-width:700px;margin:0 auto 80px;padding:0 24px;
-}
-.faq-title{
-  font-family:'Sora',sans-serif;font-size:22px;font-weight:700;
-  letter-spacing:-.5px;margin-bottom:24px;text-align:center;
-}
-.faq-item{
-  background:var(--surface);border:.5px solid var(--border2);
-  border-radius:10px;margin-bottom:8px;overflow:hidden;
-}
-.faq-q{
-  padding:16px 20px;font-size:14px;font-weight:600;cursor:pointer;
-  display:flex;justify-content:space-between;align-items:center;
-  transition:background .15s;
-}
-.faq-q:hover{background:var(--bg)}
-.faq-q svg{flex-shrink:0;transition:transform .2s;color:var(--muted)}
-.faq-item.open .faq-q svg{transform:rotate(180deg)}
-.faq-a{
-  max-height:0;overflow:hidden;transition:max-height .25s ease;
-  font-size:13px;color:var(--muted);line-height:1.6;
-}
-.faq-item.open .faq-a{max-height:200px}
-.faq-a-inner{padding:0 20px 16px}
+/* FAQ */
+.faq-wrap{position:relative;z-index:10;max-width:700px;margin:0 auto;padding:0 24px 100px}
+.faq-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;text-align:center;margin-bottom:40px;letter-spacing:-.5px}
+.faq-item{border-bottom:.5px solid var(--border);padding:20px 0}
+.faq-q{font-size:15px;font-weight:500;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;user-select:none}
+.faq-q:hover{color:var(--accent)}
+.faq-icon{font-size:20px;color:var(--muted);flex-shrink:0;transition:transform .2s}
+.faq-a{font-size:14px;color:var(--muted);line-height:1.7;font-weight:400;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.faq-item.open .faq-a{max-height:200px;padding-top:12px}
 
-/* ── FOOTER CTA ── */
-.footer-cta{
-  text-align:center;padding:64px 24px;
-  background:var(--surface);border-top:.5px solid var(--border);
-}
-.footer-cta h2{
-  font-family:'Sora',sans-serif;font-size:28px;font-weight:800;
-  letter-spacing:-1px;margin-bottom:10px;
-}
-.footer-cta p{font-size:15px;color:var(--muted);margin-bottom:28px}
-.footer-cta .btn-group{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn-primary{
-  padding:13px 28px;background:var(--accent);color:#fff;
-  border:none;border-radius:10px;font-size:14px;font-weight:700;
-  cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;
-  text-decoration:none;display:inline-flex;align-items:center;gap:8px;
-}
-.btn-primary:hover{background:var(--accent-d)}
-.btn-outline{
-  padding:13px 28px;background:none;color:var(--text);
-  border:1.5px solid var(--border2);border-radius:10px;
-  font-size:14px;font-weight:600;cursor:pointer;
-  font-family:'DM Sans',sans-serif;transition:all .15s;
-  text-decoration:none;display:inline-flex;align-items:center;gap:8px;
-}
-.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+/* CTA BANNER */
+.cta-banner{position:relative;z-index:10;max-width:900px;margin:0 auto 100px;padding:0 24px}
+.cta-inner{background:var(--surface2);border:.5px solid var(--border2);border-radius:20px;padding:50px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-inner::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:300px;height:300px;background:radial-gradient(ellipse,rgba(232,103,42,.12) 0%,transparent 70%);pointer-events:none}
+.cta-inner h2{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-.8px;margin-bottom:12px}
+.cta-inner p{font-size:15px;color:var(--muted);margin-bottom:28px}
+.btn-wpp{display:inline-flex;align-items:center;gap:10px;background:#25D366;color:#fff;padding:14px 28px;border-radius:10px;font-size:15px;font-weight:600;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+.btn-wpp:hover{background:#1ebe5d;transform:translateY(-2px)}
+.btn-wpp svg{width:20px;height:20px;fill:currentColor}
 
-/* ── ANIMATIONS ── */
-@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* FOOTER */
+footer{position:relative;z-index:10;border-top:.5px solid var(--border);padding:28px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--muted)}
+.footer-copy{font-size:12px;color:var(--muted)}
 
-/* ── RESPONSIVE ── */
+/* RESPONSIVE */
+@media(max-width:1200px){
+  .plans-wrap{grid-template-columns:repeat(2,1fr);max-width:860px}
+}
 @media(max-width:900px){
-  .plans{grid-template-columns:1fr;max-width:420px}
-  .header{padding:0 20px}
-  .plan-card.featured{order:-1}
-}
-@media(max-width:600px){
-  .hero{padding:48px 20px 32px}
-  .compare-table{overflow-x:auto}
+  .plans-wrap{grid-template-columns:1fr;max-width:420px}
+  header{padding:16px 20px}
+  .hero{padding:60px 20px 50px}
+  .header-nav{display:none}
+  .compare-table{font-size:12px}
+  .compare-table th,.compare-table td{padding:10px 10px}
+  footer{padding:20px}
 }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="header">
-  <a href="/" class="logo">
-    <div class="logo-icon">
+<header>
+  <div class="header-logo">
+    <div class="header-logo-icon">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
     </div>
-    <span class="logo-name">Minha Firma</span>
-  </a>
-  <a href="/" class="back-btn">
-    ← Voltar ao app
-  </a>
+    <span class="header-logo-name">Food Control</span>
+  </div>
+  <nav class="header-nav">
+    <a href="#planos">Planos</a>
+    <a href="#comparar">Comparar</a>
+    <a href="#faq">Dúvidas</a>
+    <a href="https://burger-control.vercel.app" class="btn-header">Entrar no app &rarr;</a>
+  </nav>
 </header>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hero-badge">
-    🎉 Preços de lançamento por tempo limitado
+    <span class="hero-badge-dot"></span>
+    Controle financeiro para food service
   </div>
-  <h1>Gestão financeira que <span>qualquer negócio</span> consegue usar</h1>
-  <p>Menos de R$ 2,50 por dia para ter controle total das finanças da sua empresa — e ainda separar do seu bolso pessoal.</p>
+  <h1>Gestão de despesas<br>com <em>inteligência</em></h1>
+  <p class="hero-sub">Escaneie cupons fiscais, controle centros de custo e tome decisões com relatórios gerados por IA. Tudo em um só lugar.</p>
 
   <div class="toggle-wrap">
     <button class="toggle-btn active" id="btn-mensal" onclick="setPlano('mensal')">Mensal</button>
-    <button class="toggle-btn" id="btn-anual" onclick="setPlano('anual')">
-      Anual &nbsp;<span class="promo-tag">2 meses grátis</span>
-    </button>
+    <button class="toggle-btn" id="btn-anual" onclick="setPlano('anual')">Anual <span class="toggle-save">2 meses grátis</span></button>
   </div>
 </section>
 
-<!-- PROMO BANNER -->
-<div class="promo-banner">
-  <div class="promo-inner">
-    <div class="promo-icon">⏰</div>
-    <div class="promo-text">
-      <strong>Oferta de lançamento — válida por 90 dias</strong>
-      <span>Assine agora no plano anual e garanta o preço promocional para sempre enquanto mantiver a assinatura ativa.</span>
-    </div>
-    <div class="promo-timer" id="countdown">Carregando...</div>
-  </div>
-</div>
+<section class="plans-wrap" id="planos">
 
-<!-- PLANOS -->
-<div class="plans">
+  <!-- GRÁTIS -->
+  <div class="plan">
+    <div class="plan-tier">GRÁTIS</div>
+    <div class="plan-name">Grátis</div>
+    <div class="plan-desc">Para começar sem compromisso.</div>
+    <div class="plan-price">
+      <div class="plan-amount free" id="gratis-price">R$ 0</div>
+      <div class="plan-period">/sempre</div>
+      <div class="plan-annual" id="gratis-annual">&nbsp;</div>
+    </div>
+    <a href="https://burger-control.vercel.app" class="plan-cta cta-ghost">Começar grátis</a>
+    <hr class="divider">
+    <div class="feat-title">Incluído</div>
+    <ul class="feat-list">
+      <li class="yes"><span class="feat-icon">&#10003;</span>Receitas e Despesas (10/mês)</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>2 Setores do negócio</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>DRE básico</li>
+      <li class="no"><span class="feat-icon">&#10005;</span>IA</li>
+      <li class="no"><span class="feat-icon">&#10005;</span>Relatórios IA</li>
+      <li class="no"><span class="feat-icon">&#10005;</span>DASN</li>
+      <li class="no"><span class="feat-icon">&#10005;</span>Financeiro Pessoal</li>
+    </ul>
+  </div>
 
   <!-- STARTER -->
-  <div class="plan-card">
+  <div class="plan">
+    <div class="plan-tier">Básico</div>
     <div class="plan-name">Starter</div>
-    <div class="plan-price" id="price-starter">
-      <sup>R$</sup>19<span>,90<span style="font-size:13px;color:var(--muted)">/mês</span></span>
+    <div class="plan-desc">Para quem quer controle completo do dia a dia.</div>
+    <div class="plan-price">
+      <div class="plan-amount" id="starter-price"><sup>R$</sup>17</div>
+      <div class="plan-period">/mês por estabelecimento</div>
+      <div class="plan-annual" id="starter-annual">&nbsp;</div>
     </div>
-    <div class="plan-price-anual" id="anual-starter">R$ 179,90/ano</div>
-    <div class="plan-economy" id="economy-starter">✓ Economia de R$ 58,90</div>
-    <div class="plan-perday" id="perday-starter">≈ R$ 0,66 por dia</div>
-    <div class="plan-desc">Ideal para MEI que quer sair da planilha e ter controle real do negócio.</div>
-    <ul class="features">
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Receitas e Despesas</strong><span class="feat-sub">Lançamentos ilimitados</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>2 Setores do negócio</strong><span class="feat-sub">Operacional + Administrativo</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>DRE — Resultado do mês</strong><span class="feat-sub">Com os 2 setores inclusos</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>10 scans de nota fiscal/mês</strong><span class="feat-sub">Extração automática via IA</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Declaração Anual (DASN)</strong><span class="feat-sub">Pronto para a Receita Federal</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Financeiro Pessoal</strong><span class="feat-sub">Separe empresa do seu bolso</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Exportar CSV</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-no">✕</span>
-        <span class="feat-text" style="color:var(--hint)">Relatórios com IA<span class="feat-sub">Disponível no Pro</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-no">✕</span>
-        <span class="feat-text" style="color:var(--hint)">Orçado vs Realizado<span class="feat-sub">Disponível no Enterprise</span></span>
-      </li>
+    <a href="#contato" class="plan-cta cta-ghost" onclick="openWpp('Starter')">Assinar Starter</a>
+    <hr class="divider">
+    <div class="feat-title">Tudo do Grátis, mais</div>
+    <ul class="feat-list">
+      <li class="yes"><span class="feat-icon">&#10003;</span>Setores ilimitados</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Lançamentos ilimitados</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Scans por IA</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>DRE completo</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Lançamento de receitas</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Exportação CSV</li>
     </ul>
-    <button class="plan-cta" onclick="window.location.href='/'">Começar agora</button>
   </div>
 
   <!-- PRO -->
-  <div class="plan-card featured">
-    <div class="plan-badge">⭐ Mais popular</div>
+  <div class="plan featured">
+    <div class="plan-tier">Recomendado</div>
     <div class="plan-name">Pro</div>
-    <div class="plan-price" id="price-pro">
-      <sup>R$</sup>34<span>,90<span style="font-size:13px;color:var(--muted)">/mês</span></span>
+    <div class="plan-desc">Para restaurantes que querem controle total das finanças.</div>
+    <div class="plan-price">
+      <div class="plan-amount" id="pro-price"><sup>R$</sup>44</div>
+      <div class="plan-period">/mês por estabelecimento</div>
+      <div class="plan-annual" id="pro-annual">&nbsp;</div>
     </div>
-    <div class="plan-price-anual" id="anual-pro">R$ 314,90/ano</div>
-    <div class="plan-economy" id="economy-pro">✓ Economia de R$ 103,90</div>
-    <div class="plan-perday" id="perday-pro">≈ R$ 1,16 por dia</div>
-    <div class="plan-desc">Para pequenos negócios que querem gestão completa por setores com análise inteligente.</div>
-    <ul class="features">
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Tudo do Starter</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Setores ilimitados</strong><span class="feat-sub">Crie quantos setores precisar</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>DRE completo por setor</strong><span class="feat-sub">Veja onde ganha e onde gasta</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>30 scans de nota fiscal/mês</strong><span class="feat-sub">Extração automática via IA</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>10 Relatórios IA/mês</strong><span class="feat-sub">Resumo executivo, anomalias, tendências, economia</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Declaração Anual (DASN)</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Financeiro Pessoal</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Exportar CSV</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-no">✕</span>
-        <span class="feat-text" style="color:var(--hint)">Orçado vs Realizado</span>
-      </li>
+    <a href="#contato" class="plan-cta cta-primary" onclick="openWpp('Pro')">Assinar Pro</a>
+    <hr class="divider">
+    <div class="feat-title">Tudo do Starter, mais</div>
+    <ul class="feat-list">
+      <li class="yes"><span class="feat-icon">&#10003;</span>DASN</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Financeiro Pessoal</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Relatórios inteligentes IA</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Até 5 usuários</li>
     </ul>
-    <button class="plan-cta primary" onclick="window.location.href='/'">Começar agora</button>
   </div>
 
   <!-- ENTERPRISE -->
-  <div class="plan-card">
+  <div class="plan">
+    <div class="plan-tier">Redes &amp; Franquias</div>
     <div class="plan-name">Enterprise</div>
-    <div class="plan-price" id="price-enterprise">
-      <sup>R$</sup>69<span>,90<span style="font-size:13px;color:var(--muted)">/mês</span></span>
+    <div class="plan-desc">Para quem opera múltiplas unidades e precisa de visão consolidada.</div>
+    <div class="plan-price">
+      <div class="plan-amount" id="ent-price"><sup>R$</sup>69</div>
+      <div class="plan-period">/mês por rede</div>
+      <div class="plan-annual" id="ent-annual">&nbsp;</div>
     </div>
-    <div class="plan-price-anual" id="anual-enterprise">
-      <span style="text-decoration:line-through;opacity:.5">R$ 838,80</span> &nbsp;
-      <strong style="color:var(--accent)">R$ 598,80/ano</strong>
-    </div>
-    <div class="plan-economy" id="economy-enterprise">✓ Economia de R$ 240,00 — lançamento</div>
-    <div class="plan-perday" id="perday-enterprise">≈ R$ 2,33 por dia</div>
-    <div class="plan-desc">Visão 360° do negócio. Para quem quer tomar decisões com dados e planejar o crescimento.</div>
-    <ul class="features">
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Tudo do Pro</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>100 scans de nota fiscal/mês</strong><span class="feat-sub">Extração automática via IA</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>30 Relatórios IA/mês</strong><span class="feat-sub">Análise executiva completa + DRE via IA</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Orçado vs Realizado</strong><span class="feat-sub">Planeje e acompanhe metas</span></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Declaração Anual (DASN)</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Financeiro Pessoal</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Exportar CSV</strong></span>
-      </li>
-      <li>
-        <span class="feat-icon feat-ok">✓</span>
-        <span class="feat-text"><strong>Suporte prioritário</strong></span>
-      </li>
+    <a href="#contato" class="plan-cta cta-gold" onclick="openWpp('Enterprise')">Falar com consultor</a>
+    <hr class="divider">
+    <div class="feat-title">Tudo do Pro, mais</div>
+    <ul class="feat-list">
+      <li class="yes"><span class="feat-icon">&#10003;</span>Múltiplas unidades<span class="feat-badge">NOVO</span></li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Dashboard consolidado</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Comparativo entre lojas</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Usuários ilimitados</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Controle de acesso avançado</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Suporte via WhatsApp</li>
+      <li class="yes"><span class="feat-icon">&#10003;</span>Onboarding personalizado</li>
     </ul>
-    <button class="plan-cta" onclick="window.location.href='/'">Começar agora</button>
   </div>
 
-</div>
+</section>
 
 <!-- COMPARATIVO -->
-<section class="compare-section">
-  <div class="compare-title">Comparativo completo</div>
-  <div class="compare-sub">Veja exatamente o que cada plano inclui</div>
-  <div class="compare-table">
-    <table>
-      <thead>
-        <tr>
-          <th style="width:40%">Funcionalidade</th>
-          <th>Starter</th>
-          <th class="featured-col">Pro</th>
-          <th>Enterprise</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="cat-row"><td colspan="4">Lançamentos</td></tr>
-        <tr><td>Receitas e Despesas</td><td><span class="check">✓</span></td><td class="featured-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-        <tr><td>Lançamentos por foto (IA)</td><td>10/mês</td><td class="featured-col">30/mês</td><td>100/mês</td></tr>
-        <tr><td>Importação CSV</td><td><span class="check">✓</span></td><td class="featured-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-        <tr><td>Exportar CSV</td><td><span class="check">✓</span></td><td class="featured-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-
-        <tr class="cat-row"><td colspan="4">Análise Financeira</td></tr>
-        <tr><td>Setores do negócio</td><td>2 fixos</td><td class="featured-col">Ilimitados</td><td>Ilimitados</td></tr>
-        <tr><td>DRE — Resultado do mês</td><td>2 setores</td><td class="featured-col">Completo</td><td>Completo</td></tr>
-        <tr><td>Relatórios com IA</td><td><span class="cross">—</span></td><td class="featured-col">10/mês</td><td>30/mês</td></tr>
-        <tr><td>Orçado vs Realizado</td><td><span class="cross">—</span></td><td class="featured-col"><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
-
-        <tr class="cat-row"><td colspan="4">Obrigações Fiscais</td></tr>
-        <tr><td>Declaração Anual (DASN)</td><td><span class="check">✓</span></td><td class="featured-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-
-        <tr class="cat-row"><td colspan="4">Vida Pessoal</td></tr>
-        <tr><td>Financeiro Pessoal</td><td><span class="check">✓</span></td><td class="featured-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-        <tr><td>DRE Pessoal</td><td><span class="check">✓</span></td><td class="featured-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-
-        <tr class="cat-row"><td colspan="4">Suporte</td></tr>
-        <tr><td>Suporte por e-mail</td><td><span class="check">✓</span></td><td class="featured-col"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-        <tr><td>Suporte prioritário</td><td><span class="cross">—</span></td><td class="featured-col"><span class="cross">—</span></td><td><span class="check">✓</span></td></tr>
-      </tbody>
-    </table>
-  </div>
+<section class="compare-wrap" id="comparar">
+  <h2 class="compare-title">Compare os planos</h2>
+  <p class="compare-sub">Veja em detalhes o que cada plano oferece</p>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Recurso</th>
+        <th>Grátis</th>
+        <th>Starter</th>
+        <th class="hl">Pro</th>
+        <th>Enterprise</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Lançamentos/mês</td><td>10</td><td>Ilimitado</td><td class="hl-col">Ilimitado</td><td>Ilimitado</td></tr>
+      <tr><td>Setores</td><td>2</td><td>Todos</td><td class="hl-col">Todos</td><td>Todos</td></tr>
+      <tr><td>Scan por IA (foto)</td><td><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td><td class="hl-col">Ilimitado</td><td>Ilimitado</td></tr>
+      <tr><td>Usuários</td><td>1</td><td>1</td><td class="hl-col">5</td><td>Ilimitado</td></tr>
+      <tr><td>DRE</td><td>Básico</td><td>Completo</td><td class="hl-col">Completo</td><td>Completo</td></tr>
+      <tr><td>Receitas</td><td><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td><td class="hl-col"><span class="check">&#10003;</span></td><td><span class="check">&#10003;</span></td></tr>
+      <tr><td>Exportação CSV</td><td><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td><td class="hl-col"><span class="check">&#10003;</span></td><td><span class="check">&#10003;</span></td></tr>
+      <tr><td>DASN</td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td><td class="hl-col"><span class="check">&#10003;</span></td><td><span class="check">&#10003;</span></td></tr>
+      <tr><td>Financeiro Pessoal</td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td><td class="hl-col"><span class="check">&#10003;</span></td><td><span class="check">&#10003;</span></td></tr>
+      <tr><td>Relatórios IA</td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td><td class="hl-col"><span class="check">&#10003;</span></td><td><span class="check">&#10003;</span></td></tr>
+      <tr><td>Controle de acesso</td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td><td class="hl-col"><span class="check">&#10003;</span></td><td><span class="check">&#10003;</span></td></tr>
+      <tr><td>Múltiplas unidades</td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td><td class="hl-col"><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td></tr>
+      <tr><td>Dashboard consolidado</td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td><td class="hl-col"><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td></tr>
+      <tr><td>Suporte WhatsApp</td><td><span class="cross">&#10005;</span></td><td><span class="cross">&#10005;</span></td><td class="hl-col"><span class="cross">&#10005;</span></td><td><span class="check">&#10003;</span></td></tr>
+    </tbody>
+  </table>
 </section>
 
 <!-- FAQ -->
-<section class="faq-section">
-  <div class="faq-title">Perguntas frequentes</div>
+<section class="faq-wrap" id="faq">
+  <h2 class="faq-title">Dúvidas frequentes</h2>
 
   <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">
-      O que são "Setores do negócio"?
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div class="faq-a"><div class="faq-a-inner">São as áreas da sua empresa — por exemplo: Cozinha, Salão, Delivery, Administrativo. Com eles você sabe exatamente onde cada real está sendo gasto e onde entra receita, em vez de ver tudo misturado.</div></div>
+    <div class="faq-q" onclick="toggleFaq(this)">Posso cancelar quando quiser? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Sim. Não há fidelidade. Você cancela a qualquer momento e continua com acesso até o fim do período pago.</div>
   </div>
-
   <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">
-      Por que o Financeiro Pessoal está em todos os planos?
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div class="faq-a"><div class="faq-a-inner">Porque misturar o caixa da empresa com o dinheiro pessoal é um dos maiores problemas de MEI e pequenos negócios. Com o Minha Firma você gerencia os dois separados, no mesmo lugar — sem precisar de outra ferramenta.</div></div>
+    <div class="faq-q" onclick="toggleFaq(this)">O plano anual tem desconto? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Sim, o plano anual oferece 2 meses grátis em relação ao mensal — você paga 10 meses e usa 12.</div>
   </div>
-
   <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">
-      Como funciona o scan de nota fiscal?
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div class="faq-a"><div class="faq-a-inner">Você fotografa ou faz upload do cupom fiscal ou NF-e e a IA extrai automaticamente fornecedor, valor, data e tipo de documento. Em segundos o lançamento está preenchido — sem digitar nada.</div></div>
+    <div class="faq-q" onclick="toggleFaq(this)">Como funciona o scan de cupons por IA? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Você fotografa ou faz upload do cupom fiscal ou nota fiscal. A IA extrai automaticamente fornecedor, CNPJ, valor, data e tipo do documento. Você revisa e salva com um clique — sem digitar nada.</div>
   </div>
-
   <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">
-      Posso trocar de plano a qualquer momento?
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div class="faq-a"><div class="faq-a-inner">Sim. Você pode fazer upgrade ou downgrade quando quiser. No plano anual, o valor já pago é considerado proporcionalmente na troca.</div></div>
+    <div class="faq-q" onclick="toggleFaq(this)">Funciona para qualquer tipo de restaurante? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Sim. O sistema foi desenvolvido inicialmente para hamburguerias mas funciona para qualquer food service: pizzarias, lanchonetes, restaurantes, bares, padarias e redes de franquias.</div>
   </div>
-
   <div class="faq-item">
-    <div class="faq-q" onclick="toggleFaq(this)">
-      O que é a DASN e por que está em todos os planos?
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div class="faq-a"><div class="faq-a-inner">A DASN é a Declaração Anual do Simples Nacional — obrigação de todo MEI todo ano. Como você já lança suas receitas no Minha Firma, na hora de declarar os dados já estão organizados. Liberamos em todos os planos porque cumprir a lei não deveria ser um privilégio.</div></div>
+    <div class="faq-q" onclick="toggleFaq(this)">Como é feito o pagamento? <span class="faq-icon">+</span></div>
+    <div class="faq-a">No momento aceitamos PIX e transferência bancária. Entre em contato pelo WhatsApp para assinar e receber os dados de pagamento. Cartão de crédito em breve.</div>
   </div>
-
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Meus dados ficam seguros? <span class="faq-icon">+</span></div>
+    <div class="faq-a">Sim. Os dados são armazenados no Supabase com criptografia e controle de acesso por usuário. Cada operador vê apenas os próprios lançamentos, e somente o Admin tem visão total.</div>
+  </div>
 </section>
 
-<!-- FOOTER CTA -->
-<footer class="footer-cta">
-  <h2>Comece hoje, sem cartão</h2>
-  <p>Teste por 30 dias grátis. Sem compromisso. Cancele quando quiser.</p>
-  <div class="btn-group">
-    <a href="/" class="btn-primary">
-      🚀 Criar minha conta grátis
+<!-- CTA FINAL -->
+<section class="cta-banner" id="contato">
+  <div class="cta-inner">
+    <h2>Pronto para começar?</h2>
+    <p>Fale com a gente pelo WhatsApp. Respondemos em minutos.</p>
+    <a href="https://wa.me/5569999834306?text=Ol%C3%A1%2C%20quero%20conhecer%20o%20Food%20Control!" class="btn-wpp" id="btn-wpp-main" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Falar no WhatsApp
     </a>
   </div>
+</section>
+
+<footer>
+  <div class="footer-logo">Food Control</div>
+  <div class="footer-copy">&copy; 2026 Food Control. Todos os direitos reservados.</div>
 </footer>
 
 <script>
-// ── TOGGLE MENSAL / ANUAL ──
-let planoAtual = 'mensal';
+const SUPABASE_URL  = 'https://wxmkjnfiggwxefyhccqv.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bWtqbmZpZ2d3eGVmeWhjY3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTczMTksImV4cCI6MjA5MjEzMzMxOX0.3TWRrufebRD6ZAIVOgSoY3Uv5RiXxpOGIYchCrNVwHo';
+const WHATSAPP      = '5569999834306';
 
-const precos = {
-  mensal: {
-    starter: { display: '<sup>R$</sup>19<span>,90<span style="font-size:13px;color:var(--muted)">/mês</span></span>', perday: '≈ R$ 0,66 por dia' },
-    pro:     { display: '<sup>R$</sup>34<span>,90<span style="font-size:13px;color:var(--muted)">/mês</span></span>', perday: '≈ R$ 1,16 por dia' },
-    enterprise: { display: '<sup>R$</sup>69<span>,90<span style="font-size:13px;color:var(--muted)">/mês</span></span>', perday: '≈ R$ 2,33 por dia' },
-  },
-  anual: {
-    starter: { display: '<sup>R$</sup>14<span>,99<span style="font-size:13px;color:var(--muted)">/mês</span></span>', perday: '≈ R$ 0,50 por dia' },
-    pro:     { display: '<sup>R$</sup>26<span>,16<span style="font-size:13px;color:var(--muted)">/mês</span></span>', perday: '≈ R$ 0,87 por dia' },
-    enterprise: { display: '<sup>R$</sup>49<span>,90<span style="font-size:13px;color:var(--muted)">/mês</span></span>', perday: '≈ R$ 1,66 por dia — 🔥 lançamento' },
-  }
+let planoAtual = 'mensal';
+let planosData = {};
+
+const PLAN_DOM = {
+  gratis:     { priceEl: 'gratis-price',  annualEl: 'gratis-annual'  },
+  starter:    { priceEl: 'starter-price', annualEl: 'starter-annual' },
+  pro:        { priceEl: 'pro-price',     annualEl: 'pro-annual'     },
+  enterprise: { priceEl: 'ent-price',     annualEl: 'ent-annual'     },
 };
 
-function setPlano(tipo){
-  planoAtual = tipo;
-  document.getElementById('btn-mensal').classList.toggle('active', tipo==='mensal');
-  document.getElementById('btn-anual').classList.toggle('active', tipo==='anual');
+const FALLBACK = {
+  gratis:     { preco_mensal: 0,  preco_anual: 0  },
+  starter:    { preco_mensal: 17, preco_anual: 14 },
+  pro:        { preco_mensal: 44, preco_anual: 34 },
+  enterprise: { preco_mensal: 69, preco_anual: 54 },
+};
 
-  ['starter','pro','enterprise'].forEach(p => {
-    document.getElementById('price-'+p).innerHTML = precos[tipo][p].display;
-    document.getElementById('perday-'+p).textContent = precos[tipo][p].perday;
-    document.getElementById('anual-'+p).classList.toggle('show', tipo==='anual');
-    document.getElementById('economy-'+p).classList.toggle('show', tipo==='anual');
+async function loadPlanosMarketing(){
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/planos?select=id,nome,preco_mensal,preco_anual&order=ordem`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    if(!res.ok) return;
+    const planos = await res.json();
+    planos.forEach(p => { planosData[p.id] = p; });
+    setPlano(planoAtual);
+  } catch(e) {
+    // rede indisponivel — mantém fallback estático
+  }
+}
+
+function setPlano(p){
+  planoAtual = p;
+  document.getElementById('btn-mensal').classList.toggle('active', p === 'mensal');
+  document.getElementById('btn-anual').classList.toggle('active', p === 'anual');
+
+  Object.entries(PLAN_DOM).forEach(([id, els]) => {
+    const d = planosData[id] || FALLBACK[id];
+    const priceEl  = document.getElementById(els.priceEl);
+    const annualEl = document.getElementById(els.annualEl);
+    if(!priceEl || !annualEl) return;
+
+    const mensal = d.preco_mensal ?? 0;
+    const anual  = d.preco_anual  ?? 0;
+
+    if(id === 'gratis'){
+      priceEl.innerHTML    = 'R$ 0';
+      annualEl.textContent = ' ';
+    } else if(p === 'mensal'){
+      priceEl.innerHTML    = `<sup>R$</sup>${mensal}`;
+      annualEl.textContent = ' ';
+    } else {
+      priceEl.innerHTML    = `<sup>R$</sup>${anual}`;
+      const totalAnual = anual * 12;
+      const economia   = (mensal - anual) * 12;
+      annualEl.textContent = `R$ ${totalAnual.toLocaleString('pt-BR')}/ano — economia de R$ ${economia.toLocaleString('pt-BR')}`;
+    }
   });
 }
 
-// ── COUNTDOWN 90 DIAS ──
-function updateCountdown(){
-  const start = new Date('2026-05-20');
-  const end = new Date(start.getTime() + 90 * 24 * 60 * 60 * 1000);
-  const now = new Date();
-  const diff = end - now;
-  if(diff <= 0){ document.getElementById('countdown').textContent = 'Oferta encerrada'; return; }
-  const days = Math.floor(diff / (1000*60*60*24));
-  const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-  const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
-  document.getElementById('countdown').textContent = `⏱ ${days}d ${hours}h ${mins}m restantes`;
+function openWpp(plano){
+  const msg = encodeURIComponent(`Olá! Tenho interesse no plano ${plano} (${planoAtual}) do Food Control. Pode me dar mais informações?`);
+  window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, '_blank');
 }
-updateCountdown();
-setInterval(updateCountdown, 60000);
 
-// ── FAQ ──
+document.getElementById('btn-wpp-main').href =
+  `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Olá! Quero conhecer o Food Control. Pode me ajudar?')}`;
+
 function toggleFaq(el){
-  const item = el.parentElement;
-  item.classList.toggle('open');
+  const item   = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
 }
+
+loadPlanosMarketing();
 </script>
+
 </body>
 </html>
