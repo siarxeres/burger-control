@@ -397,10 +397,7 @@ tbody tr:hover td{background:var(--surface2)}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
           Receitas
         </div>
-        <div class="nav-item" onclick="showPage('cobrancas',this)" id="nav-cobrancas">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" /></svg>
-          Cobranças
-        </div>
+
         <div class="nav-sec">Análise</div>
         <div class="nav-item" onclick="showPage('centros',this)" id="nav-centros">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
@@ -723,53 +720,6 @@ tbody tr:hover td{background:var(--surface2)}
             <tbody id="rec-tbody"></tbody></table>
           </div>
           <div id="rec-total" style="display:none;text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
-        </div>
-
-        <!-- COBRANÇAS -->
-        <div class="page" id="page-cobrancas">
-          <div class="card" style="padding:16px;margin-bottom:20px">
-            <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
-              <div class="form-group" style="flex:1;min-width:200px;margin:0">
-                <label class="form-label">Cliente / Nome</label>
-                <input type="text" class="form-control" id="cobranca-cliente" placeholder="Nome do cliente ou empresa">
-              </div>
-              <div class="form-group" style="flex:1;min-width:220px;margin:0">
-                <label class="form-label">Email do cliente</label>
-                <input type="email" class="form-control" id="cobranca-email" placeholder="cliente@exemplo.com" required>
-              </div>
-              <div class="form-group" style="flex:1;min-width:180px;margin:0">
-                <label class="form-label">CPF/CNPJ do cliente</label>
-                <input type="text" class="form-control" id="cobranca-cpfcnpj" placeholder="000.000.000-00 ou 00.000.000/0000-00">
-              </div>
-              <div class="form-group" style="flex:1;min-width:180px;margin:0">
-                <label class="form-label">Valor</label>
-                <input type="text" class="form-control" id="cobranca-valor" placeholder="R$ 0,00">
-              </div>
-              <div class="form-group" style="flex:1;min-width:180px;margin:0">
-                <label class="form-label">Vencimento</label>
-                <input type="date" class="form-control" id="cobranca-vencimento">
-              </div>
-              <div class="form-group" style="flex:1;min-width:180px;margin:0">
-                <label class="form-label">Tipo de cobrança</label>
-                <select class="form-control" id="cobranca-tipo">
-                  <option value="pix">PIX</option>
-                  <option value="boleto">Boleto</option>
-                  <option value="cartao">Cartão</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div class="card" style="padding:16px;margin-bottom:16px">
-            <div style="display:flex;gap:8px;justify-content:flex-end">
-              <button class="btn" onclick="limparFormCobranca()">Limpar</button>
-              <button class="btn btn-primary" onclick="criarCobranca()">Criar cobrança</button>
-            </div>
-          </div>
-          <div id="cobranca-result" class="card" style="padding:16px;display:none;">
-            <div style="margin-bottom:12px;font-weight:700">Link de pagamento gerado</div>
-            <div id="cobranca-link" style="word-break:break-word;color:var(--accent);"></div>
-            <div style="margin-top:12px;color:var(--muted);font-size:13px">A cobrança será criada via Asaas e o link ficará disponível para envio.</div>
-          </div>
         </div>
 
         <!-- DRE -->
@@ -1441,14 +1391,14 @@ function showPage(id, navEl){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',cobrancas:'Cobranças',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',dasn:'Declaração Anual',orcamento:'Orçado vs Realizado','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'DRE Pessoal'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',dasn:'Declaração Anual',orcamento:'Orçado vs Realizado','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'DRE Pessoal'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
   if(id==='despesas') renderDespesas();
   if(id==='centros') renderCentros();
   if(id==='receitas') renderReceitas();
-  if(id==='cobrancas') renderCobrancas();
+
   if(id==='dre') initDRE();
   if(id==='dasn'){ if(!podeDASN()){ alertPlano('Declaração Anual (DASN)'); return; } renderDASN(); }
   if(id==='orcamento') initOrcamento();
@@ -1928,70 +1878,6 @@ function renderDASN(){
     const csv = rows.map(r=>r.map(v=>`"${v}"`).join(';')).join('\n');
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`dasn_${yearSel}.csv`; a.click();
   });
-}
-
-function limparFormCobranca(){
-  document.getElementById('cobranca-cliente').value = '';
-  document.getElementById('cobranca-valor').value = '';
-  document.getElementById('cobranca-vencimento').value = '';
-  document.getElementById('cobranca-tipo').value = 'pix';
-  document.getElementById('cobranca-result').style.display = 'none';
-  document.getElementById('cobranca-link').textContent = '';
-}
-
-async function criarCobranca(){
-  const cliente = document.getElementById('cobranca-cliente').value.trim();
-  const email = document.getElementById('cobranca-email').value.trim();
-  const cpfcnpj = document.getElementById('cobranca-cpfcnpj').value.trim();
-  const valor = document.getElementById('cobranca-valor').value.trim();
-  const vencimento = document.getElementById('cobranca-vencimento').value;
-  const tipo = document.getElementById('cobranca-tipo').value;
-
-  if(!cliente || !email || !cpfcnpj || !valor || !vencimento){
-    alert('Preencha cliente, email, CPF/CNPJ, valor e data de vencimento.');
-    return;
-  }
-
-  const parsedValor = Number(valor.replace(/[^0-9,\.]/g,'').replace(',','.'));
-  if(isNaN(parsedValor) || parsedValor <= 0){
-    alert('Informe um valor válido.');
-    return;
-  }
-
-  const payload = {
-    cliente,
-    email,
-    cpfcnpj,
-    valor: parsedValor,
-    vencimento,
-    tipo
-  };
-
-  try {
-    const resp = await fetch('/api/asaas', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-
-    if(!resp.ok){
-      const err = await resp.text();
-      throw new Error(err || 'Erro ao criar cobrança.');
-    }
-
-    const result = await resp.json();
-    const linkEl = document.getElementById('cobranca-link');
-    linkEl.innerHTML = result.link ? `<a href="${result.link}" target="_blank">${result.link}</a>` : '<span>Link não retornado.</span>';
-    document.getElementById('cobranca-result').style.display = 'block';
-  } catch(err){
-    alert('Erro ao criar cobrança: ' + err.message);
-  }
-}
-
-function renderCobrancas(){
-  const container = document.getElementById('page-cobrancas');
-  if(!container) return;
-  // Nothing else to render dynamically for now.
 }
 
 // ══ DESPESAS ══
@@ -2686,7 +2572,7 @@ async function alternarModo(){
   const label = document.getElementById('toggle-modo-label');
 
   // IDs dos itens de nav da empresa para esconder/mostrar
-  const navEmpresa = ['nav-dashboard','nav-lancar','nav-despesas','nav-receitas','nav-cobrancas',
+  const navEmpresa = ['nav-dashboard','nav-lancar','nav-despesas','nav-receitas',
     'nav-centros','nav-relatorio','nav-dre','nav-orcamento'];
   const secEmpresa = document.querySelectorAll('.nav-sec');
 
