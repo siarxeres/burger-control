@@ -1316,6 +1316,11 @@ function initApp(){
   const navSecAdmin = document.getElementById('nav-sec-admin');
   if(navSecAdmin) navSecAdmin.style.display = isAdmin() ? '' : 'none';
   document.getElementById('despesas-aviso-op').style.display = isAdmin() ? 'none' : 'flex';
+  // Gate DRE e Orçado vs Realizado: oculto para plano grátis
+  const navDre = document.getElementById('nav-dre');
+  if(navDre) navDre.style.display = (!isAdmin() && currentProfile?.plano === 'gratis') ? 'none' : '';
+  const navOrcamento = document.getElementById('nav-orcamento');
+  if(navOrcamento) navOrcamento.style.display = (!isAdmin() && currentProfile?.plano === 'gratis') ? 'none' : '';
   // Gate DASN: esconde item de nav se plano não tem tem_dasn
   const navDasn = document.getElementById('nav-dasn');
   if(navDasn) navDasn.style.display = podeDASN() ? '' : 'none';
@@ -2390,7 +2395,7 @@ function updateFooter(){
     const upgradeEl = document.getElementById('sf-upgrade');
     if(upgradeEl){
       if(currentPlano.id !== 'enterprise'){
-        const proximoPlano = currentPlano.id === 'starter' ? 'Pro' : 'Enterprise';
+        const proximoPlano = currentPlano.id === 'gratis' ? 'Starter' : currentPlano.id === 'starter' ? 'Pro' : 'Enterprise';
         upgradeEl.innerHTML = `
           <a href="/pricing.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:8px;background:var(--accent-bg);border:.5px solid var(--accent);border-radius:var(--rs);font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(216,90,48,0.15)'" onmouseout="this.style.background='var(--accent-bg)'">
             ⬆ Upgrade para ${proximoPlano}
