@@ -1925,12 +1925,18 @@ function renderCentros(){
   const emTrial = !isAdmin() && !checkTrialExpirado();
 
   // Usar todosCentros se disponível, senão usar CC_COLORS como fallback
-  const centrosParaMostrar = todosCentros.length > 0 ? todosCentros : Object.keys(CC_COLORS).map(nome=>({nome, cor:CC_COLORS[nome], plano_minimo:'starter'}));
+  const centrosBase = todosCentros.length > 0 ? todosCentros : Object.keys(CC_COLORS).map(nome=>({nome, cor:CC_COLORS[nome], plano_minimo:'starter'}));
+
+  // Planos com max_cc finito (ex: grátis=2): fatiar lista ao limite do plano
+  const limitadoPorQtd = !isAdmin() && !ilimitado(currentPlano?.max_cc);
+  const centrosParaMostrar = limitadoPorQtd ? centrosBase.slice(0, currentPlano.max_cc) : centrosBase;
 
   const grid = document.getElementById('cc-grid');
   grid.innerHTML = centrosParaMostrar.map(c => {
     const nivelCC = prioridade.indexOf(c.plano_minimo || 'starter');
-    const permitido = isAdmin() || emTrial || nivelUsuario >= nivelCC;
+    // Centros dentro do limite quantitativo do plano são sempre acessíveis;
+    // para planos ilimitados mantém a verificação por plano_minimo
+    const permitido = isAdmin() || emTrial || limitadoPorQtd || nivelUsuario >= nivelCC;
     const cor = c.cor || CC_COLORS[c.nome] || '#888';
     const i = byCC[c.nome] || {total:0, count:0};
     const p = total ? Math.round(i.total/total*100) : 0;
@@ -1956,7 +1962,7 @@ function renderCentros(){
   despesas.forEach(d=>{
     const cc = centrosParaMostrar.find(c=>c.nome===d.cc);
     const nivelCC = prioridade.indexOf(cc?.plano_minimo || 'starter');
-    if(!isAdmin() && !emTrial && nivelUsuario < nivelCC) return;
+    if(!isAdmin() && !emTrial && !limitadoPorQtd && nivelUsuario < nivelCC) return;
     const k=d.categoria+'§'+d.cc;
     if(!byCat[k]) byCat[k]={cat:d.categoria,cc:d.cc,total:0,count:0};
     byCat[k].total+=d.valor; byCat[k].count++;
