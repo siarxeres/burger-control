@@ -991,13 +991,25 @@ function showTrialBanner(){
   if(isAdmin()) return;
   const plano = currentProfile?.plano || 'starter';
   if(plano !== 'starter') return;
-  if(isStarterLimitado) return; // trial já expirou, não mostra banner
+  const banner = document.getElementById('trial-banner');
+  if(!banner) return;
+
+  if(isStarterLimitado){
+    banner.innerHTML = `
+      <div class="trial-banner-text">⚠️ <span>Seu <strong>período de avaliação encerrou</strong>. Os recursos do plano Pro estavam disponíveis por 30 dias. <strong>Assine para continuar.</strong></span></div>
+      <a href="/pricing.html" class="trial-banner-link" style="background:#a32d2d">Ver planos</a>`;
+    banner.style.background = 'linear-gradient(135deg,rgba(163,45,45,0.1),rgba(163,45,45,0.05))';
+    banner.style.borderBottomColor = 'rgba(163,45,45,0.3)';
+    banner.classList.add('show');
+    return;
+  }
+
   const criado = new Date(currentProfile.created_at);
   const diasUsados = (new Date() - criado) / (1000*60*60*24);
   const diasRestantes = Math.max(0, Math.ceil(30 - diasUsados));
   if(diasRestantes <= 0) return;
   document.getElementById('trial-dias').textContent = diasRestantes;
-  document.getElementById('trial-banner').classList.add('show');
+  banner.classList.add('show');
 }
 
 function checkTrialExpirado(){
@@ -1077,7 +1089,6 @@ function podeScanIA(){
   if(isAdmin() || !currentPlano || ilimitado(currentPlano.max_scans_ia)) return true;
   return (currentProfile?.scans_mes||0) < currentPlano.max_scans_ia;
 }
-function podeVerRelatorios(){ return isAdmin() || !checkTrialExpirado() || currentPlano?.tem_relatorios_ia; }
 function podeRelatoriosIA(){ return isAdmin() || !!currentPlano?.tem_relatorios_ia; }
 function podeExportarCSV(){ return isAdmin() || currentPlano?.tem_export_csv; }
 function podeDASN(){ return isAdmin() || !!currentPlano?.tem_dasn; }
@@ -1271,11 +1282,12 @@ function initApp(){
   // Gate Relatórios IA: oculto para plano grátis
   const navRelatorio = document.getElementById('nav-relatorio');
   if(navRelatorio) navRelatorio.style.display = podeRelatoriosIA() ? '' : 'none';
-  // Gate DRE e Orçado vs Realizado: oculto para plano grátis
+  // Gate DRE: oculto para plano grátis
   const navDre = document.getElementById('nav-dre');
   if(navDre) navDre.style.display = (!isAdmin() && currentProfile?.plano === 'gratis') ? 'none' : '';
+  // Gate Orçado vs Realizado: exclusivo Enterprise
   const navOrcamento = document.getElementById('nav-orcamento');
-  if(navOrcamento) navOrcamento.style.display = (!isAdmin() && currentProfile?.plano === 'gratis') ? 'none' : '';
+  if(navOrcamento) navOrcamento.style.display = (isAdmin() || currentProfile?.plano === 'enterprise') ? '' : 'none';
   // Gate DASN: esconde item de nav se plano não tem tem_dasn
   const navDasn = document.getElementById('nav-dasn');
   if(navDasn) navDasn.style.display = podeDASN() ? '' : 'none';
@@ -2193,7 +2205,7 @@ async function gerarRelatorioPro(tipo){
 }
 
 async function gerarRelatorio(tipo){
-  if(!podeVerRelatorios()){ alertPlano('Relatórios IA'); return; }
+  if(!podeRelatoriosIA()){ alertPlano('Relatórios IA'); return; }
   const out=document.getElementById('report-out'), loading=document.getElementById('report-loading');
   out.classList.remove('show'); out.textContent=''; loading.classList.add('show');
   // Filtrar por período selecionado
@@ -3376,8 +3388,8 @@ function switchOrcTab(tab, el){
 
 async function initOrcamento(){
   if(!isAdmin()){
-    const plano = currentProfile?.plano || 'starter';
-    if(plano === 'starter' || plano === 'pro'){
+    const plano = currentProfile?.plano || 'gratis';
+    if(plano !== 'enterprise'){
       alertPlano('Orçado vs Realizado — disponível apenas no plano Enterprise');
       showPage('dashboard', document.getElementById('nav-dashboard'));
       return;
