@@ -122,6 +122,10 @@ body{
   margin:0 auto;
   padding:0 24px 80px;
 }
+.plans.plans--three{
+  grid-template-columns:repeat(3,1fr);
+  max-width:1010px;
+}
 
 .plan-card{
   background:var(--surface);
@@ -758,6 +762,7 @@ function applyPlanState() {
   if (userPlano === 'gratis') {
     const card = document.getElementById('card-gratis');
     if (card) card.style.display = 'none';
+    document.querySelector('.plans')?.classList.add('plans--three');
     return;
   }
 
