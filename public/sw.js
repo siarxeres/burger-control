@@ -1,22 +1,21 @@
-
-Copiar
-
-const CACHE_NAME = 'minhafirma-v1';
+const CACHE_NAME = 'minhafirma-v2';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icons/icon-192.svg',
+  '/icons/icon-512.svg',
+  '/icons/icon-180.svg',
+  '/icons/favicon.svg',
 ];
- 
-// Instalar e cachear assets principais
+
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
- 
-// Ativar e limpar caches antigos
+
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -25,21 +24,22 @@ self.addEventListener('activate', e => {
   );
   self.clients.claim();
 });
- 
-// Estratégia: Network First, fallback para cache
+
+// Network First com fallback para cache
 self.addEventListener('fetch', e => {
-  // Não cachear chamadas de API
-  if(e.request.url.includes('/api/') || 
-     e.request.url.includes('supabase') ||
-     e.request.url.includes('anthropic')) {
+  if (
+    e.request.url.includes('/api/') ||
+    e.request.url.includes('supabase') ||
+    e.request.url.includes('anthropic') ||
+    e.request.method !== 'GET'
+  ) {
     return;
   }
- 
+
   e.respondWith(
     fetch(e.request)
       .then(res => {
-        // Cachear resposta bem-sucedida
-        if(res.ok && e.request.method === 'GET') {
+        if (res.ok) {
           const clone = res.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         }
