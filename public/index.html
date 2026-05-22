@@ -642,7 +642,7 @@ tbody tr:hover td{background:var(--surface2)}
             Você está visualizando apenas os seus próprios lançamentos.
           </div>
           <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-            <select class="form-control" id="filtro-cc" style="width:175px" onchange="renderDespesas()"><option value="">Todos os centros</option><option>Cozinha</option><option>Salão / Atendimento</option><option>Delivery</option><option>Administrativo</option><option>Marketing</option><option>Manutenção</option></select>
+            <select class="form-control" id="filtro-cc" style="width:175px" onchange="renderDespesas()"><option value="">Todos os centros</option><option>Operacional</option><option>Salão / Atendimento</option><option>Delivery</option><option>Administrativo</option><option>Marketing</option><option>Manutenção</option></select>
             <select class="form-control" id="filtro-cat" style="width:195px" onchange="renderDespesas()"><option value="">Todas as categorias</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Impostos</option><option>Software / Licenças</option><option>Combustível</option><option>Taxas Bancárias</option><option>Comissões</option><option>Treinamento</option><option>Benefícios</option><option>Outros</option></select>
             <select class="form-control" id="filtro-status" style="width:145px" onchange="renderDespesas()"><option value="">Todos os status</option><option>Aprovado</option><option>Pendente</option><option>Rejeitado</option></select>
             <select class="form-control" id="filtro-usuario" style="width:180px" onchange="renderDespesas()" style="display:none"><option value="">Todos os usuários</option></select>
@@ -1020,10 +1020,11 @@ let despesasPessoais = [];
 let receitasPessoais = [];
 let modoPainel = 'empresa'; // 'empresa' ou 'pessoal'
 
-const CC_COLORS = {'Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922','Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'};
+const CC_COLORS = {'Operacional':'#d85a30','Cozinha':'#d85a30','Salão / Atendimento':'#378add','Delivery':'#639922','Administrativo':'#7f77dd','Marketing':'#d4537e','Manutenção':'#ba7517'};
 
 // Categorias vinculadas por Centro de Custo
 const CC_CATEGORIAS = {
+  'Operacional':            ['Insumos / Ingredientes','Embalagens','Equipamentos','Manutenção','Energia / Água / Gás','Higiene / Limpeza','Descartáveis','Outros'],
   'Cozinha':                ['Insumos / Ingredientes','Embalagens','Equipamentos','Manutenção','Energia / Água / Gás','Higiene / Limpeza','Descartáveis','Outros'],
   'Salão / Atendimento':    ['Equipamentos','Manutenção','Uniformes','Material de Limpeza','Decoração','Outros'],
   'Delivery':               ['Embalagens','Combustível','Manutenção de Veículo','Plataformas (iFood/Rappi)','Equipamentos','Outros'],
@@ -2442,7 +2443,7 @@ function renderCSVPreview(parsed){
   title.textContent = `${csvLancamentosPreview.length} lançamentos encontrados`;
   sub.textContent = `${parsed.sistema}${parsed.empresa?' — '+parsed.empresa:''}${parsed.periodo?' · '+parsed.periodo:''}`;
 
-  const ccOpts = (todosCentros.length ? todosCentros : [{nome:'Administrativo'},{nome:'Cozinha'},{nome:'Salão / Atendimento'},{nome:'Delivery'},{nome:'Marketing'},{nome:'Manutenção'}])
+  const ccOpts = (todosCentros.length ? todosCentros : [{nome:'Administrativo'},{nome:'Operacional'},{nome:'Salão / Atendimento'},{nome:'Delivery'},{nome:'Marketing'},{nome:'Manutenção'}])
     .map(c=>`<option>${c.nome}</option>`).join('');
 
   const catOpts = ['Insumos / Ingredientes','Embalagens','Serviços','Equipamentos','Manutenção','Energia / Água / Gás','Folha de Pagamento','Aluguel','Marketing / Publicidade','Impostos','Outros']
@@ -3111,7 +3112,7 @@ function renderDRE(){
   const recOut = recPer.filter(r=>!['Salão','Vendas / Produtos','Delivery','Delivery / Envio','Eventos','Eventos / Projetos'].includes(r.categoria)).reduce((s,r)=>s+r.valor,0);
 
   // CCs de produção — onde insumos/embalagens são CMV
-  const CC_PRODUCAO = ['Cozinha','Produção / Operação','Estoque / Compras','Delivery'];
+  const CC_PRODUCAO = ['Operacional','Cozinha','Produção / Operação','Estoque / Compras','Delivery'];
   const CMV_CATS = ['Insumos / Ingredientes','Embalagens','Matéria-Prima','Insumos','Mercadorias'];
   const FIXAS_CATS = ['Aluguel','Folha de Pagamento','Energia / Água / Gás','Energia Elétrica','Água / Esgoto','Gás','Encargos Sociais','Vale Transporte','Vale Refeição','Condomínio','IPTU','Internet / Telefone'];
   const IMPOSTO_CATS = ['Impostos','Taxas / Licenças','IOF / Juros'];
@@ -3298,7 +3299,7 @@ function exportDRE(ini, fim){
   const recPer = receitas.filter(r=>r.data>=ini&&r.data<=fim);
   const despPer = despesas.filter(d=>d.data>=ini&&d.data<=fim&&d.status!=='Rejeitado');
   const recTotal = recPer.reduce((s,r)=>s+r.valor,0);
-  const CC_PROD = ['Cozinha','Produção / Operação','Estoque / Compras','Delivery'];
+  const CC_PROD = ['Operacional','Cozinha','Produção / Operação','Estoque / Compras','Delivery'];
   const CMV_C = ['Insumos / Ingredientes','Embalagens','Matéria-Prima','Insumos','Mercadorias'];
   const FX_C = ['Aluguel','Folha de Pagamento','Energia / Água / Gás','Energia Elétrica','Água / Esgoto','Gás','Encargos Sociais','Vale Transporte','Vale Refeição','Condomínio','IPTU','Internet / Telefone'];
   const IMP_C = ['Impostos','Taxas / Licenças','IOF / Juros'];
