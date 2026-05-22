@@ -1127,6 +1127,7 @@ function podeScanIA(){
   return (currentProfile?.scans_mes||0) < currentPlano.max_scans_ia;
 }
 function podeVerRelatorios(){ return isAdmin() || !checkTrialExpirado() || currentPlano?.tem_relatorios_ia; }
+function podeRelatoriosIA(){ return isAdmin() || !!currentPlano?.tem_relatorios_ia; }
 function podeExportarCSV(){ return isAdmin() || currentPlano?.tem_export_csv; }
 function podeDASN(){ return isAdmin() || !!currentPlano?.tem_dasn; }
 function podeFinanceiroPessoal(){ return isAdmin() || !!currentPlano?.tem_financeiro_pessoal; }
@@ -1316,6 +1317,9 @@ function initApp(){
   const navSecAdmin = document.getElementById('nav-sec-admin');
   if(navSecAdmin) navSecAdmin.style.display = isAdmin() ? '' : 'none';
   document.getElementById('despesas-aviso-op').style.display = isAdmin() ? 'none' : 'flex';
+  // Gate Relatórios IA: oculto para plano grátis
+  const navRelatorio = document.getElementById('nav-relatorio');
+  if(navRelatorio) navRelatorio.style.display = podeRelatoriosIA() ? '' : 'none';
   // Gate DRE e Orçado vs Realizado: oculto para plano grátis
   const navDre = document.getElementById('nav-dre');
   if(navDre) navDre.style.display = (!isAdmin() && currentProfile?.plano === 'gratis') ? 'none' : '';
@@ -1448,7 +1452,7 @@ function showPage(id, navEl){
   if(id==='dre') initDRE();
   if(id==='dasn'){ if(!podeDASN()){ alertPlano('Declaração Anual (DASN)'); return; } renderDASN(); }
   if(id==='orcamento') initOrcamento();
-  if(id==='relatorio') initRelatorio();
+  if(id==='relatorio'){ if(!podeRelatoriosIA()){ alertPlano('Relatórios IA'); return; } initRelatorio(); }
   if(id==='pessoal-dashboard') renderPessoalDashboard();
   if(id==='pessoal-extrato') renderExtratoPessoal();
   if(id==='pessoal-dre') initDREPessoal();
