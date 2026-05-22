@@ -2272,8 +2272,23 @@ function exportCSV(){
 function updateFooter(){
   const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const now=new Date();
-  document.getElementById('sf-period').textContent=meses[now.getMonth()]+' '+now.getFullYear();
-  document.getElementById('sf-amount').textContent=fmt(despesas.reduce((s,d)=>s+d.valor,0));
+  const mesLabel = meses[now.getMonth()]+' '+now.getFullYear();
+  const amountEl = document.getElementById('sf-amount');
+  const isGratis = !isAdmin() && currentProfile?.plano === 'gratis';
+
+  if(isGratis){
+    const m=now.getMonth(), a=now.getFullYear();
+    const totalDesp = despesas.filter(d=>{ const dt=new Date(d.data); return dt.getMonth()===m&&dt.getFullYear()===a&&d.status!=='Rejeitado'; }).reduce((s,d)=>s+d.valor,0);
+    const totalRec  = receitas.filter(r=>{ const dt=new Date(r.data); return dt.getMonth()===m&&dt.getFullYear()===a; }).reduce((s,r)=>s+r.valor,0);
+    const resultado = totalRec - totalDesp;
+    document.getElementById('sf-period').textContent = 'Resultado · '+mesLabel;
+    amountEl.textContent = (resultado>=0?'+':'')+fmt(resultado);
+    amountEl.style.color = resultado>=0 ? 'var(--green)' : 'var(--red)';
+  } else {
+    document.getElementById('sf-period').textContent = mesLabel;
+    amountEl.textContent = fmt(despesas.reduce((s,d)=>s+d.valor,0));
+    amountEl.style.color = '';
+  }
   // Mostrar uso do plano no sidebar
   if(currentPlano && !isAdmin()){
     const meusLanc = despesas.filter(d=>d.user_id===currentUser?.id).length;

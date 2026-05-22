@@ -150,6 +150,13 @@ body{
   padding:4px 14px;border-radius:999px;
   white-space:nowrap;
 }
+.plan-badge-current{
+  position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  background:var(--green);color:#fff;
+  font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:4px 14px;border-radius:999px;
+  white-space:nowrap;
+}
 
 .plan-name{
   font-family:'Sora',sans-serif;
@@ -418,7 +425,7 @@ body{
 <div class="plans">
 
   <!-- GRÁTIS -->
-  <div class="plan-card">
+  <div class="plan-card" id="card-gratis">
     <div class="plan-name">Grátis</div>
     <div class="plan-price" id="price-gratis">R$ 0<span style="font-size:15px;color:var(--muted)">/sempre</span></div>
     <div class="plan-perday">&nbsp;</div>
@@ -457,7 +464,7 @@ body{
   </div>
 
   <!-- STARTER -->
-  <div class="plan-card">
+  <div class="plan-card" id="card-starter">
     <div class="plan-name">Starter</div>
     <div class="plan-price" id="price-starter"><sup>R$</sup>17<span style="font-size:13px;color:var(--muted)">/mês</span></div>
     <div class="plan-price-anual" id="anual-starter"></div>
@@ -502,7 +509,7 @@ body{
   </div>
 
   <!-- PRO -->
-  <div class="plan-card featured">
+  <div class="plan-card featured" id="card-pro">
     <div class="plan-badge">&#11088; Mais popular</div>
     <div class="plan-name">Pro</div>
     <div class="plan-price" id="price-pro"><sup>R$</sup>44<span style="font-size:13px;color:var(--muted)">/mês</span></div>
@@ -536,7 +543,7 @@ body{
   </div>
 
   <!-- ENTERPRISE -->
-  <div class="plan-card">
+  <div class="plan-card" id="card-enterprise">
     <div class="plan-name">Enterprise</div>
     <div class="plan-price" id="price-enterprise"><sup>R$</sup>69<span style="font-size:13px;color:var(--muted)">/mês</span></div>
     <div class="plan-price-anual" id="anual-enterprise"></div>
@@ -715,6 +722,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let planoAtual = 'mensal';
 let planosData = {};
 let sessionUser = null;
+let userPlano = null;
 let checkoutState = {};
 
 const FALLBACK = {
@@ -728,6 +736,11 @@ const FALLBACK = {
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     sessionUser = session.user;
+    try {
+      const { data: profile } = await sb.from('profiles').select('plano').eq('id', session.user.id).single();
+      userPlano = profile?.plano || null;
+    } catch(e) {}
+    applyPlanState();
     // Fluxo de redirect-back: plano pendente salvo antes de ir para signup
     const raw = sessionStorage.getItem('checkout_pendente');
     if (raw) {
@@ -737,6 +750,37 @@ const FALLBACK = {
     }
   }
 })();
+
+// ── Estado do plano do usuário logado ──
+function applyPlanState() {
+  if (!userPlano) return;
+
+  if (userPlano === 'gratis') {
+    const card = document.getElementById('card-gratis');
+    if (card) card.style.display = 'none';
+    return;
+  }
+
+  // Plano pago: badge "Plano atual" + botão desabilitado
+  const card = document.getElementById('card-' + userPlano);
+  if (!card) return;
+
+  if (!card.querySelector('.plan-badge-current')) {
+    const badge = document.createElement('div');
+    badge.className = 'plan-badge-current';
+    badge.textContent = 'Plano atual';
+    card.insertBefore(badge, card.firstChild);
+  }
+
+  const btn = card.querySelector('.plan-cta');
+  if (btn) {
+    btn.textContent = 'Plano atual';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    btn.onclick = null;
+  }
+}
 
 // ── Preços do Supabase ──
 async function loadPlanosMarketing(){
