@@ -315,6 +315,34 @@ tbody tr:hover td{background:var(--surface2)}
 .sf-resultado-label{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 .sf-resultado-valor{font-size:20px;font-weight:700;letter-spacing:-.4px}
 .sf-resultado-sub{font-size:10px;color:var(--hint);margin-top:2px}
+/* ── ONBOARDING ── */
+.ob-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#0B2D4E}
+.ob-card{background:#fff;border-radius:16px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.ob-header{background:#0B2D4E;padding:28px 28px 24px}
+.ob-logo{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.ob-logo-icon{width:36px;height:36px;background:#1D9E75;border-radius:9px;display:flex;align-items:center;justify-content:center}
+.ob-logo-name{font-size:16px;font-weight:700;color:#fff}
+.ob-step-label{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px;letter-spacing:.06em;text-transform:uppercase}
+.ob-title{font-size:20px;font-weight:600;color:#fff;line-height:1.4;margin-bottom:6px}
+.ob-sub{font-size:13px;color:rgba(255,255,255,.55);line-height:1.5}
+.ob-progress{display:flex;gap:4px;margin-top:18px}
+.ob-prog-seg{height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,.2)}
+.ob-prog-seg.done{background:#1D9E75}
+.ob-prog-seg.active{background:rgba(29,158,117,.5)}
+.ob-body{padding:24px 28px}
+.ob-choice{border:1px solid #E8E6DF;border-radius:10px;padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;transition:border-color .15s,background .15s}
+.ob-choice:hover{border-color:#1D9E75;background:#F0FBF7}
+.ob-choice.selected{border-color:#1D9E75;background:#E1F5EE}
+.ob-choice-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.ob-choice-title{font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:2px}
+.ob-choice-desc{font-size:11px;color:#5F5E5A;line-height:1.4}
+.ob-choice.selected .ob-choice-title{color:#085041}
+.ob-choice.selected .ob-choice-desc{color:#0F6E56}
+.ob-footer{padding:0 28px 24px;display:flex;flex-direction:column;gap:8px}
+.ob-btn{width:100%;padding:13px;border-radius:10px;border:none;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.ob-btn-primary{background:#1D9E75;color:#fff}
+.ob-btn-primary:disabled{opacity:.4;pointer-events:none}
+.ob-btn-secondary{background:none;border:1px solid #E8E6DF;color:#5F5E5A;font-size:13px}
 </style>
 </head>
 <body>
@@ -381,6 +409,45 @@ tbody tr:hover td{background:var(--surface2)}
       <button class="btn btn-primary" style="width:100%" onclick="doSignup()" id="btn-signup">Criar conta</button>
       <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
         Já tem conta? <span class="link" onclick="showView('login')">Entrar</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ONBOARDING ══ -->
+<div id="onboarding-screen" style="display:none">
+  <div class="ob-wrap">
+    <div class="ob-card">
+      <div class="ob-header">
+        <div class="ob-logo">
+          <div class="ob-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></div>
+          <div class="ob-logo-name">Minha Firma</div>
+        </div>
+        <div class="ob-step-label" id="ob-step-label">Passo 1 de 2</div>
+        <div class="ob-title" id="ob-title">Qual é sua maior preocupação hoje?</div>
+        <div class="ob-sub" id="ob-sub">Vamos adaptar o app pra sua realidade.</div>
+        <div class="ob-progress">
+          <div class="ob-prog-seg done" id="ob-p1"></div>
+          <div class="ob-prog-seg active" id="ob-p2"></div>
+        </div>
+      </div>
+      <div class="ob-body" id="ob-body">
+        <div class="ob-choice" id="ob-c1" onclick="obSelect('financeiro')">
+          <span class="ob-choice-icon">💰</span>
+          <div><div class="ob-choice-title">Controlar meu financeiro</div><div class="ob-choice-desc">Saber quanto entra, quanto sai e o que sobra no mês</div></div>
+        </div>
+        <div class="ob-choice" id="ob-c2" onclick="obSelect('fiscal')">
+          <span class="ob-choice-icon">📄</span>
+          <div><div class="ob-choice-title">Evitar problemas com a Receita</div><div class="ob-choice-desc">DAS, DASN, obrigações em dia sem surpresa</div></div>
+        </div>
+        <div class="ob-choice" id="ob-c3" onclick="obSelect('crescimento')">
+          <span class="ob-choice-icon">📈</span>
+          <div><div class="ob-choice-title">Crescer com segurança</div><div class="ob-choice-desc">Ter dados para tomar decisões melhores</div></div>
+        </div>
+      </div>
+      <div class="ob-footer">
+        <button class="ob-btn ob-btn-primary" id="ob-btn-next" disabled onclick="obNext()">Continuar →</button>
+        <button class="ob-btn ob-btn-secondary" onclick="obPular()">Pular por agora</button>
       </div>
     </div>
   </div>
@@ -1229,10 +1296,13 @@ function traduzirErro(msg){
 async function loadProfile(){
   const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
   if(data) currentProfile = data;
+  if(data && !data.profile_type){ showOnboarding(); return; }
   else {
     const name = currentUser.user_metadata?.full_name || currentUser.email;
     await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'gratis' });
     currentProfile = { id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'gratis', scans_mes: 0 };
+    showOnboarding();
+    return;
   }
 }
 
@@ -1289,6 +1359,62 @@ function getPrecoStarterFormatado() {
   const starter = todosPlanos.find(p => p.id === 'starter');
   if (!starter?.preco_mensal) return 'R$ 19,90';
   return 'R$ ' + Number(starter.preco_mensal).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ── ONBOARDING ──
+let obPerfilSelecionado = null;
+let obStep = 1;
+
+function showOnboarding(){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('onboarding-screen').style.display = 'block';
+  obStep = 1;
+  obPerfilSelecionado = null;
+}
+
+function obSelect(perfil){
+  obPerfilSelecionado = perfil;
+  ['ob-c1','ob-c2','ob-c3'].forEach(id => document.getElementById(id).classList.remove('selected'));
+  const map = {'financeiro':'ob-c1','fiscal':'ob-c2','crescimento':'ob-c3'};
+  document.getElementById(map[perfil]).classList.add('selected');
+  document.getElementById('ob-btn-next').disabled = false;
+}
+
+function obNext(){
+  if(obStep === 1 && obPerfilSelecionado){
+    obStep = 2;
+    document.getElementById('ob-step-label').textContent = 'Passo 2 de 2';
+    document.getElementById('ob-title').textContent = 'Seu primeiro passo está dado ✓';
+    document.getElementById('ob-sub').textContent = 'Configuramos o app para o seu perfil. Bem-vindo à sua firma organizada.';
+    document.getElementById('ob-p1').className = 'ob-prog-seg done';
+    document.getElementById('ob-p2').className = 'ob-prog-seg done';
+    const icons = {'financeiro':'💰','fiscal':'📄','crescimento':'📈'};
+    const labels = {'financeiro':'Controle financeiro','fiscal':'Gestão fiscal','crescimento':'Crescimento'};
+    document.getElementById('ob-body').innerHTML = `
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-size:48px;margin-bottom:12px">${icons[obPerfilSelecionado]}</div>
+        <div style="font-size:15px;font-weight:600;color:#1a1a18;margin-bottom:6px">Foco em: ${labels[obPerfilSelecionado]}</div>
+        <div style="font-size:13px;color:#5F5E5A;line-height:1.6">O dashboard e os alertas foram configurados para o que mais importa pra você agora.</div>
+      </div>`;
+    document.getElementById('ob-btn-next').textContent = 'Entrar na minha firma →';
+    document.getElementById('ob-btn-next').disabled = false;
+  } else if(obStep === 2){
+    obFinalizar();
+  }
+}
+
+async function obFinalizar(){
+  if(obPerfilSelecionado && currentUser){
+    await sb.from('profiles').update({ profile_type: obPerfilSelecionado }).eq('id', currentUser.id);
+    if(currentProfile) currentProfile.profile_type = obPerfilSelecionado;
+  }
+  document.getElementById('onboarding-screen').style.display = 'none';
+  initApp();
+}
+
+function obPular(){
+  document.getElementById('onboarding-screen').style.display = 'none';
+  initApp();
 }
 
 function initApp(){
