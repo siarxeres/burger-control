@@ -7,6 +7,8 @@
     { "src": "/pricing", "dest": "/public/pricing.html" },
     { "src": "/admin", "dest": "/public/admin.html" },
     { "src": "/admin.html", "dest": "/public/admin.html" },
+    { "src": "/beta", "dest": "/public/beta.html" },
+    { "src": "/beta.html", "dest": "/public/beta.html" },
     { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }
