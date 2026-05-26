@@ -343,6 +343,14 @@ tbody tr:hover td{background:var(--surface2)}
 .ob-btn-primary{background:#1D9E75;color:#fff}
 .ob-btn-primary:disabled{opacity:.4;pointer-events:none}
 .ob-btn-secondary{background:none;border:1px solid #E8E6DF;color:#5F5E5A;font-size:13px}
+.perfil-destaque{border-radius:var(--r);padding:14px 16px;margin-bottom:18px;display:flex;align-items:flex-start;gap:12px}
+.perfil-destaque-icon{font-size:22px;flex-shrink:0}
+.perfil-destaque-body{flex:1;min-width:0}
+.perfil-destaque-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.perfil-destaque-desc{font-size:12px;opacity:.85;line-height:1.4}
+.perfil-destaque.financeiro{background:#E1F5EE;border:.5px solid #9FE1CB;color:#085041}
+.perfil-destaque.fiscal{background:#E6F1FB;border:.5px solid #B5D4F4;color:#185FA5}
+.perfil-destaque.crescimento{background:var(--yellow-bg);border:.5px solid rgba(133,79,11,.3);color:#633806}
 </style>
 </head>
 <body>
@@ -583,6 +591,7 @@ tbody tr:hover td{background:var(--surface2)}
             <span style="font-size:13px;color:var(--accent);font-weight:500">Você está no plano <strong>Grátis</strong> — evolua para o Starter a partir de <span id="banner-preco-starter">R$ 19,90</span>/mês</span>
             <a href="/pricing.html" style="padding:6px 14px;background:var(--accent);color:#fff;border-radius:var(--rs);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0">Ver planos &#8599;</a>
           </div>
+          <div id="dash-perfil-destaque"></div>
           <div class="alertas-box" id="dash-alertas"></div>
           <div class="metrics" id="dash-metrics"></div>
           <div class="cta-actions" id="dash-ctas"></div>
@@ -1971,6 +1980,87 @@ function updateDashboard(){
     if(pendentes2>0) ctas.push({icon:'⏳',label:pendentes2+' lançamento'+(pendentes2>1?'s':'')+' pendente'+(pendentes2>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
     ctas.push({icon:'📊',label:'Ver resumo completo',sub:'Despesas, receitas e centros de custo',cls:'',action:"showPage('centros',document.getElementById('nav-centros'))"});
     ctasEl.innerHTML='<div class="sec-title">Ações rápidas</div>'+ctas.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
+  }
+  // ── DESTAQUE POR PERFIL ──
+  const perfilType = currentProfile?.profile_type || null;
+  const hoje2 = new Date();
+  const m2 = hoje2.getMonth(), a2 = hoje2.getFullYear();
+  const despMes2 = despesas.filter(d=>{ const dt=new Date(d.data); return dt.getMonth()===m2&&dt.getFullYear()===a2&&d.status!=='Rejeitado'; });
+  const recMes2  = receitas.filter(r=>{ const dt=new Date(r.data); return dt.getMonth()===m2&&dt.getFullYear()===a2; });
+  const totalDesp2 = despMes2.reduce((s,d)=>s+d.valor,0);
+  const totalRec2  = recMes2.reduce((s,r)=>s+r.valor,0);
+  const resultado2 = totalRec2 - totalDesp2;
+
+  // Mês anterior para comparativo
+  const mAnt = m2===0?11:m2-1, aAnt = m2===0?a2-1:a2;
+  const recAnt = receitas.filter(r=>{ const dt=new Date(r.data); return dt.getMonth()===mAnt&&dt.getFullYear()===aAnt; }).reduce((s,r)=>s+r.valor,0);
+  const varRec = recAnt>0 ? ((totalRec2-recAnt)/recAnt*100) : null;
+
+  // Obrigações fiscais
+  const temDAS = despMes2.some(d=>d.categoria==='Impostos'||d.obs?.toLowerCase().includes('das'));
+  const temProLabore2 = despMes2.some(d=>d.categoria==='Pró-labore');
+
+  let destaqueHTML = '';
+  if(perfilType === 'financeiro'){
+    const positivo = resultado2 >= 0;
+    const varTxt = varRec !== null ? (varRec>=0?`📈 Receita ${varRec.toFixed(0)}% acima do mês anterior`:`📉 Receita ${Math.abs(varRec).toFixed(0)}% abaixo do mês anterior`) : 'Lance suas receitas para ver a comparação';
+    destaqueHTML = `<div class="perfil-destaque financeiro">
+    <span class="perfil-destaque-icon">${positivo?'✅':'⚠️'}</span>
+    <div class="perfil-destaque-body">
+      <div class="perfil-destaque-title">Resultado de ${['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m2]}: ${positivo?'+':''}${fmt(resultado2)}</div>
+      <div class="perfil-destaque-desc">${varTxt}</div>
+    </div>
+  </div>`;
+  } else if(perfilType === 'fiscal'){
+    const fiscalOk = temDAS;
+    destaqueHTML = `<div class="perfil-destaque fiscal">
+    <span class="perfil-destaque-icon">${fiscalOk?'📋':'⚠️'}</span>
+    <div class="perfil-destaque-body">
+      <div class="perfil-destaque-title">${fiscalOk?'Obrigações fiscais: registros encontrados':'Obrigações fiscais: nenhum DAS registrado este mês'}</div>
+      <div class="perfil-destaque-desc">${fiscalOk?'Continue mantendo seus lançamentos fiscais em dia.':'Lembre-se de registrar o pagamento do DAS e demais obrigações.'} ${!temProLabore2?' Pró-labore também não foi lançado.':''}</div>
+    </div>
+  </div>`;
+  } else if(perfilType === 'crescimento'){
+    const crescendo = varRec !== null && varRec > 0;
+    const metaTxt = totalRec2 > 0 ? `Faturamento atual: ${fmt(totalRec2)}` : 'Nenhuma receita lançada ainda este mês';
+    destaqueHTML = `<div class="perfil-destaque crescimento">
+    <span class="perfil-destaque-icon">${crescendo?'🚀':'🎯'}</span>
+    <div class="perfil-destaque-body">
+      <div class="perfil-destaque-title">${crescendo?`Crescimento de ${varRec.toFixed(0)}% vs mês anterior!`:varRec!==null?`Queda de ${Math.abs(varRec).toFixed(0)}% vs mês anterior`:'Acompanhe seu crescimento'}</div>
+      <div class="perfil-destaque-desc">${metaTxt}${recAnt>0?` · Mês anterior: ${fmt(recAnt)}`:''}</div>
+    </div>
+  </div>`;
+  }
+
+  // Inserir destaque no topo do dashboard
+  const destaqueEl = document.getElementById('dash-perfil-destaque');
+  if(destaqueEl) destaqueEl.innerHTML = destaqueHTML;
+
+  // Reordenar CTAs por perfil
+  const ctasEl2 = document.getElementById('dash-ctas');
+  if(ctasEl2 && perfilType){
+    const meses3=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const pendentes3 = despesas.filter(d=>d.status==='Pendente').length;
+    let ctas2 = [];
+    if(perfilType === 'fiscal'){
+      if(!temDAS) ctas2.push({icon:'📋',label:'Registrar pagamento do DAS',sub:'Nenhum DAS lançado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+      if(!temProLabore2 && despesas.length>0) ctas2.push({icon:'💼',label:'Lançar pró-labore de '+meses3[m2],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+      ctas2.push({icon:'➕',label:'Lançar despesa ou receita',sub:'Registrar novo lançamento',cls:'',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+      if(pendentes3>0) ctas2.push({icon:'⏳',label:pendentes3+' lançamento'+(pendentes3>1?'s':'')+' pendente'+(pendentes3>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
+      ctas2.push({icon:'📄',label:'Ver declaração anual',sub:'DASN e obrigações fiscais',cls:'',action:"showPage('dasn',document.getElementById('nav-dasn'))"});
+    } else if(perfilType === 'crescimento'){
+      ctas2.push({icon:'💰',label:'Lançar receitas do mês',sub:totalRec2>0?`${fmt(totalRec2)} registrados`:'Nenhuma receita ainda',cls:totalRec2===0?'warn':'',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
+      ctas2.push({icon:'📈',label:'Ver relatórios e tendências',sub:'Análise de crescimento por IA',cls:'',action:"showPage('relatorio',document.getElementById('nav-relatorio'))"});
+      ctas2.push({icon:'➕',label:'Lançar despesa ou receita',sub:'Registrar novo lançamento',cls:'',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+      ctas2.push({icon:'📊',label:'Ver DRE completo',sub:'Resultado detalhado do período',cls:'',action:"showPage('dre',document.getElementById('nav-dre'))"});
+    } else {
+      if(!temProLabore2 && despesas.length>0) ctas2.push({icon:'💼',label:'Lançar pró-labore de '+meses3[m2],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+      if(totalRec2===0) ctas2.push({icon:'💰',label:'Lançar receitas do mês',sub:'Nenhuma receita registrada ainda',cls:'warn',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
+      ctas2.push({icon:'➕',label:'Lançar despesa ou receita',sub:'Registrar novo lançamento',cls:'',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+      if(pendentes3>0) ctas2.push({icon:'⏳',label:pendentes3+' lançamento'+(pendentes3>1?'s':'')+' pendente'+(pendentes3>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
+      ctas2.push({icon:'📊',label:'Ver resumo completo',sub:'Despesas, receitas e centros de custo',cls:'',action:"showPage('centros',document.getElementById('nav-centros'))"});
+    }
+    ctasEl2.innerHTML='<div class="sec-title">Ações rápidas</div>'+ctas2.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
   }
   gerarAlertas();
 }
