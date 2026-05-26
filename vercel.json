@@ -1,14 +1,7 @@
 {
+  "outputDirectory": "public",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" },
-    { "source": "/sw.js", "destination": "/public/sw.js" },
-    { "source": "/manifest.json", "destination": "/public/manifest.json" },
-    { "source": "/pricing.html", "destination": "/public/pricing.html" },
-    { "source": "/pricing", "destination": "/public/pricing.html" },
-    { "source": "/admin", "destination": "/public/admin.html" },
-    { "source": "/admin.html", "destination": "/public/admin.html" },
-    { "source": "/beta", "destination": "/public/beta.html" },
-    { "source": "/beta.html", "destination": "/public/beta.html" },
-    { "source": "/:path*", "destination": "/public/index.html" }
+    { "source": "/:path*", "destination": "/index.html" }
   ]
 }
