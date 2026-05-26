@@ -1,14 +1,14 @@
 {
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/sw.js", "dest": "/public/sw.js" },
-    { "src": "/manifest.json", "dest": "/public/manifest.json" },
-    { "src": "/pricing.html", "dest": "/public/pricing.html" },
-    { "src": "/pricing", "dest": "/public/pricing.html" },
-    { "src": "/admin", "dest": "/public/admin.html" },
-    { "src": "/admin.html", "dest": "/public/admin.html" },
-    { "src": "/beta", "dest": "/public/beta.html" },
-    { "src": "/beta.html", "dest": "/public/beta.html" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/sw.js", "destination": "/public/sw.js" },
+    { "source": "/manifest.json", "destination": "/public/manifest.json" },
+    { "source": "/pricing.html", "destination": "/public/pricing.html" },
+    { "source": "/pricing", "destination": "/public/pricing.html" },
+    { "source": "/admin", "destination": "/public/admin.html" },
+    { "source": "/admin.html", "destination": "/public/admin.html" },
+    { "source": "/beta", "destination": "/public/beta.html" },
+    { "source": "/beta.html", "destination": "/public/beta.html" },
+    { "source": "/:path*", "destination": "/public/index.html" }
   ]
 }
