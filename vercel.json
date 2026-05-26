@@ -1,7 +1,15 @@
 {
-  "outputDirectory": "public",
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" },
-    { "source": "/((?!beta|pricing|admin|icons|sw\\.js|manifest\\.json).*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/sw.js", "dest": "/public/sw.js" },
+    { "src": "/manifest.json", "dest": "/public/manifest.json" },
+    { "src": "/icons/(.*)", "dest": "/public/icons/$1" },
+    { "src": "/pricing.html", "dest": "/public/pricing.html" },
+    { "src": "/pricing", "dest": "/public/pricing.html" },
+    { "src": "/admin.html", "dest": "/public/admin.html" },
+    { "src": "/admin", "dest": "/public/admin.html" },
+    { "src": "/beta.html", "dest": "/public/beta.html" },
+    { "src": "/beta", "dest": "/public/beta.html" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }
