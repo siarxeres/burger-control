@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Firma — Programa Beta</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--surface:#fff;--text:#1a1a18;--muted:#6b6b67;--hint:#9b9b96;
+  --accent:#d85a30;--accent-d:#b84820;--accent-bg:rgba(216,90,48,.08);
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-dark:#085041;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.15);
+  --r:16px;--shadow:0 2px 20px rgba(0,0,0,.07),0 0 0 .5px rgba(0,0,0,.05);
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
+
+/* HEADER */
+.header{background:#0B2D4E;padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-logo{display:flex;align-items:center;gap:10px}
+.header-logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.header-logo-name{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#fff}
+.header-badge{background:rgba(29,158,117,.25);border:1px solid rgba(29,158,117,.4);border-radius:100px;padding:4px 12px;font-size:12px;font-weight:600;color:#5DCAA5}
+
+/* HERO */
+.hero{background:#0B2D4E;padding:72px 40px 80px;text-align:center}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(29,158,117,.2);border:1px solid rgba(29,158,117,.35);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:600;color:#5DCAA5;margin-bottom:24px}
+.hero-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:#1D9E75}
+.hero-title{font-family:'Sora',sans-serif;font-size:42px;font-weight:800;color:#fff;line-height:1.15;letter-spacing:-.5px;margin-bottom:16px;max-width:640px;margin-left:auto;margin-right:auto}
+.hero-title span{color:#5DCAA5}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.6);max-width:520px;margin:0 auto 32px;line-height:1.7}
+.hero-spots{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:8px 18px;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:40px}
+.hero-spots strong{color:#fff}
+.hero-spots-bar{width:80px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
+.hero-spots-fill{height:100%;background:#1D9E75;border-radius:2px}
+
+/* BENEFICIOS */
+.section{padding:64px 40px;max-width:960px;margin:0 auto}
+.section-label{font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.section-title{font-family:'Sora',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:40px;line-height:1.3}
+.benefits-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:0}
+.benefit-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+.benefit-icon{font-size:28px;margin-bottom:12px}
+.benefit-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px}
+.benefit-desc{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* O QUE PEDIMOS */
+.troca{background:#fff;border-radius:var(--r);border:.5px solid var(--border);padding:32px;margin-bottom:48px;box-shadow:var(--shadow)}
+.troca-title{font-family:'Sora',sans-serif;font-size:18px;font-weight:700;margin-bottom:20px}
+.troca-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:.5px solid var(--border)}
+.troca-item:last-child{border-bottom:none}
+.troca-icon{font-size:18px;flex-shrink:0;margin-top:2px}
+.troca-text{font-size:14px;color:var(--muted);line-height:1.5}
+.troca-text strong{color:var(--text)}
+
+/* FORMULARIO */
+.form-section{background:#0B2D4E;padding:64px 40px}
+.form-wrap{max-width:560px;margin:0 auto}
+.form-eyebrow{font-size:11px;font-weight:700;color:#5DCAA5;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.form-title{font-family:'Sora',sans-serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:8px}
+.form-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:32px;line-height:1.6}
+.form-card{background:#fff;border-radius:var(--r);padding:32px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.form-control{width:100%;padding:11px 14px;border:.5px solid var(--border2);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+.form-control:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.12)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.btn-submit{width:100%;padding:14px;background:var(--green);border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;color:#fff;cursor:pointer;transition:background .15s;margin-top:8px}
+.btn-submit:hover{background:var(--green-dark)}
+.btn-submit:disabled{opacity:.5;pointer-events:none}
+.form-disclaimer{font-size:12px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.5}
+
+/* SUCESSO */
+.success-box{display:none;text-align:center;padding:32px 24px}
+.success-icon{font-size:48px;margin-bottom:16px}
+.success-title{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.btn-app{display:inline-block;padding:12px 28px;background:var(--green);border-radius:10px;font-size:14px;font-weight:600;color:#fff;text-decoration:none}
+
+/* FOOTER */
+.footer{background:#0B2D4E;padding:32px 40px;text-align:center}
+.footer-text{font-size:13px;color:rgba(255,255,255,.4)}
+
+@media(max-width:640px){
+  .hero{padding:48px 20px 56px}
+  .hero-title{font-size:28px}
+  .section{padding:48px 20px}
+  .form-section{padding:48px 20px}
+  .form-card{padding:24px 20px}
+  .form-row{grid-template-columns:1fr}
+  .header{padding:0 20px}
+  .footer{padding:24px 20px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">
+    <div class="header-logo-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></div>
+    <div class="header-logo-name">Minha Firma</div>
+  </div>
+  <div class="header-badge">Programa Beta</div>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow"><div class="hero-eyebrow-dot"></div>Acesso exclusivo — vagas limitadas</div>
+  <h1 class="hero-title">Seja um dos primeiros a<br><span>organizar sua firma</span><br>de verdade</h1>
+  <p class="hero-sub">Estamos selecionando 20 pequenas empresas para testar o Minha Firma gratuitamente por 60 dias e ajudar a moldar o produto.</p>
+  <div class="hero-spots">
+    <div class="hero-spots-bar"><div class="hero-spots-fill" id="spots-fill" style="width:0%"></div></div>
+    <span><strong id="spots-count">20</strong> vagas disponíveis</span>
+  </div>
+  <div>
+    <a href="#inscrever" class="btn-submit" style="display:inline-block;width:auto;padding:14px 36px;border-radius:10px;font-size:15px;font-weight:600;color:#fff;text-decoration:none;background:var(--green)">Quero participar do beta →</a>
+  </div>
+</section>
+
+<div style="max-width:960px;margin:0 auto">
+  <section class="section">
+    <div class="section-label">O que você ganha</div>
+    <div class="section-title">Acesso completo, sem custo, por 60 dias</div>
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon">💰</div>
+        <div class="benefit-title">Controle financeiro real</div>
+        <div class="benefit-desc">Saiba exatamente quanto entra, quanto sai e qual é o resultado do seu negócio a cada mês.</div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📄</div>
+        <div class="benefit-title">Obrigações fiscais em dia</div>
+        <div class="benefit-desc">DAS, DASN e pró-labore monitorados automaticamente — sem surpresa com a Receita Federal.</div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📊</div>
+        <div class="benefit-title">DRE e relatórios com IA</div>
+        <div class="benefit-desc">Demonstrativo de resultado completo e análises geradas por inteligência artificial para o seu negócio.</div>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🧾</div>
+        <div class="benefit-title">Lançamento por foto ou texto</div>
+        <div class="benefit-desc">Fotografe a nota fiscal ou descreva o gasto — a IA extrai os dados automaticamente.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="troca">
+      <div class="troca-title">O que pedimos em troca</div>
+      <div class="troca-item"><span class="troca-icon">💬</span><div class="troca-text"><strong>Feedback honesto</strong> — conte o que funciona, o que trava e o que falta no produto.</div></div>
+      <div class="troca-item"><span class="troca-icon">⏱️</span><div class="troca-text"><strong>Usar por pelo menos 30 dias</strong> — precisamos de uso real para melhorar o produto.</div></div>
+      <div class="troca-item"><span class="troca-icon">⭐</span><div class="troca-text"><strong>Depoimento ao final</strong> — se gostar, um depoimento curto sobre sua experiência.</div></div>
+      <div class="troca-item"><span class="troca-icon">🤝</span><div class="troca-text"><strong>Sem compromisso de compra</strong> — você não é obrigado a assinar depois do beta.</div></div>
+    </div>
+  </section>
+</div>
+
+<section class="form-section" id="inscrever">
+  <div class="form-wrap">
+    <div class="form-eyebrow">Inscrição</div>
+    <div class="form-title">Quero participar do beta</div>
+    <div class="form-sub">Preencha os dados abaixo. Entraremos em contato para confirmar sua vaga.</div>
+    <div class="form-card">
+      <div id="form-content">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nome completo</label>
+            <input type="text" class="form-control" id="b-nome" placeholder="Seu nome">
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" class="form-control" id="b-whatsapp" placeholder="(00) 00000-0000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input type="email" class="form-control" id="b-email" placeholder="seu@email.com">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nome da empresa</label>
+            <input type="text" class="form-control" id="b-empresa" placeholder="Nome da sua firma">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Segmento</label>
+            <select class="form-control" id="b-segmento">
+              <option value="">Selecionar...</option>
+              <option>Alimentação / Restaurante</option>
+              <option>Comércio / Varejo</option>
+              <option>Serviços / Consultoria</option>
+              <option>Saúde / Bem-estar</option>
+              <option>Beleza / Estética</option>
+              <option>Construção / Reformas</option>
+              <option>Transporte / Logística</option>
+              <option>Tecnologia</option>
+              <option>Educação</option>
+              <option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Por que quer participar?</label>
+          <textarea class="form-control" id="b-motivo" rows="3" placeholder="Conte brevemente o maior desafio financeiro da sua empresa hoje..." style="resize:vertical"></textarea>
+        </div>
+        <button class="btn-submit" id="btn-inscrever" onclick="inscreverBeta()">Quero minha vaga no beta →</button>
+        <div class="form-disclaimer">Seus dados são confidenciais e não serão compartilhados. Responderemos em até 24h.</div>
+      </div>
+      <div class="success-box" id="success-box">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Inscrição recebida!</div>
+        <div class="success-sub">Obrigado por se inscrever no programa beta do Minha Firma. Entraremos em contato pelo WhatsApp em até 24 horas para confirmar sua vaga.</div>
+        <a href="https://minhafirma.app" class="btn-app">Conhecer o app →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-text">© 2026 Minha Firma — Gestão inteligente para pequenas empresas</div>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://wxmkjnfiggwxefyhccqv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bWtqbmZpZ2d3eGVmeWhjY3F2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NTczMTksImV4cCI6MjA5MjEzMzMxOX0.3TWRrufebRD6ZAIVOgSoY3Uv5RiXxpOGIYchCrNVwHo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TOTAL_VAGAS = 20;
+
+async function carregarVagas(){
+  const { count } = await sb.from('beta_inscritos').select('*', { count: 'exact', head: true });
+  const inscritos = count || 0;
+  const disponiveis = Math.max(0, TOTAL_VAGAS - inscritos);
+  const pct = Math.round((inscritos / TOTAL_VAGAS) * 100);
+  document.getElementById('spots-count').textContent = disponiveis;
+  document.getElementById('spots-fill').style.width = pct + '%';
+  if(disponiveis === 0){
+    document.getElementById('btn-inscrever').textContent = 'Vagas esgotadas';
+    document.getElementById('btn-inscrever').disabled = true;
+  }
+}
+
+async function inscreverBeta(){
+  const nome = document.getElementById('b-nome').value.trim();
+  const whatsapp = document.getElementById('b-whatsapp').value.trim();
+  const email = document.getElementById('b-email').value.trim();
+  const empresa = document.getElementById('b-empresa').value.trim();
+  const segmento = document.getElementById('b-segmento').value;
+  const motivo = document.getElementById('b-motivo').value.trim();
+
+  if(!nome){ alert('Informe seu nome.'); return; }
+  if(!whatsapp){ alert('Informe seu WhatsApp.'); return; }
+  if(!email){ alert('Informe seu e-mail.'); return; }
+  if(!empresa){ alert('Informe o nome da empresa.'); return; }
+  if(!segmento){ alert('Selecione o segmento.'); return; }
+
+  const btn = document.getElementById('btn-inscrever');
+  btn.textContent = 'Enviando...';
+  btn.disabled = true;
+
+  const { error } = await sb.from('beta_inscritos').insert({
+    nome, whatsapp, email, empresa, segmento, motivo,
+    created_at: new Date().toISOString()
+  });
+
+  if(error){
+    alert('Erro ao enviar: ' + error.message);
+    btn.textContent = 'Quero minha vaga no beta →';
+    btn.disabled = false;
+    return;
+  }
+
+  document.getElementById('form-content').style.display = 'none';
+  document.getElementById('success-box').style.display = 'block';
+  carregarVagas();
+}
+
+carregarVagas();
+</script>
+</body>
+</html>
