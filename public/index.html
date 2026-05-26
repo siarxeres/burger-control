@@ -2327,24 +2327,17 @@ function updateFooter(){
   const isGratis = true;
 
   const sfResultado = document.getElementById('sf-resultado');
-  if(isGratis){
-    const m=now.getMonth(), a=now.getFullYear();
-    const totalDesp = despesas.filter(d=>{ const dt=new Date(d.data); return dt.getMonth()===m&&dt.getFullYear()===a&&d.status!=='Rejeitado'; }).reduce((s,d)=>s+d.valor,0);
-    const totalRec  = receitas.filter(r=>{ const dt=new Date(r.data); return dt.getMonth()===m&&dt.getFullYear()===a; }).reduce((s,r)=>s+r.valor,0);
-    const resultado = totalRec - totalDesp;
-    if(sfResultado) sfResultado.style.display='block';
-    document.getElementById('sf-period').textContent = mesLabel;
-    document.getElementById('sf-resultado-label').textContent = resultado>=0?'✅ Resultado do mês':'⚠️ Resultado do mês';
-    amountEl.textContent = (resultado>=0?'+':'')+fmt(resultado);
-    amountEl.style.color = resultado>=0?'var(--green)':'var(--red)';
-    sfResultado.style.borderColor = resultado>=0?'var(--green-border)':'rgba(163,45,45,.3)';
-    sfResultado.style.background = resultado>=0?'var(--green-bg)':'var(--red-bg)';
-  } else {
-    if(sfResultado) sfResultado.style.display='none';
-    document.getElementById('sf-period').textContent = mesLabel;
-    amountEl.textContent = fmt(despesas.reduce((s,d)=>s+d.valor,0));
-    amountEl.style.color='';
-  }
+  const m=now.getMonth(), a=now.getFullYear();
+  const totalDespMes = despesas.filter(d=>{ const dt=new Date(d.data); return dt.getMonth()===m&&dt.getFullYear()===a&&d.status!=='Rejeitado'; }).reduce((s,d)=>s+d.valor,0);
+  const totalRecMes  = receitas.filter(r=>{ const dt=new Date(r.data); return dt.getMonth()===m&&dt.getFullYear()===a; }).reduce((s,r)=>s+r.valor,0);
+  const resultado = totalRecMes - totalDespMes;
+  if(sfResultado) sfResultado.style.display='block';
+  document.getElementById('sf-period').textContent = mesLabel;
+  document.getElementById('sf-resultado-label').textContent = resultado>=0?'✅ Resultado do mês':'⚠️ Resultado do mês';
+  amountEl.textContent = (resultado>=0?'+':'')+fmt(resultado);
+  amountEl.style.color = resultado>=0?'var(--green)':'var(--red)';
+  sfResultado.style.borderColor = resultado>=0?'var(--green-border)':'rgba(163,45,45,.3)';
+  sfResultado.style.background = resultado>=0?'var(--green-bg)':'var(--red-bg)';
   // Mostrar uso do plano no sidebar
   if(currentPlano && !isAdmin()){
     const meusLanc = despesas.filter(d=>d.user_id===currentUser?.id).length;
