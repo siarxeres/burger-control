@@ -2,6 +2,6 @@
   "outputDirectory": "public",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" },
-    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+    { "source": "/((?!beta|pricing|admin|icons|sw\\.js|manifest\\.json).*)", "destination": "/index.html" }
   ]
 }
