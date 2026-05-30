@@ -140,30 +140,30 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 - Dark mode automático e layout responsivo
 - Páginas `/pricing` e `/beta`
 - Painel `/admin` (estrutura e UI presentes)
+- Trava de trial/plano aplicada em todos os pontos de lançamento: despesa empresarial, receita, despesa pessoal, orçamento e importação CSV/IA (guard `podeLancar()` no início de cada função, com exceção para admin)
+- Arquivos duplicados/obsoletos da raiz removidos (index.html vazio e pricing.html antigo da marca "Food Control"); produção servida exclusivamente da pasta public/
 
 ---
 
 ## Pendências
 
-- **Painel admin** — estrutura criada, funcionalidade incompleta (gestão de usuários, CRUD de planos, config do sistema com WhatsApp/PIX)
+- **Painel admin** — majoritariamente funcional: gestão de usuários (plano/role), CRUD de planos e CRUD de centros de custo já gravam no Supabase. Falta apenas a "config do sistema" (WhatsApp/PIX), que ainda não persiste dados.
 - **Múltiplas unidades (Enterprise)** — mencionada no plano, sem implementação visível
-- **Notificações email/WhatsApp** — campos de config existem no admin, integração não feita
-- **Recuperação de senha** — fluxo de reset não identificado no código
-- **2FA / MFA** — não implementado
-- **Gestão de equipe/colaboradores** — sem tela de convite ou multi-usuário por empresa
-- **Webhooks adicionais do Supabase** — além do pagamento
-- **Testes automatizados** — nenhum arquivo de teste encontrado
+- **Notificações email/WhatsApp** — campos de config existem no admin; confirmado que não há integração real (nenhuma chamada a serviço de email/WhatsApp nas funções de API)
+- **Recuperação de senha** — confirmado: não existe no código
+- **2FA / MFA** — não implementado (confirmado)
+- **Gestão de equipe/colaboradores** — confirmado: sem tela de convite ou multi-usuário por empresa
+- **Webhooks adicionais do Supabase** — além do de pagamento
+- **Testes automatizados** — confirmado: nenhum arquivo de teste
 - **Asaas em produção** — completar o cadastro no Asaas para ativar processamento real
 
 ---
 
 ## Bugs conhecidos
 
-- **`index.html` duplicado na raiz** — existe um `index.html` na raiz separado de `public/index.html`. O `vercel.json` roteia `/*` para `public/index.html`, mas o arquivo da raiz pode interferir.
-- **`pricing.html` duplicado** — existe em `public/pricing.html` e na raiz; risco de dessincronia.
-- **Admin sem gate de auth robusto** — `admin.html` tem lógica de auth própria em desenvolvimento; não está claro se a rota `/admin` está protegida no servidor.
-- **FIXME em `index.html:2701`** — correção pendente em função de análise de CSV (conteúdo exato não detalhado).
-- **Trial expirado não bloqueia totalmente** — `isStarterLimitado` restringe novos lançamentos, mas a consistência do bloqueio pela SPA não foi auditada.
+_Última auditoria de código: 30/05/2026. Brecha de trial e arquivos duplicados corrigidos em 30/05/2026._
+
+- **CRÍTICO — Rota /admin sem proteção no servidor** — vercel.json entrega admin.html para qualquer requisição; a checagem de role roda apenas no JavaScript do cliente após o carregamento. Não há middleware nem Edge Function bloqueando /admin.
 
 ---
 
