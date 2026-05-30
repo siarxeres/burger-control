@@ -2855,6 +2855,8 @@ async function confirmarCSVImport(){
     .filter(Boolean);
 
   if(!selecionados.length){ toast('⚠ Selecione ao menos um lançamento.'); return; }
+  // Verificações de plano
+  if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
 
   const btn = document.querySelector('[onclick="confirmarCSVImport()"]');
   btn.disabled = true;
@@ -3089,6 +3091,8 @@ async function salvarPessoal(){
     const confirma = confirm(`⚠️ A data informada é futura (${fmtDate(data)}).\n\nIsso pode ser um erro de digitação.\nConfirma o lançamento mesmo assim?`);
     if(!confirma) return;
   }
+  // Verificações de plano
+  if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
 
   const item = {
     user_id: currentUser.id, tipo, descricao, categoria, valor, data,
@@ -3385,6 +3389,8 @@ function openModalReceita(editId = null){
     const confirma = confirm(`⚠️ A data informada é futura (${fmtDate(data)}).\n\nIsso pode ser um erro de digitação.\nConfirma o lançamento mesmo assim?`);
     if(!confirma) return;
   }
+  // Verificações de plano
+  if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
   const item = {
     user_id: currentUser.id, descricao, categoria,
     canal: document.getElementById('mr-canal').value,
@@ -3898,6 +3904,8 @@ async function salvarOrcamento(orcId){
   const valor = parseFloat(valorRaw);
   if(!ref){toast('⚠ Selecione a referência.');return;}
   if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
+  // Verificações de plano
+  if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
 
   const periodo = document.getElementById('orc-periodo').value;
   const mes = parseInt(document.getElementById('orc-mes').value);
