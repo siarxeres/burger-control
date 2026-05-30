@@ -121,41 +121,43 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 
 ## Concluído
 
-- Autenticação completa (login, cadastro, logout, sessão)
-- Onboarding com seleção de perfil (3 passos)
-- Dashboard com KPIs e 10 alertas inteligentes
-- Lançamento manual de despesas e receitas, incluindo recorrentes
-- Scan IA de cupons fiscais com preenchimento automático
-- Importação CSV com interpretação por IA (múltiplos formatos)
-- Exportação CSV (despesas, receitas, finanças pessoais)
-- Centros de custo com distribuição visual
-- DRE empresarial e pessoal
-- DASN para MEI/ME
-- Orçado vs Realizado
-- Relatórios IA (resumo executivo, anomalias, tendências, sugestões)
-- Finanças pessoais (dashboard, extrato, DRE)
-- Sistema de planos com gates + trial Starter de 30 dias
-- Integração Asaas (criação de assinatura) + webhook de ativação
-- PWA instalável com Service Worker e cache offline
-- Dark mode automático e layout responsivo
-- Páginas `/pricing` e `/beta`
-- Painel `/admin` (estrutura e UI presentes)
-- Trava de trial/plano aplicada em todos os pontos de lançamento: despesa empresarial, receita, despesa pessoal, orçamento e importação CSV/IA (guard `podeLancar()` no início de cada função, com exceção para admin)
-- Arquivos duplicados/obsoletos da raiz removidos (index.html vazio e pricing.html antigo da marca "Food Control"); produção servida exclusivamente da pasta public/
+- ✅ Autenticação completa (login, cadastro, logout, sessão)
+- ✅ Onboarding com seleção de perfil (3 passos)
+- ✅ Dashboard com KPIs e 10 alertas inteligentes
+- ✅ Lançamento manual de despesas e receitas, incluindo recorrentes
+- ✅ Scan IA de cupons fiscais com preenchimento automático
+- ✅ Importação CSV com interpretação por IA (múltiplos formatos)
+- ✅ Exportação CSV (despesas, receitas, finanças pessoais)
+- ✅ Centros de custo com distribuição visual
+- ✅ DRE empresarial e pessoal
+- ✅ DASN para MEI/ME
+- ✅ Orçado vs Realizado
+- ✅ Relatórios IA (resumo executivo, anomalias, tendências, sugestões)
+- ✅ Finanças pessoais (dashboard, extrato, DRE)
+- ✅ Sistema de planos com gates + trial Starter de 30 dias
+- ✅ Integração Asaas (criação de assinatura) + webhook de ativação
+- ✅ PWA instalável com Service Worker e cache offline
+- ✅ Dark mode automático e layout responsivo
+- ✅ Páginas /pricing e /beta
+- ✅ Painel /admin majoritariamente funcional (gestão de usuários, CRUD de planos e CRUD de centros de custo gravando no Supabase)
+- ✅ Brecha do trial corrigida: guard `podeLancar()` em todos os 5 pontos de lançamento (despesa empresarial, receita, despesa pessoal, orçamento, importação CSV/IA)
+- ✅ Arquivos duplicados/obsoletos removidos da raiz (index.html vazio e pricing.html antigo "Food Control"); produção servida só de public/
 
 ---
 
 ## Pendências
 
-- **Painel admin** — majoritariamente funcional: gestão de usuários (plano/role), CRUD de planos e CRUD de centros de custo já gravam no Supabase. Falta apenas a "config do sistema" (WhatsApp/PIX), que ainda não persiste dados.
-- **Múltiplas unidades (Enterprise)** — mencionada no plano, sem implementação visível
-- **Notificações email/WhatsApp** — campos de config existem no admin; confirmado que não há integração real (nenhuma chamada a serviço de email/WhatsApp nas funções de API)
-- **Recuperação de senha** — confirmado: não existe no código
-- **2FA / MFA** — não implementado (confirmado)
-- **Gestão de equipe/colaboradores** — confirmado: sem tela de convite ou multi-usuário por empresa
-- **Webhooks adicionais do Supabase** — além do de pagamento
-- **Testes automatizados** — confirmado: nenhum arquivo de teste
-- **Asaas em produção** — completar o cadastro no Asaas para ativar processamento real
+- ⬜ **Proteção do /admin no servidor** (CRÍTICO) — hoje a checagem de role roda só no cliente; rota não protegida no servidor
+- ⬜ **Teste prático do trial** — correção feita e em produção; teste manual pendente para 31/05 (conta de teste expira naturalmente). Verificar também se o banner "X dias restantes" usa o mesmo cálculo do bloqueio.
+- ⬜ **Asaas em produção** — completar cadastro na plataforma Asaas para ativar processamento real
+- ⬜ **Config do sistema no admin** (WhatsApp/PIX) — única parte do admin que ainda não persiste dados
+- ⬜ Notificações email/WhatsApp — campos de UI existem, integração não feita
+- ⬜ Recuperação de senha — não existe no código
+- ⬜ 2FA / MFA — não implementado
+- ⬜ Múltiplas unidades (Enterprise) — sem implementação visível
+- ⬜ Gestão de equipe/colaboradores — sem convite ou multiusuário por empresa
+- ⬜ Webhooks adicionais do Supabase — além do de pagamento
+- ⬜ Testes automatizados — nenhum
 
 ---
 
