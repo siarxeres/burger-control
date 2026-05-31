@@ -139,7 +139,8 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 - ✅ PWA instalável com Service Worker e cache offline
 - ✅ Dark mode automático e layout responsivo
 - ✅ Páginas /pricing e /beta
-- ✅ Painel /admin majoritariamente funcional (gestão de usuários, CRUD de planos e CRUD de centros de custo gravando no Supabase)
+- ✅ Painel /admin funcional e autenticado — usa Supabase Auth real (`signInWithPassword`) + verificação de papel via RPC `get_my_role`; sem credenciais de admin embutidas no código; gestão de usuários, CRUD de planos e centros de custo gravando no Supabase
+- ✅ Proteção do /admin auditada (31/05/2026) — dados protegidos por RLS no Supabase (todas as tabelas sensíveis com policy por dono ou por papel admin via `get_my_role`); casca do painel protegida no cliente (redireciona/exige login antes de exibir). Não é mais um item crítico.
 - ✅ Brecha do trial corrigida: guard `podeLancar()` em todos os 5 pontos de lançamento (despesa empresarial, receita, despesa pessoal, orçamento, importação CSV/IA)
 - ✅ Arquivos duplicados/obsoletos removidos da raiz (index.html vazio e pricing.html antigo "Food Control"); produção servida só de public/
 
@@ -147,7 +148,6 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 
 ## Pendências
 
-- ⬜ **Proteção do /admin no servidor** (CRÍTICO) — hoje a checagem de role roda só no cliente; rota não protegida no servidor
 - ⬜ **Teste prático do trial** — correção feita e em produção; teste manual pendente para 31/05 (conta de teste expira naturalmente). Verificar também se o banner "X dias restantes" usa o mesmo cálculo do bloqueio.
 - ⬜ **Asaas em produção** — completar cadastro na plataforma Asaas para ativar processamento real
 - ⬜ **Config do sistema no admin** (WhatsApp/PIX) — única parte do admin que ainda não persiste dados
@@ -163,9 +163,7 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 
 ## Bugs conhecidos
 
-_Última auditoria de código: 30/05/2026. Brecha de trial e arquivos duplicados corrigidos em 30/05/2026._
-
-- **CRÍTICO — Rota /admin sem proteção no servidor** — vercel.json entrega admin.html para qualquer requisição; a checagem de role roda apenas no JavaScript do cliente após o carregamento. Não há middleware nem Edge Function bloqueando /admin.
+_Última auditoria de código: 31/05/2026. Brecha de trial e arquivos duplicados corrigidos em 30/05/2026. Auditoria de segurança do /admin concluída em 31/05/2026 — ver seção Concluído._
 
 ---
 
