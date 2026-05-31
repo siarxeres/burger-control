@@ -24,9 +24,25 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
 
+  /* VERIFICAÇÃO DE ACESSO */
+  #checking-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 14px;
+  }
+  .check-spinner {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    animation: giro .8s linear infinite;
+  }
+  @keyframes giro { to { transform: rotate(360deg); } }
+  .check-label { color: var(--text2); font-size: 13px; letter-spacing: .3px; }
+
   /* LOGIN */
   #login-screen {
-    display: flex; align-items: center; justify-content: center;
+    display: none; align-items: center; justify-content: center;
     min-height: 100vh;
     background: radial-gradient(ellipse at 60% 40%, #1a1440 0%, #0f1117 70%);
   }
@@ -256,6 +272,12 @@
 </style>
 </head>
 <body>
+
+<!-- VERIFICAÇÃO DE ACESSO -->
+<div id="checking-screen">
+  <div class="check-spinner"></div>
+  <p class="check-label">Verificando acesso...</p>
+</div>
 
 <!-- LOGIN -->
 <div id="login-screen">
@@ -661,15 +683,16 @@ async function fazerLogout(){
 
 async function verificarSessao(){
   const { data: { session } } = await sb.auth.getSession();
-  if(!session) return;
+  if(!session){ location.href = '/'; return; }
   const { data: prof } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
-  if(!prof || !isAdmin(prof)) return;
+  if(!prof || !isAdmin(prof)){ location.href = '/'; return; }
   currentUser = session.user;
   currentProfile = prof;
   iniciarApp();
 }
 
 function iniciarApp(){
+  document.getElementById('checking-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('admin-app').style.display = 'block';
   document.getElementById('admin-name').textContent = currentProfile.full_name || currentUser.email;
