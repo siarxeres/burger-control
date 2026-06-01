@@ -1247,12 +1247,12 @@ async function doLogin(){
     if(error){ errEl.textContent = traduzirErro(error.message); errEl.classList.add('show'); btnEl.textContent='Entrar'; btnEl.disabled=false; return; }
     if(data?.user){
       currentUser = data.user;
-      await loadProfile();
+      const onboarding = await loadProfile();
       await loadPlanos();
       await loadCentros();
       await loadDespesas();
       await loadReceitas();
-      initApp();
+      if(!onboarding) initApp();
     }
   } catch(e) {
     errEl.textContent = 'Erro de conexão: ' + e.message;
@@ -1301,26 +1301,27 @@ function traduzirErro(msg){
   const { data: { session } } = await sb.auth.getSession();
   if(session?.user){
     currentUser = session.user;
-    await loadProfile();
+    const onboarding = await loadProfile();
     await loadPlanos();
     await loadCentros();
     await loadDespesas();
     await loadReceitas();
-    initApp();
+    if(!onboarding) initApp();
   }
 })();
 
 async function loadProfile(){
   const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
-  if(data) currentProfile = data;
-  if(data && !data.profile_type){ showOnboarding(); return; }
-  else {
-    const name = currentUser.user_metadata?.full_name || currentUser.email;
-    await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'gratis' });
-    currentProfile = { id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'gratis', scans_mes: 0 };
-    showOnboarding();
-    return;
+  if(data){
+    currentProfile = data;
+    if(!data.profile_type){ showOnboarding(); return true; }
+    return false;
   }
+  const name = currentUser.user_metadata?.full_name || currentUser.email;
+  await sb.from('profiles').insert({ id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'gratis' });
+  currentProfile = { id: currentUser.id, email: currentUser.email, full_name: name, role: 'operador', plano: 'gratis', scans_mes: 0 };
+  showOnboarding();
+  return true;
 }
 
 async function loadPlanos(){
@@ -1502,6 +1503,7 @@ function obPular(){
 
 function initApp(){
   document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('onboarding-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('sf-user').textContent = currentProfile?.full_name || currentUser.email;
   const roleEl = document.getElementById('sf-role');
