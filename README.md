@@ -145,12 +145,13 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 - ✅ Arquivos duplicados/obsoletos removidos da raiz (index.html vazio e pricing.html antigo "Food Control"); produção servida só de public/
 - ✅ Bug de onboarding e dashboard aparecendo juntos após login corrigido (01/06/2026) — `loadProfile()` retorna flag; `doLogin()` e IIFE de sessão só chamam `initApp()` quando onboarding não foi acionado; `initApp()` garante `onboarding-screen` oculto. Telas agora mutuamente exclusivas.
 - ✅ Lógica de trial corrigida e em produção (01/06/2026) — trial de 30 dias pertence ao plano Grátis (acesso total na janela; após 30 dias vira Grátis restrito); planos pagos (Starter/Pro/Enterprise) nunca expiram; banner e bloqueio usam a mesma base de datas (`created_at`).
+- ✅ Webhook do Asaas protegido (01/06/2026) — `webhook-asaas.js` agora valida o header `asaas-access-token` (comparação segura via `crypto.timingSafeEqual`); rejeita com 401 qualquer chamada sem o token correto. Token configurado no Asaas (produção) e na Vercel (`ASAAS_WEBHOOK_TOKEN`, Production). Tranca testada: chamada sem token retorna 401. Commit `d6cacec`.
 
 ---
 
 ## Pendências
 
-- ⬜ **Asaas em produção** — completar cadastro na plataforma Asaas para ativar processamento real
+- ⬜ **Asaas — validar fluxo no 1º pagamento real** — cadastro de produção concluído e webhook protegido; falta confirmar ativação de plano ponta a ponta quando ocorrer o primeiro pagamento real (verificar 200 nos Logs de Webhooks do Asaas).
 - ⬜ **Config do sistema no admin** (WhatsApp/PIX) — única parte do admin que ainda não persiste dados
 - ⬜ Notificações email/WhatsApp — campos de UI existem, integração não feita
 - ⬜ Recuperação de senha — não existe no código
@@ -164,7 +165,7 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 
 ## Bugs conhecidos
 
-_Última auditoria de código: 01/06/2026. Bug de telas empilhadas (onboarding + dashboard) e lógica de trial corrigidos em 01/06/2026 — ver seção Concluído. Auditoria de segurança do /admin concluída em 31/05/2026._
+_Última auditoria de código: 01/06/2026. Bug de telas empilhadas (onboarding + dashboard) e lógica de trial corrigidos em 01/06/2026 — ver seção Concluído. Auditoria de segurança do /admin concluída em 31/05/2026. Em 01/06/2026 também: webhook do Asaas protegido com validação de token (commit d6cacec)._
 
 ---
 
