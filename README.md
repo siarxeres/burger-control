@@ -47,7 +47,7 @@ Sem bundler ou NPM — dependências via CDN (Supabase JS v2).
 | Pro | R$ 44,90 | R$ 36 |
 | Enterprise | R$ 69,90 | R$ 56 |
 
-Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm *gates* por plano (ex.: scan IA bloqueado no Grátis).
+Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a janela; após 30 dias vira Grátis restrito). Planos pagos (Starter/Pro/Enterprise) nunca expiram. Recursos têm *gates* por plano (ex.: scan IA bloqueado no Grátis expirado).
 
 ---
 
@@ -63,7 +63,7 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 
 **Público / pré-app**
 - `#auth-screen` — login / cadastro (Supabase)
-- `#onboarding-screen` — seleção de perfil (3 passos) e config inicial
+- `#onboarding-screen` — onboarding de 2 passos: passo 1 escolhe o foco (Financeiro / Fiscal / Crescimento), passo 2 confirma o perfil e exibe checklist de boas-vindas
 
 **Seção Empresa (modo padrão)**
 - `dashboard` — KPIs do mês, alertas inteligentes, últimos lançamentos
@@ -90,7 +90,7 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 1. Acessa o app → `#auth-screen`
 2. Email + senha → Criar conta
 3. Supabase cria o usuário; sistema cria `profile` com `role = 'operador'` e plano `gratis`
-4. Sem `profile_type`, exibe onboarding de 3 passos (escolha de perfil)
+4. Sem `profile_type`, exibe onboarding de 2 passos: passo 1 = escolha de foco; passo 2 = confirmação do perfil
 5. Ao concluir, carrega os dados e exibe o dashboard
 
 ### Lançar despesa (manual)
@@ -122,7 +122,7 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 ## Concluído
 
 - ✅ Autenticação completa (login, cadastro, logout, sessão)
-- ✅ Onboarding com seleção de perfil (3 passos)
+- ✅ Onboarding com seleção de perfil (2 passos)
 - ✅ Dashboard com KPIs e 10 alertas inteligentes
 - ✅ Lançamento manual de despesas e receitas, incluindo recorrentes
 - ✅ Scan IA de cupons fiscais com preenchimento automático
@@ -134,7 +134,7 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 - ✅ Orçado vs Realizado
 - ✅ Relatórios IA (resumo executivo, anomalias, tendências, sugestões)
 - ✅ Finanças pessoais (dashboard, extrato, DRE)
-- ✅ Sistema de planos com gates + trial Starter de 30 dias
+- ✅ Sistema de planos com gates + trial de 30 dias no plano Grátis
 - ✅ Integração Asaas (criação de assinatura) + webhook de ativação
 - ✅ PWA instalável com Service Worker e cache offline
 - ✅ Dark mode automático e layout responsivo
@@ -143,12 +143,13 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 - ✅ Proteção do /admin auditada (31/05/2026) — dados protegidos por RLS no Supabase (todas as tabelas sensíveis com policy por dono ou por papel admin via `get_my_role`); casca do painel protegida no cliente (redireciona/exige login antes de exibir). Não é mais um item crítico.
 - ✅ Brecha do trial corrigida: guard `podeLancar()` em todos os 5 pontos de lançamento (despesa empresarial, receita, despesa pessoal, orçamento, importação CSV/IA)
 - ✅ Arquivos duplicados/obsoletos removidos da raiz (index.html vazio e pricing.html antigo "Food Control"); produção servida só de public/
+- ✅ Bug de onboarding e dashboard aparecendo juntos após login corrigido (01/06/2026) — `loadProfile()` retorna flag; `doLogin()` e IIFE de sessão só chamam `initApp()` quando onboarding não foi acionado; `initApp()` garante `onboarding-screen` oculto. Telas agora mutuamente exclusivas.
+- ✅ Lógica de trial corrigida e em produção (01/06/2026) — trial de 30 dias pertence ao plano Grátis (acesso total na janela; após 30 dias vira Grátis restrito); planos pagos (Starter/Pro/Enterprise) nunca expiram; banner e bloqueio usam a mesma base de datas (`created_at`).
 
 ---
 
 ## Pendências
 
-- ⬜ **Teste prático do trial** — correção feita e em produção; teste manual pendente para 31/05 (conta de teste expira naturalmente). Verificar também se o banner "X dias restantes" usa o mesmo cálculo do bloqueio.
 - ⬜ **Asaas em produção** — completar cadastro na plataforma Asaas para ativar processamento real
 - ⬜ **Config do sistema no admin** (WhatsApp/PIX) — única parte do admin que ainda não persiste dados
 - ⬜ Notificações email/WhatsApp — campos de UI existem, integração não feita
@@ -163,7 +164,7 @@ Geridos pelo admin. Trial Starter de 30 dias com banner de alerta. Recursos têm
 
 ## Bugs conhecidos
 
-_Última auditoria de código: 31/05/2026. Brecha de trial e arquivos duplicados corrigidos em 30/05/2026. Auditoria de segurança do /admin concluída em 31/05/2026 — ver seção Concluído._
+_Última auditoria de código: 01/06/2026. Bug de telas empilhadas (onboarding + dashboard) e lógica de trial corrigidos em 01/06/2026 — ver seção Concluído. Auditoria de segurança do /admin concluída em 31/05/2026._
 
 ---
 
