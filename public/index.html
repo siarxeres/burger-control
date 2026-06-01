@@ -1142,6 +1142,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentProfile = null;
 let currentPlano = null;
+let emRecuperacaoSenha = false;
 
 function showTrialBanner(){
   if(isAdmin()) return;
@@ -1397,6 +1398,7 @@ async function doSalvarNovaSenha(){
   toast('✅ Senha atualizada com sucesso!');
   document.getElementById('reset-nova-pass').value = '';
   document.getElementById('reset-conf-pass').value = '';
+  emRecuperacaoSenha = false;
   const onboarding = await loadProfile();
   await loadPlanos();
   await loadCentros();
@@ -1408,6 +1410,7 @@ async function doSalvarNovaSenha(){
 // Listener para evento PASSWORD_RECOVERY do Supabase (chegada via link de email)
 sb.auth.onAuthStateChange((event, session) => {
   if(event === 'PASSWORD_RECOVERY'){
+    emRecuperacaoSenha = true;
     currentUser = session.user;
     showResetPasswordScreen();
   }
@@ -1416,6 +1419,7 @@ sb.auth.onAuthStateChange((event, session) => {
 // ══ SESSION — verifica sessão existente ao carregar a página ══
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
+  if(emRecuperacaoSenha) return;
   if(session?.user){
     currentUser = session.user;
     const onboarding = await loadProfile();
