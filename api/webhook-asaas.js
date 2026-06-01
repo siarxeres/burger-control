@@ -1,6 +1,21 @@
+import crypto from 'crypto';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST')
     return res.status(405).json({ error: 'Método não permitido' });
+
+  // Verifica se a chamada veio mesmo do Asaas (confere o token do header)
+  const tokenRecebido = req.headers['asaas-access-token'] || '';
+  const tokenEsperado = process.env.ASAAS_WEBHOOK_TOKEN || '';
+  const aBuf = Buffer.from(tokenRecebido);
+  const bBuf = Buffer.from(tokenEsperado);
+  if (
+    !tokenEsperado ||
+    aBuf.length !== bBuf.length ||
+    !crypto.timingSafeEqual(aBuf, bBuf)
+  ) {
+    return res.status(401).json({ error: 'Não autorizado' });
+  }
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceKey  = process.env.SUPABASE_SERVICE_KEY;
