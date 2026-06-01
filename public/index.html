@@ -398,6 +398,17 @@ tbody tr:hover td{background:var(--surface2)}
       <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
         Não tem conta? <span class="link" onclick="showView('signup')">Criar conta</span>
       </div>
+      <div style="text-align:center;margin-top:8px;font-size:13px">
+        <span class="link" onclick="toggleResetForm()" style="color:var(--accent)">Esqueci minha senha</span>
+      </div>
+      <div id="reset-form" style="display:none;margin-top:16px;border-top:.5px solid var(--border);padding-top:16px">
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">E-mail para recuperação</label>
+          <input type="email" class="form-control" id="reset-email" placeholder="seu@email.com">
+        </div>
+        <div class="auth-err" id="reset-err"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="doResetSenha()" id="btn-reset">Enviar link de recuperação</button>
+      </div>
     </div>
 
     <!-- SIGNUP -->
@@ -469,6 +480,43 @@ tbody tr:hover td{background:var(--surface2)}
         <button class="ob-btn ob-btn-secondary" onclick="obPular()">Pular por agora</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ══ RECUPERAÇÃO DE SENHA ══ -->
+<div id="reset-password-screen" class="auth-wrap" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+      </div>
+      <div>
+        <div class="auth-logo-name">Minha Firma</div>
+        <div class="auth-logo-sub">Inteligência para o seu negócio</div>
+      </div>
+    </div>
+    <div class="auth-title">Nova senha</div>
+    <div class="auth-sub">Escolha uma nova senha para sua conta</div>
+    <div class="auth-err" id="reset-pass-err"></div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Nova senha</label>
+      <div class="pass-wrap">
+        <input type="password" class="form-control" id="reset-nova-pass" placeholder="Mínimo 6 caracteres">
+        <button type="button" class="pass-eye" onclick="toggleSenha('reset-nova-pass',this)" tabindex="-1">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label class="form-label">Confirmar nova senha</label>
+      <div class="pass-wrap">
+        <input type="password" class="form-control" id="reset-conf-pass" placeholder="Repita a nova senha">
+        <button type="button" class="pass-eye" onclick="toggleSenha('reset-conf-pass',this)" tabindex="-1">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="doSalvarNovaSenha()" id="btn-salvar-nova-pass">Salvar nova senha</button>
   </div>
 </div>
 
@@ -1232,6 +1280,7 @@ function toggleSenha(inputId, btn){
 function showView(v){
   document.getElementById('view-login').style.display = v==='login'?'block':'none';
   document.getElementById('view-signup').style.display = v==='signup'?'block':'none';
+  if(v !== 'login') document.getElementById('reset-form').style.display = 'none';
 }
 
 async function doLogin(){
@@ -1295,6 +1344,74 @@ function traduzirErro(msg){
   if(msg.includes('already registered')) return 'Este e-mail já está cadastrado.';
   return msg;
 }
+
+// ══ RECUPERAÇÃO DE SENHA ══
+function toggleResetForm(){
+  const f = document.getElementById('reset-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function doResetSenha(){
+  const email = document.getElementById('reset-email').value.trim();
+  const errEl = document.getElementById('reset-err');
+  const btnEl = document.getElementById('btn-reset');
+  errEl.classList.remove('show');
+  if(!email){ errEl.textContent = 'Informe seu e-mail.'; errEl.classList.add('show'); return; }
+  btnEl.textContent = 'Enviando...';
+  btnEl.disabled = true;
+  try {
+    await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://minhafirma.app' });
+  } catch(e){
+    console.error('resetPasswordForEmail:', e);
+  }
+  toast('Se este email estiver cadastrado, enviamos um link de recuperação.', 4500);
+  btnEl.textContent = 'Enviar link de recuperação';
+  btnEl.disabled = false;
+}
+
+function showResetPasswordScreen(){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('onboarding-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('reset-password-screen').style.display = 'flex';
+}
+
+async function doSalvarNovaSenha(){
+  const nova = document.getElementById('reset-nova-pass').value;
+  const conf = document.getElementById('reset-conf-pass').value;
+  const errEl = document.getElementById('reset-pass-err');
+  const btnEl = document.getElementById('btn-salvar-nova-pass');
+  errEl.classList.remove('show');
+  if(nova.length < 6){ errEl.textContent = 'A senha deve ter pelo menos 6 caracteres.'; errEl.classList.add('show'); return; }
+  if(nova !== conf){ errEl.textContent = 'As senhas não coincidem.'; errEl.classList.add('show'); return; }
+  btnEl.textContent = 'Salvando...';
+  btnEl.disabled = true;
+  const { data, error } = await sb.auth.updateUser({ password: nova });
+  if(error){
+    errEl.textContent = 'Erro ao salvar senha. Tente novamente.';
+    errEl.classList.add('show');
+    btnEl.textContent = 'Salvar nova senha';
+    btnEl.disabled = false;
+    return;
+  }
+  toast('✅ Senha atualizada com sucesso!');
+  document.getElementById('reset-nova-pass').value = '';
+  document.getElementById('reset-conf-pass').value = '';
+  const onboarding = await loadProfile();
+  await loadPlanos();
+  await loadCentros();
+  await loadDespesas();
+  await loadReceitas();
+  if(!onboarding) initApp();
+}
+
+// Listener para evento PASSWORD_RECOVERY do Supabase (chegada via link de email)
+sb.auth.onAuthStateChange((event, session) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    currentUser = session.user;
+    showResetPasswordScreen();
+  }
+});
 
 // ══ SESSION — verifica sessão existente ao carregar a página ══
 (async () => {
@@ -1504,6 +1621,7 @@ function obPular(){
 function initApp(){
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('onboarding-screen').style.display = 'none';
+  document.getElementById('reset-password-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
   document.getElementById('sf-user').textContent = currentProfile?.full_name || currentUser.email;
   const roleEl = document.getElementById('sf-role');
