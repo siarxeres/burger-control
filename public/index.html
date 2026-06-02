@@ -475,9 +475,8 @@ tbody tr:hover td{background:var(--surface2)}
           <div style="font-size:13px;color:#5F5E5A;line-height:1.6;margin-bottom:4px">Configuração em <strong>2 passos rápidos</strong> — leva menos de 1 minuto.</div>
         </div>
       </div>
-      <div class="ob-footer">
+      <div class="ob-footer" style="justify-content:center">
         <button class="ob-btn ob-btn-primary" id="ob-btn-next" onclick="obNext()">Começar agora →</button>
-        <button class="ob-btn ob-btn-secondary" onclick="obPular()">Pular por agora</button>
       </div>
     </div>
   </div>
@@ -1613,11 +1612,6 @@ async function obFinalizar(){
     await sb.from('profiles').update({ profile_type: obPerfilSelecionado }).eq('id', currentUser.id);
     if(currentProfile) currentProfile.profile_type = obPerfilSelecionado;
   }
-  document.getElementById('onboarding-screen').style.display = 'none';
-  initApp();
-}
-
-function obPular(){
   document.getElementById('onboarding-screen').style.display = 'none';
   initApp();
 }
