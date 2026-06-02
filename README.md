@@ -57,7 +57,7 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 - `/*` → `public/index.html` — app principal (SPA)
 - `/beta` → `public/beta.html` — landing do programa beta com formulário
 - `/pricing` → `public/pricing.html` — planos e preços
-- `/admin` → `public/admin.html` — painel administrativo
+- `/admin` → `public/admin.html` — painel administrativo (acesso: https://minhafirma.app/admin — login próprio)
 
 ### Telas internas da SPA (`public/index.html`)
 
