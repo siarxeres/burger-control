@@ -406,43 +406,7 @@
       <div class="page" id="page-configuracoes">
         <div class="page-header">
           <h2>Configurações do Sistema</h2>
-          <p>Parâmetros globais sem precisar alterar o código</p>
-        </div>
-
-        <div class="config-section">
-          <h3>💬 WhatsApp de Suporte</h3>
-          <div class="form-row">
-            <div>
-              <label>Número do WhatsApp</label>
-              <input type="text" id="cfg-whatsapp" placeholder="5511999999999">
-            </div>
-            <div>
-              <label>Mensagem padrão</label>
-              <input type="text" id="cfg-whatsapp-msg" placeholder="Olá, preciso de ajuda com...">
-            </div>
-          </div>
-          <button class="btn btn-primary" onclick="salvarConfig('whatsapp')">Salvar</button>
-        </div>
-
-        <div class="config-section">
-          <h3>💳 Dados de Pagamento</h3>
-          <div class="form-row">
-            <div>
-              <label>CPF / CNPJ</label>
-              <input type="text" id="cfg-cpfcnpj" placeholder="00.000.000/0001-00">
-            </div>
-            <div>
-              <label>Nome do favorecido</label>
-              <input type="text" id="cfg-favorecido" placeholder="Nome ou razão social">
-            </div>
-          </div>
-          <div class="form-row full">
-            <div>
-              <label>Chave PIX</label>
-              <input type="text" id="cfg-pix" placeholder="email, CPF, CNPJ ou chave aleatória">
-            </div>
-          </div>
-          <button class="btn btn-primary" onclick="salvarConfig('pagamento')">Salvar</button>
+          <p>Dados da empresa exibidos no sistema</p>
         </div>
 
         <div class="config-section">
@@ -1042,11 +1006,6 @@ async function carregarConfigs(){
   if(!data) return;
   const map = {};
   data.forEach(c => map[c.chave] = c.valor);
-  if(map['whatsapp_numero']) document.getElementById('cfg-whatsapp').value = map['whatsapp_numero'];
-  if(map['whatsapp_msg']) document.getElementById('cfg-whatsapp-msg').value = map['whatsapp_msg'];
-  if(map['pagamento_cpfcnpj']) document.getElementById('cfg-cpfcnpj').value = map['pagamento_cpfcnpj'];
-  if(map['pagamento_favorecido']) document.getElementById('cfg-favorecido').value = map['pagamento_favorecido'];
-  if(map['pagamento_pix']) document.getElementById('cfg-pix').value = map['pagamento_pix'];
   if(map['empresa_nome']) document.getElementById('cfg-empresa-nome').value = map['empresa_nome'];
   if(map['empresa_email']) document.getElementById('cfg-empresa-email').value = map['empresa_email'];
   if(map['empresa_site']) document.getElementById('cfg-empresa-site').value = map['empresa_site'];
@@ -1054,15 +1013,6 @@ async function carregarConfigs(){
 
 async function salvarConfig(tipo){
   const configs = {
-    whatsapp: [
-      { chave: 'whatsapp_numero', valor: document.getElementById('cfg-whatsapp').value },
-      { chave: 'whatsapp_msg', valor: document.getElementById('cfg-whatsapp-msg').value },
-    ],
-    pagamento: [
-      { chave: 'pagamento_cpfcnpj', valor: document.getElementById('cfg-cpfcnpj').value },
-      { chave: 'pagamento_favorecido', valor: document.getElementById('cfg-favorecido').value },
-      { chave: 'pagamento_pix', valor: document.getElementById('cfg-pix').value },
-    ],
     empresa: [
       { chave: 'empresa_nome', valor: document.getElementById('cfg-empresa-nome').value },
       { chave: 'empresa_email', valor: document.getElementById('cfg-empresa-email').value },
