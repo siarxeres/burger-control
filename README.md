@@ -147,13 +147,14 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 - ✅ Lógica de trial corrigida e em produção (01/06/2026) — trial de 30 dias pertence ao plano Grátis (acesso total na janela; após 30 dias vira Grátis restrito); planos pagos (Starter/Pro/Enterprise) nunca expiram; banner e bloqueio usam a mesma base de datas (`created_at`).
 - ✅ Webhook do Asaas protegido (01/06/2026) — `webhook-asaas.js` agora valida o header `asaas-access-token` (comparação segura via `crypto.timingSafeEqual`); rejeita com 401 qualquer chamada sem o token correto. Token configurado no Asaas (produção) e na Vercel (`ASAAS_WEBHOOK_TOKEN`, Production). Tranca testada: chamada sem token retorna 401. Commit `d6cacec`.
 - ✅ Recuperação de senha (01/06/2026) — fluxo "Esqueci minha senha" via Supabase Auth, testado de ponta a ponta em produção. Link na tela de login abre accordion com campo de email → `resetPasswordForEmail` com toast neutro (não revela se o email existe) → email do Supabase → tela `#reset-password-screen` (mutuamente exclusiva, protegida pela flag `emRecuperacaoSenha` contra a corrida entre `PASSWORD_RECOVERY` e `SIGNED_IN`) → `updateUser` → app. Redirect URL `https://minhafirma.app/**` adicionada no Supabase (Site URL já era `https://minhafirma.app`). Commits `2af763d` (feature) e `8ac482b` (fix da corrida). Email usa o remetente padrão do Supabase (sujeito a rate limit; migrar para SMTP próprio quando o volume exigir).
+- ✅ Config de pagamento manual descontinuada do admin (01/06/2026) — removidos os blocos "WhatsApp de Suporte" e "Dados de Pagamento/PIX" da tela Configurações do painel admin (resquício do fluxo manual da v1: cliente fazia PIX e enviava comprovante por WhatsApp). Asaas é o único meio de pagamento. Mantido o bloco "Dados da Empresa" (tabela `configs` não consumida em nenhum fluxo do usuário; não persiste ainda). Commit `e03ff2d`.
+- ✅ Admin alinhado à identidade visual (01/06/2026) — `admin.html` forçado para modo claro (`color-scheme: light`, ignora `prefers-color-scheme`); tema próprio antigo (accent roxo `#6c63ff`, fundos escuros `#0f1117`/`#1a1d27`) substituído pela paleta oficial (accent laranja `#d85a30`, fundos claros, textos escuros); cores de status e badges recalculados para fundo claro. Commit `85e83c8`.
 
 ---
 
 ## Pendências
 
 - ⬜ **Asaas — validar fluxo no 1º pagamento real** — cadastro de produção concluído e webhook protegido; falta confirmar ativação de plano ponta a ponta quando ocorrer o primeiro pagamento real (verificar 200 nos Logs de Webhooks do Asaas).
-- ⬜ **Config do sistema no admin** (WhatsApp/PIX) — única parte do admin que ainda não persiste dados
 - ⬜ Notificações email/WhatsApp — campos de UI existem, integração não feita
 - ⬜ 2FA / MFA — não implementado
 - ⬜ Múltiplas unidades (Enterprise) — sem implementação visível
@@ -165,7 +166,9 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 
 ## Bugs conhecidos
 
-_Última auditoria de código: 01/06/2026. Bug de telas empilhadas (onboarding + dashboard) e lógica de trial corrigidos em 01/06/2026 — ver seção Concluído. Auditoria de segurança do /admin concluída em 31/05/2026. Em 01/06/2026 também: webhook do Asaas protegido com validação de token (commit d6cacec); implementada e validada em produção a recuperação de senha via Supabase Auth (commits 2af763d e 8ac482b)._
+_Última auditoria de código: 01/06/2026. Bug de telas empilhadas (onboarding + dashboard) e lógica de trial corrigidos em 01/06/2026 — ver seção Concluído. Auditoria de segurança do /admin concluída em 31/05/2026. Em 01/06/2026 também: webhook do Asaas protegido com validação de token (commit d6cacec); implementada e validada em produção a recuperação de senha via Supabase Auth (commits 2af763d e 8ac482b); config de pagamento manual descontinuada do admin — blocos WhatsApp e PIX removidos (commit e03ff2d); admin.html alinhado à identidade visual e forçado para modo claro (commit 85e83c8)._
+
+**Observação a investigar:** ao fazer login, contas que já usam o sistema (inclusive Admin/Starter) podem cair na tela de onboarding antes do dashboard, em vez de ir direto ao dashboard. Observado em 01/06/2026. Possível extensão do bug de telas (onboarding acionado quando não deveria). Pendente de investigação — não bloqueante.
 
 ---
 
