@@ -150,12 +150,14 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 - ✅ Config de pagamento manual descontinuada do admin (01/06/2026) — removidos os blocos "WhatsApp de Suporte" e "Dados de Pagamento/PIX" da tela Configurações do painel admin (resquício do fluxo manual da v1: cliente fazia PIX e enviava comprovante por WhatsApp). Asaas é o único meio de pagamento. Mantido o bloco "Dados da Empresa" (tabela `configs` não consumida em nenhum fluxo do usuário; não persiste ainda). Commit `e03ff2d`.
 - ✅ Admin alinhado à identidade visual (01/06/2026) — `admin.html` forçado para modo claro (`color-scheme: light`, ignora `prefers-color-scheme`); tema próprio antigo (accent roxo `#6c63ff`, fundos escuros `#0f1117`/`#1a1d27`) substituído pela paleta oficial (accent laranja `#d85a30`, fundos claros, textos escuros); cores de status e badges recalculados para fundo claro. Commit `85e83c8`.
 - ✅ Bug de onboarding em loop corrigido (02/06/2026) — causa raiz: coluna `profile_type` não existia na tabela `profiles` do Supabase; app lia sempre `null` → mandava todos ao onboarding; `UPDATE` ao concluir não tinha efeito → ninguém terminava o fluxo. Correção em três partes: (1) coluna `profile_type TEXT` criada manualmente no Supabase (aceita `'financeiro'`, `'fiscal'`, `'crescimento'`); (2) botão "Pular por agora" removido e `obPular()` excluída — onboarding agora obrigatório, única saída é `obFinalizar()` que grava o campo; (3) contas existentes com `profile_type` nulo preenchem o campo ao passar pelo onboarding uma vez. Validado em produção. Commit `ef59893`. **Atenção:** o schema do banco não é versionado no repositório — a coluna existe apenas no Supabase de produção; recriar o banco exige aplicar o `ALTER TABLE` manualmente.
+- ✅ Asaas — fluxo de pagamento real validado de ponta a ponta (02/06/2026) — 1º pagamento real (PIX, R$ 19,90, plano Starter) processado pela conta CONECTADOSCPA. Webhook `PAYMENT_RECEIVED`/`PAYMENT_CONFIRMED` recebido em `/api/webhook-asaas` com resposta 200 (confirmado nos Logs de Webhooks do Asaas); `profiles.plano` atualizado de `gratis` para `starter` automaticamente, sem intervenção no admin. Elo Asaas↔perfil via `externalReference = "planoId|email"` operacional.
 
 ---
 
 ## Pendências
 
-- ⬜ **Asaas — validar fluxo no 1º pagamento real** — cadastro de produção concluído e webhook protegido; falta confirmar ativação de plano ponta a ponta quando ocorrer o primeiro pagamento real (verificar 200 nos Logs de Webhooks do Asaas).
+- ⬜ **Descompasso método de pagamento** — no teste de validação (02/06/2026), escolher PIX no app gerou um boleto no Asaas (com PIX embutido; pagamento funcionou mesmo assim). Investigar se o `billingType` enviado por `/api/asaas` está respeitando a escolha do usuário ou sempre gerando boleto. Sem urgência.
+- ⬜ **Email como elo único Asaas↔perfil** — se um usuário trocar o email no Supabase após assinar, pagamentos futuros não encontrarão o perfil (webhook filtra por email via `externalReference`; falha seria silenciosa). Sem risco no volume atual. Solução robusta futura: salvar `asaas_customer_id` no perfil (mexe em dados de usuário — planejar schema antes de implementar).
 - ⬜ Notificações email/WhatsApp — campos de UI existem, integração não feita
 - ⬜ 2FA / MFA — não implementado
 - ⬜ Múltiplas unidades (Enterprise) — sem implementação visível
@@ -167,7 +169,7 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 
 ## Bugs conhecidos
 
-_Última auditoria de código: 02/06/2026. Bug de telas empilhadas (onboarding + dashboard) e lógica de trial corrigidos em 01/06/2026 — ver seção Concluído. Auditoria de segurança do /admin concluída em 31/05/2026. Em 01/06/2026 também: webhook do Asaas protegido (commit d6cacec); recuperação de senha implementada (commits 2af763d e 8ac482b); config de pagamento manual descontinuada (commit e03ff2d); admin.html alinhado ao modo claro (commit 85e83c8). Em 02/06/2026: bug de onboarding em loop corrigido — coluna `profile_type` criada no Supabase e botão "Pular" removido (commit ef59893)._
+_Última auditoria de código: 02/06/2026. Bug de telas empilhadas (onboarding + dashboard) e lógica de trial corrigidos em 01/06/2026 — ver seção Concluído. Auditoria de segurança do /admin concluída em 31/05/2026. Em 01/06/2026 também: webhook do Asaas protegido (commit d6cacec); recuperação de senha implementada (commits 2af763d e 8ac482b); config de pagamento manual descontinuada (commit e03ff2d); admin.html alinhado ao modo claro (commit 85e83c8). Em 02/06/2026: bug de onboarding em loop corrigido — coluna `profile_type` criada no Supabase e botão "Pular" removido (commit ef59893); 1º pagamento real Asaas validado de ponta a ponta — fluxo operacional._
 
 Nenhum bug conhecido em aberto no momento.
 
