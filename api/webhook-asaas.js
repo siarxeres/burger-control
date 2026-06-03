@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { enviarEmailConfirmacaoPagamento } from './_lib/email.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST')
@@ -66,6 +67,12 @@ export default async function handler(req, res) {
     if (!updateResp.ok) {
       const err = await updateResp.text();
       return res.status(500).json({ error: 'Falha ao atualizar plano: ' + err });
+    }
+
+    try {
+      await enviarEmailConfirmacaoPagamento(email, planoId);
+    } catch (emailErr) {
+      console.error('[webhook] Erro inesperado ao enviar email:', emailErr?.message || emailErr);
     }
 
     return res.status(200).json({ ok: true, plano: planoId, email });
