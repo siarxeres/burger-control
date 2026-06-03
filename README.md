@@ -158,12 +158,16 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 ## Pendências
 
 - ⬜ **Email como elo único Asaas↔perfil** — se um usuário trocar o email no Supabase após assinar, pagamentos futuros não encontrarão o perfil (webhook filtra por email via `externalReference`; falha seria silenciosa). Sem risco no volume atual. Solução robusta futura: salvar `asaas_customer_id` no perfil (mexe em dados de usuário — planejar schema antes de implementar).
-- ⬜ Notificações email/WhatsApp — campos de UI existem, integração não feita
+- ⬜ **Notificações por email (próximo a fazer)** — avisos de vencimento e confirmação de pagamento. Caminho de baixo risco/custo via serviço de email transacional (a escolher: Resend, Brevo, SendGrid etc.); confirmação de pagamento engata direto no `webhook-asaas` já existente; lembretes de vencimento exigem um agendador (cron diário). Campos de UI já existem.
+- ⬜ **Captura de lançamentos via WhatsApp (movimento futuro)** — usuário envia foto/áudio/texto e o app lança sozinho, reusando a IA de scan que já existe. Valor alto, mas hoje é paridade competitiva (não diferencial — concorrentes como ZapGastos já fazem), e tem custo/risco altos: API oficial da Meta (paga, burocrática) vs. não-oficiais (risco de banimento). Decisão de arquitetura — planejar antes. Pitch certo no futuro: "entre pelo Zap E tenha DRE/orçamento que os apps-de-Zap não dão".
+- ⬜ **Open Finance — integração bancária automática (movimento futuro, baixa prioridade)** — puxaria transações do banco sozinho, sem o usuário baixar/subir CSV. Hoje o import de CSV já cobre a necessidade. Open Finance é regulado pelo Banco Central, exige intermediário autorizado (Belvo, Pluggy, Klavi etc.) com custo recorrente e responsabilidade LGPD pesada. Não recomendado no estágio atual.
 - ⬜ 2FA / MFA — não implementado
 - ⬜ Múltiplas unidades (Enterprise) — sem implementação visível
 - ⬜ Gestão de equipe/colaboradores — sem convite ou multiusuário por empresa
 - ⬜ Webhooks adicionais do Supabase — além do de pagamento
 - ⬜ Testes automatizados — nenhum
+
+_**Nota de roadmap (03/06/2026):** análise de concorrentes (ZapGastos, MeusGastos, MoneyMio, Meu Assessor) mostrou que entrada por WhatsApp e Open Finance viraram comuns em apps de finanças **pessoais**, mas nenhum deles entrega a profundidade gerencial/fiscal do Minha Firma (DRE, DASN, centros de custo, orçado vs. realizado, foco em ME além de MEI). Diferencial do produto está na profundidade, não na porta de entrada. Prioridade definida: (1) notificações por email agora; (2) WhatsApp e Open Finance como movimentos futuros, quando a base crescer e a conveniência de entrada virar gargalo._
 
 ---
 
