@@ -71,7 +71,7 @@ export async function enviarEmailConfirmacaoPagamento(email, planoId) {
 </html>`;
 
     await resend.emails.send({
-      from:    'Minha Firma <onboarding@resend.dev>',
+      from:    'Minha Firma <nao-responda@minhafirma.app>',
       to:      email,
       subject: `Pagamento confirmado — seu plano ${nomePlano} está ativo`,
       html,
