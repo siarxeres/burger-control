@@ -63,6 +63,29 @@ export default async function handler(req, res) {
     if (!subResp.ok)
       return res.status(subResp.status).json({ error: sub.errors?.[0]?.description || 'Falha ao criar assinatura.' });
 
+    // Persiste asaas_customer_id no perfil para robustecer o elo cliente↔perfil
+    try {
+      const sbUrl = process.env.SUPABASE_URL;
+      const sbKey = process.env.SUPABASE_SERVICE_KEY;
+      if (sbUrl && sbKey) {
+        await fetch(
+          `${sbUrl}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': sbKey,
+              'Authorization': `Bearer ${sbKey}`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ asaas_customer_id: customerId })
+          }
+        );
+      }
+    } catch (err) {
+      console.error('[asaas] Falha ao salvar asaas_customer_id:', err?.message || err);
+    }
+
     // 3. Busca link de pagamento da assinatura
     //    Para PIX/Boleto, o link está no primeiro pagamento gerado automaticamente
     let paymentLink = sub.invoiceUrl || sub.paymentLink || null;

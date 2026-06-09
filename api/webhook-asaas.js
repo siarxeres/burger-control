@@ -49,9 +49,21 @@ export default async function handler(req, res) {
     if (!planoId || !email)
       return res.status(200).json({ ignored: true, reason: 'externalReference inválido' });
 
-    // 2. Atualiza perfil no Supabase via REST (service role — ignora RLS)
+    // 2. Localiza o perfil: tenta primeiro por asaas_customer_id, cai para email como fallback
+    const asaasCustomerId = payload?.payment?.customer || null;
+    let profileFilter = `email=eq.${encodeURIComponent(email)}`;
+    if (asaasCustomerId) {
+      const chkResp = await fetch(
+        `${supabaseUrl}/rest/v1/profiles?asaas_customer_id=eq.${encodeURIComponent(asaasCustomerId)}&select=id&limit=1`,
+        { headers: { 'apikey': serviceKey, 'Authorization': `Bearer ${serviceKey}` } }
+      );
+      const chkData = await chkResp.json();
+      if (Array.isArray(chkData) && chkData.length > 0)
+        profileFilter = `asaas_customer_id=eq.${encodeURIComponent(asaasCustomerId)}`;
+    }
+
     const updateResp = await fetch(
-      `${supabaseUrl}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}`,
+      `${supabaseUrl}/rest/v1/profiles?${profileFilter}`,
       {
         method: 'PATCH',
         headers: {
