@@ -364,7 +364,7 @@ tbody tr:hover td{background:var(--surface2)}
 .dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:12px}
 .dash-greeting{font-size:18px;font-weight:700;letter-spacing:-.4px}
 .dash-period{font-size:12px;color:var(--muted);margin-top:2px}
-.dash-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.dash-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px;align-items:start}
 .dash-kpi{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:18px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column}
 .dash-kpi-icon{font-size:20px;margin-bottom:8px;line-height:1}
 .dash-kpi-label{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
@@ -414,6 +414,17 @@ tbody tr:hover td{background:var(--surface2)}
 }
 @media(max-width:768px){.dash-kpi-grid{grid-template-columns:1fr 1fr}.dash-bar-label{width:100px}}
 @media(max-width:480px){.dash-kpi{padding:14px 12px}.dash-kpi-value{font-size:22px}}
+/* ── DASHBOARD EXPANDABLE KPI ── */
+.dash-kpi.expandable{cursor:pointer;user-select:none}
+.dash-kpi.expandable:hover{opacity:.92}
+.dash-kpi-label-row{display:flex;align-items:center;justify-content:space-between}
+.dash-kpi-arrow{font-size:16px;font-weight:700;color:var(--hint);transition:transform .2s;display:inline-block;line-height:1;flex-shrink:0}
+.dash-kpi.open .dash-kpi-arrow{transform:rotate(90deg)}
+.dash-kpi-detail{display:none;margin-top:12px;border-top:.5px solid var(--border);padding-top:10px}
+.dash-kpi.open .dash-kpi-detail{display:block}
+.dash-kpi-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:3px 0}
+.dash-kpi-row-label{font-size:11px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-kpi-row-val{font-size:11px;font-weight:700;white-space:nowrap;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -2207,6 +2218,10 @@ function updateDashboard(){
 
   const byCC={}; despMes.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
   const sorted=Object.entries(byCC).sort((a,b)=>b[1]-a[1]);
+  const byCat={}; despMes.forEach(d=>{ const k=d.categoria||'Outros'; byCat[k]=(byCat[k]||0)+d.valor; });
+  const sortedCat=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const byOrigem={}; recMes.forEach(r=>{ const k=r.categoria||'Outras'; byOrigem[k]=(byOrigem[k]||0)+r.valor; });
+  const sortedOrigem=Object.entries(byOrigem).sort((a,b)=>b[1]-a[1]);
   const pend=despesas.filter(d=>d.status==='Pendente').length;
   const ia=despesas.filter(d=>d.ia).length;
 
@@ -2215,12 +2230,26 @@ function updateDashboard(){
       <div class="dash-kpi-icon">📊</div>
       <div class="dash-kpi-label">Resultado do Mês</div>
       <div class="dash-kpi-value" style="color:${positivo?'var(--green)':'var(--accent)'}">${positivo?'+':''}${fmt(resultado)}</div>
-      <div class="dash-kpi-sub">
-        <span>📥 Rec: ${fmt(totalRec)}</span>
-        <span>📤 Desp: ${fmt(totalDesp)}</span>
-      </div>
     </div>
-    <div class="dash-kpi"><div class="dash-kpi-icon">🏷️</div><div class="dash-kpi-label">Maior CC</div><div class="dash-kpi-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div><div class="dash-kpi-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div></div>
+    <div class="dash-kpi expandable" id="dash-kpi-rec" onclick="document.getElementById('dash-kpi-rec').classList.toggle('open')">
+      <div class="dash-kpi-icon">📥</div>
+      <div class="dash-kpi-label dash-kpi-label-row">Receitas do Mês<span class="dash-kpi-arrow">›</span></div>
+      <div class="dash-kpi-value" style="color:var(--green)">${fmt(totalRec)}</div>
+      <div class="dash-kpi-detail">${sortedOrigem.length?sortedOrigem.map(([k,v])=>`<div class="dash-kpi-row"><span class="dash-kpi-row-label">${k}</span><span class="dash-kpi-row-val" style="color:var(--green)">${fmt(v)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--muted);padding:2px 0">Nenhuma receita este mês</div>'}</div>
+    </div>
+    <div class="dash-kpi expandable" id="dash-kpi-desp" onclick="document.getElementById('dash-kpi-desp').classList.toggle('open')">
+      <div class="dash-kpi-icon">📤</div>
+      <div class="dash-kpi-label dash-kpi-label-row">Despesas do Mês<span class="dash-kpi-arrow">›</span></div>
+      <div class="dash-kpi-value" style="color:var(--accent)">${fmt(totalDesp)}</div>
+      <div class="dash-kpi-detail">${sortedCat.length?sortedCat.map(([k,v])=>`<div class="dash-kpi-row"><span class="dash-kpi-row-label">${k}</span><span class="dash-kpi-row-val" style="color:var(--accent)">${fmt(v)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--muted);padding:2px 0">Nenhuma despesa este mês</div>'}</div>
+    </div>
+    <div class="dash-kpi expandable" id="dash-kpi-cc" onclick="document.getElementById('dash-kpi-cc').classList.toggle('open')">
+      <div class="dash-kpi-icon">🏷️</div>
+      <div class="dash-kpi-label dash-kpi-label-row">Maior CC<span class="dash-kpi-arrow">›</span></div>
+      <div class="dash-kpi-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div>
+      <div class="dash-kpi-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div>
+      <div class="dash-kpi-detail">${sorted.length>1?sorted.map(([cc,val])=>`<div class="dash-kpi-row"><span class="dash-kpi-row-label">${cc}</span><span class="dash-kpi-row-val">${fmt(val)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--muted);padding:2px 0">Apenas um CC este mês</div>'}</div>
+    </div>
     <div class="dash-kpi"><div class="dash-kpi-icon">🤖</div><div class="dash-kpi-label">Extraídos pela IA</div><div class="dash-kpi-value" style="color:var(--green)">${ia}</div><div class="dash-kpi-sub">de ${despesas.length} lançamentos</div></div>
     <div class="dash-kpi"><div class="dash-kpi-icon">⏳</div><div class="dash-kpi-label">Pendentes</div><div class="dash-kpi-value" style="${pend>0?'color:var(--yellow)':''}">${pend}</div><div class="dash-kpi-sub">aguardando aprovação</div></div>`;
   const barsEl=document.getElementById('dash-bars');
@@ -2271,7 +2300,7 @@ function updateDashboard(){
     destaqueHTML = `<div class="dash-destaque financeiro">
     <span class="dash-destaque-icon">${positivo?'✅':'⚠️'}</span>
     <div class="dash-destaque-body">
-      <div class="dash-destaque-title">Resultado de ${['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m2]}: ${positivo?'+':''}${fmt(resultado2)}</div>
+      <div class="dash-destaque-title">Resultado de ${['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m2]}</div>
       <div class="dash-destaque-desc">${varTxt}</div>
     </div>
   </div>`;
@@ -2286,12 +2315,11 @@ function updateDashboard(){
   </div>`;
   } else if(perfilType === 'crescimento'){
     const crescendo = varRec !== null && varRec > 0;
-    const metaTxt = totalRec2 > 0 ? `Faturamento atual: ${fmt(totalRec2)}` : 'Nenhuma receita lançada ainda este mês';
     destaqueHTML = `<div class="dash-destaque crescimento">
     <span class="dash-destaque-icon">${crescendo?'🚀':'🎯'}</span>
     <div class="dash-destaque-body">
       <div class="dash-destaque-title">${crescendo?`Crescimento de ${varRec.toFixed(0)}% vs mês anterior!`:varRec!==null?`Queda de ${Math.abs(varRec).toFixed(0)}% vs mês anterior`:'Acompanhe seu crescimento'}</div>
-      <div class="dash-destaque-desc">${metaTxt}${recAnt>0?` · Mês anterior: ${fmt(recAnt)}`:''}</div>
+      <div class="dash-destaque-desc">${totalRec2===0?'Lance suas receitas para acompanhar o crescimento.':recAnt>0?`Mês anterior: ${fmt(recAnt)}`:'Continue registrando para ver a evolução.'}</div>
     </div>
   </div>`;
   }
