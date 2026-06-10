@@ -2243,7 +2243,13 @@ function updateDashboard(){
       <div class="dash-kpi-value" style="color:var(--accent)">${fmt(totalDesp)}</div>
       <div class="dash-kpi-detail">${sortedCat.length?sortedCat.map(([k,v])=>`<div class="dash-kpi-row"><span class="dash-kpi-row-label">${k}</span><span class="dash-kpi-row-val" style="color:var(--accent)">${fmt(v)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--muted);padding:2px 0">Nenhuma despesa este mês</div>'}</div>
     </div>
-    <div class="dash-kpi"><div class="dash-kpi-icon">🏷️</div><div class="dash-kpi-label">Maior CC</div><div class="dash-kpi-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div><div class="dash-kpi-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div></div>
+    <div class="dash-kpi expandable" id="dash-kpi-cc" onclick="document.getElementById('dash-kpi-cc').classList.toggle('open')">
+      <div class="dash-kpi-icon">🏷️</div>
+      <div class="dash-kpi-label dash-kpi-label-row">Maior CC<span class="dash-kpi-arrow">›</span></div>
+      <div class="dash-kpi-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div>
+      <div class="dash-kpi-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div>
+      <div class="dash-kpi-detail">${sorted.length>1?sorted.map(([cc,val])=>`<div class="dash-kpi-row"><span class="dash-kpi-row-label">${cc}</span><span class="dash-kpi-row-val">${fmt(val)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--muted);padding:2px 0">Apenas um CC este mês</div>'}</div>
+    </div>
     <div class="dash-kpi"><div class="dash-kpi-icon">🤖</div><div class="dash-kpi-label">Extraídos pela IA</div><div class="dash-kpi-value" style="color:var(--green)">${ia}</div><div class="dash-kpi-sub">de ${despesas.length} lançamentos</div></div>
     <div class="dash-kpi"><div class="dash-kpi-icon">⏳</div><div class="dash-kpi-label">Pendentes</div><div class="dash-kpi-value" style="${pend>0?'color:var(--yellow)':''}">${pend}</div><div class="dash-kpi-sub">aguardando aprovação</div></div>`;
   const barsEl=document.getElementById('dash-bars');
