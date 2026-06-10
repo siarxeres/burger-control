@@ -2242,7 +2242,6 @@ function updateDashboard(){
     if(!temProLabore&&despesas.length>0) ctas.push({icon:'💼',label:'Lançar pró-labore de '+meses2[hoje.getMonth()],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
     if(totalRec2===0) ctas.push({icon:'💰',label:'Lançar receitas do mês',sub:'Nenhuma receita registrada ainda',cls:'',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
     if(pendentes2>0) ctas.push({icon:'⏳',label:pendentes2+' lançamento'+(pendentes2>1?'s':'')+' pendente'+(pendentes2>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
-    ctas.push({icon:'📊',label:'Ver resumo completo',sub:'Despesas, receitas e centros de custo',cls:'',action:"showPage('centros',document.getElementById('nav-centros'))"});
     ctasEl.innerHTML='<div class="dash-section-title">Ações rápidas</div>'+ctas.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
   }
   // ── DESTAQUE POR PERFIL ──
@@ -2320,7 +2319,6 @@ function updateDashboard(){
       if(!temProLabore2 && despesas.length>0) ctas2.push({icon:'💼',label:'Lançar pró-labore de '+meses3[m2],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
       if(totalRec2===0) ctas2.push({icon:'💰',label:'Lançar receitas do mês',sub:'Nenhuma receita registrada ainda',cls:'warn',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
       if(pendentes3>0) ctas2.push({icon:'⏳',label:pendentes3+' lançamento'+(pendentes3>1?'s':'')+' pendente'+(pendentes3>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
-      ctas2.push({icon:'📊',label:'Ver resumo completo',sub:'Despesas, receitas e centros de custo',cls:'',action:"showPage('centros',document.getElementById('nav-centros'))"});
     }
     ctasEl2.innerHTML='<div class="dash-section-title">Ações rápidas</div>'+ctas2.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
   }
