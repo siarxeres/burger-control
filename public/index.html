@@ -359,6 +359,52 @@ tbody tr:hover td{background:var(--surface2)}
 .ob-features{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
 .ob-feature{display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,.75)}
 .ob-feature-icon{font-size:14px;flex-shrink:0}
+
+/* ── DASHBOARD REDESIGN ── */
+.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:12px}
+.dash-greeting{font-size:18px;font-weight:700;letter-spacing:-.4px}
+.dash-period{font-size:12px;color:var(--muted);margin-top:2px}
+.dash-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+.dash-kpi{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:18px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.dash-kpi-icon{font-size:20px;margin-bottom:8px;line-height:1}
+.dash-kpi-label{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.dash-kpi-value{font-size:26px;font-weight:700;letter-spacing:-.6px;line-height:1.1;margin-bottom:4px}
+.dash-kpi-sub{font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:1px}
+.dash-alertas{margin-bottom:22px}
+.dash-ctas{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.dash-section{margin-bottom:24px}
+.dash-section-title{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.dash-bars-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.dash-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dash-bar-row:last-child{margin-bottom:0}
+.dash-bar-label{width:130px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.dash-bar-track{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.dash-bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.dash-bar-value{font-size:12px;font-weight:700;min-width:84px;text-align:right}
+.dash-tx-list{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.dash-tx-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--border)}
+.dash-tx-item:last-child{border-bottom:none}
+.dash-tx-item:hover{background:var(--surface2)}
+.dash-tx-info{flex:1;min-width:0}
+.dash-tx-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-tx-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.dash-tx-right{text-align:right;flex-shrink:0}
+.dash-tx-valor{font-size:13px;font-weight:700}
+.dash-tx-cc{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.dash-destaque{border-radius:var(--r);padding:14px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px;border:.5px solid transparent}
+.dash-destaque-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.dash-destaque-body{flex:1;min-width:0}
+.dash-destaque-title{font-size:13px;font-weight:700;margin-bottom:3px}
+.dash-destaque-desc{font-size:12px;opacity:.85;line-height:1.4}
+.dash-destaque.financeiro{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.dash-destaque.fiscal{background:#e6f1fb;border-color:#b5d4f4;color:#185fa5}
+.dash-destaque.crescimento{background:var(--accent-bg);border-color:rgba(216,90,48,.25);color:var(--accent-d)}
+@media(prefers-color-scheme:dark){
+  .dash-destaque.fiscal{background:rgba(24,95,165,.15);border-color:rgba(24,95,165,.3);color:#6baaf0}
+  .dash-destaque.crescimento{color:var(--accent)}
+}
+@media(max-width:768px){.dash-kpi-grid{grid-template-columns:1fr 1fr}.dash-bar-label{width:100px}}
+@media(max-width:480px){.dash-kpi{padding:14px 12px}.dash-kpi-value{font-size:22px}}
 </style>
 </head>
 <body>
@@ -649,20 +695,24 @@ tbody tr:hover td{background:var(--surface2)}
             <span style="font-size:13px;color:var(--accent);font-weight:500">Você está no plano <strong>Grátis</strong> — evolua para o Starter a partir de <span id="banner-preco-starter">R$ 19,90</span>/mês</span>
             <a href="/pricing.html" style="padding:6px 14px;background:var(--accent);color:#fff;border-radius:var(--rs);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;flex-shrink:0">Ver planos &#8599;</a>
           </div>
-          <div id="dash-perfil-destaque"></div>
-          <div class="alertas-box" id="dash-alertas"></div>
-          <div class="metrics" id="dash-metrics"></div>
-          <div class="cta-actions" id="dash-ctas"></div>
-          <div style="margin-bottom:22px">
-            <div class="sec-title">Despesas por Centro de Custo</div>
-            <div class="card" style="padding:16px"><div id="dash-bars"></div></div>
-          </div>
-          <div>
-            <div class="sec-title">Últimos Lançamentos</div>
-            <div class="table-wrap" style="overflow-x:auto">
-              <table><thead><tr><th>Fornecedor</th><th>Centro de Custo</th><th>Categoria</th><th>Data</th><th style="text-align:right">Valor</th></tr></thead>
-              <tbody id="dash-tbody"></tbody></table>
+          <div class="dash-header">
+            <div>
+              <div class="dash-greeting" id="dash-greeting">Olá 👋</div>
+              <div class="dash-period" id="dash-period"></div>
             </div>
+            <button class="btn btn-primary btn-sm" onclick="showPage('lancar',document.getElementById('nav-lancar'))">+ Lançar</button>
+          </div>
+          <div id="dash-perfil-destaque"></div>
+          <div class="dash-alertas" id="dash-alertas"></div>
+          <div class="dash-kpi-grid" id="dash-metrics"></div>
+          <div class="dash-ctas" id="dash-ctas"></div>
+          <div class="dash-section">
+            <div class="dash-section-title">Despesas por Centro de Custo</div>
+            <div class="dash-bars-card"><div id="dash-bars"></div></div>
+          </div>
+          <div class="dash-section">
+            <div class="dash-section-title">Últimos Lançamentos</div>
+            <div class="dash-tx-list" id="dash-tbody"></div>
           </div>
         </div>
 
@@ -2108,6 +2158,12 @@ function updateDashboard(){
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
 
+  // Saudação e período
+  const greetEl = document.getElementById('dash-greeting');
+  const periodEl = document.getElementById('dash-period');
+  if(greetEl){ const h=hoje.getHours(),nome=(currentProfile?.full_name||'').split(' ')[0]; greetEl.textContent=(h<12?'Bom dia':h<18?'Boa tarde':'Boa noite')+(nome?', '+nome:'')+' 👋'; }
+  if(periodEl){ periodEl.textContent=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mesAtual]+' de '+anoAtual; }
+
   // Filtrar pelo mês atual (usar parsing robusto para datas no formato YYYY-MM-DD)
   const parseDateLocal = (v) => {
     if(!v) return new Date(0);
@@ -2139,23 +2195,24 @@ function updateDashboard(){
   const ia=despesas.filter(d=>d.ia).length;
 
   document.getElementById('dash-metrics').innerHTML=`
-    <div class="metric">
-      <div class="metric-label">Resultado do Mês</div>
-      <div class="metric-value" style="color:${positivo?'var(--green)':'var(--accent)'}">${positivo?'+':''}${fmt(resultado)}</div>
-      <div class="metric-sub" style="display:flex;flex-direction:column;gap:2px">
+    <div class="dash-kpi">
+      <div class="dash-kpi-icon">📊</div>
+      <div class="dash-kpi-label">Resultado do Mês</div>
+      <div class="dash-kpi-value" style="color:${positivo?'var(--green)':'var(--accent)'}">${positivo?'+':''}${fmt(resultado)}</div>
+      <div class="dash-kpi-sub">
         <span>📥 Rec: ${fmt(totalRec)}</span>
         <span>📤 Desp: ${fmt(totalDesp)}</span>
       </div>
     </div>
-    <div class="metric"><div class="metric-label">Maior CC</div><div class="metric-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div><div class="metric-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div></div>
-    <div class="metric"><div class="metric-label">Extraídos pela IA</div><div class="metric-value green">${ia}</div><div class="metric-sub">de ${despesas.length}</div></div>
-    <div class="metric"><div class="metric-label">Pendentes</div><div class="metric-value" style="${pend>0?'color:#ba7517':''}">${pend}</div><div class="metric-sub">aguardando aprovação</div></div>`;
+    <div class="dash-kpi"><div class="dash-kpi-icon">🏷️</div><div class="dash-kpi-label">Maior CC</div><div class="dash-kpi-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div><div class="dash-kpi-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-icon">🤖</div><div class="dash-kpi-label">Extraídos pela IA</div><div class="dash-kpi-value" style="color:var(--green)">${ia}</div><div class="dash-kpi-sub">de ${despesas.length} lançamentos</div></div>
+    <div class="dash-kpi"><div class="dash-kpi-icon">⏳</div><div class="dash-kpi-label">Pendentes</div><div class="dash-kpi-value" style="${pend>0?'color:var(--yellow)':''}">${pend}</div><div class="dash-kpi-sub">aguardando aprovação</div></div>`;
   const barsEl=document.getElementById('dash-bars');
   if(!sorted.length){ barsEl.innerHTML=`<div class="empty" style="padding:16px 0"><div class="empty-icon">📊</div><div class="empty-title">Sem lançamentos</div><span class="link" onclick="showPage('lancar',document.getElementById('nav-lancar'))">Lançar →</span></div>`; }
-  else { const max=sorted[0][1]; barsEl.innerHTML=sorted.map(([cc,val])=>`<div class="bar-row"><div class="bar-label">${cc}</div><div class="bar-track"><div class="bar-fill" style="background:${CC_COLORS[cc]||'#888'};width:${Math.round(val/max*100)}%"></div></div><div class="bar-value">${fmt(val)}</div></div>`).join(''); }
+  else { const max=sorted[0][1]; barsEl.innerHTML=sorted.map(([cc,val])=>`<div class="dash-bar-row"><div class="dash-bar-label">${cc}</div><div class="dash-bar-track"><div class="dash-bar-fill" style="background:${CC_COLORS[cc]||'#888'};width:${Math.round(val/max*100)}%"></div></div><div class="dash-bar-value">${fmt(val)}</div></div>`).join(''); }
   const tbody=document.getElementById('dash-tbody');
-  if(!despesas.length){ tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum lançamento</div><span class="link" onclick="showPage('lancar',document.getElementById('nav-lancar'))">Lançar →</span></div></td></tr>`; }
-  else { tbody.innerHTML=despesas.slice(0,8).map(d=>`<tr><td>${d.fornecedor}</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td><td style="color:var(--muted)">${d.categoria}</td><td style="color:var(--muted)">${fmtDate(d.data)}</td><td style="text-align:right;font-weight:700">${fmt(d.valor)}</td></tr>`).join(''); }
+  if(!despesas.length){ tbody.innerHTML=`<div class="empty" style="padding:28px 20px"><div class="empty-icon">🧾</div><div class="empty-title">Nenhum lançamento</div><span class="link" onclick="showPage('lancar',document.getElementById('nav-lancar'))">Lançar →</span></div>`; }
+  else { tbody.innerHTML=despesas.slice(0,8).map(d=>`<div class="dash-tx-item"><div class="dash-tx-info"><div class="dash-tx-name">${d.fornecedor}</div><div class="dash-tx-meta">${fmtDate(d.data)} · ${d.categoria}</div></div><span class="dash-tx-cc" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span><div class="dash-tx-right"><div class="dash-tx-valor">${fmt(d.valor)}</div></div></div>`).join(''); }
   const ctasEl=document.getElementById('dash-ctas');
   if(ctasEl){
     const meses2=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -2171,7 +2228,7 @@ function updateDashboard(){
     ctas.push({icon:'➕',label:'Lançar despesa ou receita',sub:'Registrar novo lançamento',cls:'',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
     if(pendentes2>0) ctas.push({icon:'⏳',label:pendentes2+' lançamento'+(pendentes2>1?'s':'')+' pendente'+(pendentes2>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
     ctas.push({icon:'📊',label:'Ver resumo completo',sub:'Despesas, receitas e centros de custo',cls:'',action:"showPage('centros',document.getElementById('nav-centros'))"});
-    ctasEl.innerHTML='<div class="sec-title">Ações rápidas</div>'+ctas.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
+    ctasEl.innerHTML='<div class="dash-section-title">Ações rápidas</div>'+ctas.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
   }
   // ── DESTAQUE POR PERFIL ──
   const perfilType = currentProfile?.profile_type || null;
@@ -2197,30 +2254,30 @@ function updateDashboard(){
   if(perfilType === 'financeiro'){
     const positivo = resultado2 >= 0;
     const varTxt = varRec !== null ? (varRec>=0?`📈 Receita ${varRec.toFixed(0)}% acima do mês anterior`:`📉 Receita ${Math.abs(varRec).toFixed(0)}% abaixo do mês anterior`) : 'Lance suas receitas para ver a comparação';
-    destaqueHTML = `<div class="perfil-destaque financeiro">
-    <span class="perfil-destaque-icon">${positivo?'✅':'⚠️'}</span>
-    <div class="perfil-destaque-body">
-      <div class="perfil-destaque-title">Resultado de ${['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m2]}: ${positivo?'+':''}${fmt(resultado2)}</div>
-      <div class="perfil-destaque-desc">${varTxt}</div>
+    destaqueHTML = `<div class="dash-destaque financeiro">
+    <span class="dash-destaque-icon">${positivo?'✅':'⚠️'}</span>
+    <div class="dash-destaque-body">
+      <div class="dash-destaque-title">Resultado de ${['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][m2]}: ${positivo?'+':''}${fmt(resultado2)}</div>
+      <div class="dash-destaque-desc">${varTxt}</div>
     </div>
   </div>`;
   } else if(perfilType === 'fiscal'){
     const fiscalOk = temDAS;
-    destaqueHTML = `<div class="perfil-destaque fiscal">
-    <span class="perfil-destaque-icon">${fiscalOk?'📋':'⚠️'}</span>
-    <div class="perfil-destaque-body">
-      <div class="perfil-destaque-title">${fiscalOk?'Obrigações fiscais: registros encontrados':'Obrigações fiscais: nenhum DAS registrado este mês'}</div>
-      <div class="perfil-destaque-desc">${fiscalOk?'Continue mantendo seus lançamentos fiscais em dia.':'Lembre-se de registrar o pagamento do DAS e demais obrigações.'} ${!temProLabore2?' Pró-labore também não foi lançado.':''}</div>
+    destaqueHTML = `<div class="dash-destaque fiscal">
+    <span class="dash-destaque-icon">${fiscalOk?'📋':'⚠️'}</span>
+    <div class="dash-destaque-body">
+      <div class="dash-destaque-title">${fiscalOk?'Obrigações fiscais: registros encontrados':'Obrigações fiscais: nenhum DAS registrado este mês'}</div>
+      <div class="dash-destaque-desc">${fiscalOk?'Continue mantendo seus lançamentos fiscais em dia.':'Lembre-se de registrar o pagamento do DAS e demais obrigações.'} ${!temProLabore2?' Pró-labore também não foi lançado.':''}</div>
     </div>
   </div>`;
   } else if(perfilType === 'crescimento'){
     const crescendo = varRec !== null && varRec > 0;
     const metaTxt = totalRec2 > 0 ? `Faturamento atual: ${fmt(totalRec2)}` : 'Nenhuma receita lançada ainda este mês';
-    destaqueHTML = `<div class="perfil-destaque crescimento">
-    <span class="perfil-destaque-icon">${crescendo?'🚀':'🎯'}</span>
-    <div class="perfil-destaque-body">
-      <div class="perfil-destaque-title">${crescendo?`Crescimento de ${varRec.toFixed(0)}% vs mês anterior!`:varRec!==null?`Queda de ${Math.abs(varRec).toFixed(0)}% vs mês anterior`:'Acompanhe seu crescimento'}</div>
-      <div class="perfil-destaque-desc">${metaTxt}${recAnt>0?` · Mês anterior: ${fmt(recAnt)}`:''}</div>
+    destaqueHTML = `<div class="dash-destaque crescimento">
+    <span class="dash-destaque-icon">${crescendo?'🚀':'🎯'}</span>
+    <div class="dash-destaque-body">
+      <div class="dash-destaque-title">${crescendo?`Crescimento de ${varRec.toFixed(0)}% vs mês anterior!`:varRec!==null?`Queda de ${Math.abs(varRec).toFixed(0)}% vs mês anterior`:'Acompanhe seu crescimento'}</div>
+      <div class="dash-destaque-desc">${metaTxt}${recAnt>0?` · Mês anterior: ${fmt(recAnt)}`:''}</div>
     </div>
   </div>`;
   }
@@ -2253,7 +2310,7 @@ function updateDashboard(){
       if(pendentes3>0) ctas2.push({icon:'⏳',label:pendentes3+' lançamento'+(pendentes3>1?'s':'')+' pendente'+(pendentes3>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
       ctas2.push({icon:'📊',label:'Ver resumo completo',sub:'Despesas, receitas e centros de custo',cls:'',action:"showPage('centros',document.getElementById('nav-centros'))"});
     }
-    ctasEl2.innerHTML='<div class="sec-title">Ações rápidas</div>'+ctas2.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
+    ctasEl2.innerHTML='<div class="dash-section-title">Ações rápidas</div>'+ctas2.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
   }
   gerarAlertas();
 }
