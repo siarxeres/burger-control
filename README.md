@@ -123,7 +123,7 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 
 - ✅ Autenticação completa (login, cadastro, logout, sessão)
 - ✅ Onboarding com seleção de perfil (2 passos)
-- ✅ Dashboard com KPIs e 10 alertas inteligentes
+- ✅ Dashboard com KPIs e alertas inteligentes (visual redesenhado — ver item de 10/06/2026)
 - ✅ Lançamento manual de despesas e receitas, incluindo recorrentes
 - ✅ Scan IA de cupons fiscais com preenchimento automático
 - ✅ Importação CSV com interpretação por IA (múltiplos formatos)
@@ -155,6 +155,7 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 - ✅ **Notificações por email — confirmação de pagamento (03/06/2026)** — quando um pagamento é confirmado, o cliente recebe automaticamente um email de confirmação ("seu plano X está ativo"). Implementado com **Resend** (serviço de email transacional). Domínio `minhafirma.app` verificado na Resend (via DNS no GoDaddy); remetente `nao-responda@minhafirma.app`. A função vive em `api/_lib/email.js` e é chamada no fim do `webhook-asaas.js`, dentro de `try/catch` — se o email falhar, o webhook ainda retorna 200 e o pagamento não é afetado. Chave `RESEND_API_KEY` nas variáveis de ambiente da Vercel (Production). Testado de ponta a ponta: email chega na caixa de entrada com a identidade visual do app. Commits `9bcb0ba` (integração) e `fe91530` (remetente do domínio).
 - ✅ **Lembretes de vencimento — cobertos nativamente pelo Asaas (03/06/2026)** — descoberto que não precisa de código próprio (nem agendador/cron, como se pensava). O Asaas tem régua de notificações automáticas por email ao cliente, já ativas por padrão no cadastro de cada cliente (Meus Clientes → Cliente → seção Notificações): aviso 10 dias antes do vencimento, aviso no dia, aviso de atraso (a cada 7 dias) e confirmação de pagamento. Prazos ajustáveis no painel. Nenhuma ação de código necessária.
 - ✅ **`asaas_customer_id` — elo robusto Asaas↔perfil (09/06/2026)** — resolvida a fragilidade do email como elo único (se o cliente trocasse o email, pagamentos futuros não achariam o perfil). Três partes: (1) coluna `asaas_customer_id TEXT` criada na tabela `profiles` do Supabase (`ALTER TABLE`, aplicada manualmente — schema não versionado); (2) `api/asaas.js` salva o `customerId` (`cus_...`) no perfil após criar a assinatura, dentro de `try/catch` que não interrompe o fluxo; (3) `api/webhook-asaas.js` localiza o perfil primeiro por `asaas_customer_id` (lido de `payload.payment.customer`) e usa o email como fallback — lógica de email intacta como reserva. Mudança aditiva e segura por construção. Commit `ff702f0`. **Validação final pendente:** confirmar no 1º pagamento real que a Peça 2 grava o ID e a Peça 3 o usa — não forçado, aguardando ciclo natural.
+- ✅ **Dashboard redesenhado — visual "vitrine" (10/06/2026)** — redesenho visual completo do dashboard (`#page-dashboard`) no estilo cards com respiro, mantendo a identidade (laranja `#d85a30`), responsivo e com dark mode. Lógica de dados intacta — só o visual mudou. Mudanças: saudação dinâmica no topo; KPIs como cards (ícone + rótulo + valor + subtexto); alertas agora colapsáveis (linha-resumo "N diagnósticos precisam da sua atenção" que expande); barras por CC arredondadas; ações rápidas como lista de cards; últimos lançamentos como lista com respiro. Removidos 2 itens redundantes das ações rápidas ("Lançar despesa ou receita" — duplicava o botão do topbar; "Ver resumo completo" — duplicava a aba Centros de Custo) e o botão "+ Lançar" duplicado no header. Banner de destaque "Diagnóstico 360°" desativado (tabela `destaques`, `ativo = false`) até a funcionalidade existir. CSS isolado com prefixo `dash-*` (zero impacto em outras telas). Desenvolvido na branch `redesign-dashboard` com preview na Vercel, validado no desktop e mobile, merge na `main` commit `47cd7cf`.
 
 ---
 
@@ -169,7 +170,11 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 - ⬜ Webhooks adicionais do Supabase — além do de pagamento
 - ⬜ Testes automatizados — nenhum
 
+- ⬜ **Aba Receitas — botão de despesa indevido** — a tela de Receitas exibe um botão de "lançar despesa" que não faz sentido ali; avaliar remoção (mesma natureza das redundâncias já corrigidas no dashboard). Frente a tratar.
+
 _**Nota de roadmap (03/06/2026):** análise de concorrentes (ZapGastos, MeusGastos, MoneyMio, Meu Assessor) mostrou que entrada por WhatsApp e Open Finance viraram comuns em apps de finanças **pessoais**, mas nenhum deles entrega a profundidade gerencial/fiscal do Minha Firma (DRE, DASN, centros de custo, orçado vs. realizado, foco em ME além de MEI). Diferencial do produto está na profundidade, não na porta de entrada. Prioridade definida: (1) notificações por email — confirmação de pagamento própria entregue (03/06) e lembretes de vencimento cobertos nativamente pelo Asaas (sem código); (2) WhatsApp e Open Finance como movimentos futuros, quando a base crescer e a conveniência de entrada virar gargalo._
+
+_**Nota (10/06/2026):** existe uma branch `Dev` (`6a0cb62`) no repositório, descoberta durante o merge do dashboard. Investigar seu conteúdo/propósito quando for montar o ambiente de desenvolvimento isolado._
 
 ---
 
