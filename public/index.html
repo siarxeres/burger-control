@@ -371,6 +371,15 @@ tbody tr:hover td{background:var(--surface2)}
 .dash-kpi-value{font-size:26px;font-weight:700;letter-spacing:-.6px;line-height:1.1;margin-bottom:4px}
 .dash-kpi-sub{font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:1px}
 .dash-alertas{margin-bottom:22px}
+.dash-alertas-resumo{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--rs);border:.5px solid transparent;cursor:pointer;transition:opacity .12s;user-select:none}
+.dash-alertas-resumo:hover{opacity:.85}
+.dash-alertas-sino{font-size:15px;flex-shrink:0}
+.dash-alertas-texto{flex:1;font-size:13px;font-weight:600}
+.dash-alertas-badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0}
+.dash-alertas-arrow{font-size:17px;font-weight:700;flex-shrink:0;transition:transform .2s;display:inline-block;line-height:1}
+.dash-alertas-itens{display:none;margin-top:6px}
+.dash-alertas-wrap.open .dash-alertas-itens{display:block}
+.dash-alertas-wrap.open .dash-alertas-arrow{transform:rotate(90deg)}
 .dash-ctas{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
 .dash-section{margin-bottom:24px}
 .dash-section-title{font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
@@ -700,7 +709,6 @@ tbody tr:hover td{background:var(--surface2)}
               <div class="dash-greeting" id="dash-greeting">Olá 👋</div>
               <div class="dash-period" id="dash-period"></div>
             </div>
-            <button class="btn btn-primary btn-sm" onclick="showPage('lancar',document.getElementById('nav-lancar'))">+ Lançar</button>
           </div>
           <div id="dash-perfil-destaque"></div>
           <div class="dash-alertas" id="dash-alertas"></div>
@@ -2136,20 +2144,28 @@ function gerarAlertas(){
     alertas.push({nivel:'blue', icone:'💡', titulo:'Comece lançando suas despesas e receitas', desc:'Quanto mais dados, mais precisos serão os alertas e análises do seu negócio.', dimensao:'Gestão'});
   }
 
-  // Renderizar
+  // Renderizar — bloco colapsável
   const el = document.getElementById('dash-alertas');
   if(!el) return;
   if(!alertas.length){ el.innerHTML=''; return; }
 
-  el.innerHTML = alertas.map(a=>`
-    <div class="alerta-item alerta-${a.nivel}">
-      <span class="alerta-icon">${a.icone}</span>
-      <div class="alerta-body">
-        <div class="alerta-titulo">${a.titulo}</div>
-        <div class="alerta-desc">${a.desc}</div>
-        <div class="alerta-dim">📊 Diagnóstico: ${a.dimensao}</div>
-      </div>
-    </div>`).join('');
+  const n = alertas.length;
+  const dominante = alertas.find(a=>a.nivel==='red') ? 'red'
+    : alertas.find(a=>a.nivel==='yellow') ? 'yellow'
+    : alertas.find(a=>a.nivel==='green') ? 'green' : 'blue';
+  const corHex  = {red:'#a32d2d',yellow:'#854f0b',green:'#3b6d11',blue:'#185fa5'}[dominante];
+  const bgVar   = {red:'var(--red-bg)',yellow:'var(--yellow-bg)',green:'var(--green-bg)',blue:'#e6f1fb'}[dominante];
+  const bdrRgba = {red:'rgba(163,45,45,.25)',yellow:'rgba(133,79,11,.25)',green:'rgba(58,109,17,.25)',blue:'rgba(24,95,165,.25)'}[dominante];
+
+  el.innerHTML=`<div class="dash-alertas-wrap" id="dash-alertas-wrap">
+    <div class="dash-alertas-resumo" onclick="document.getElementById('dash-alertas-wrap').classList.toggle('open')" style="background:${bgVar};border-color:${bdrRgba}">
+      <span class="dash-alertas-sino" style="color:${corHex}">🔔</span>
+      <span class="dash-alertas-texto" style="color:${corHex}">${n} diagnóstico${n>1?'s':''} ${n>1?'precisam':'precisa'} da sua atenção</span>
+      <span class="dash-alertas-badge" style="background:${corHex};color:#fff">${n}</span>
+      <span class="dash-alertas-arrow" style="color:${corHex}">›</span>
+    </div>
+    <div class="dash-alertas-itens">${alertas.map(a=>`<div class="alerta-item alerta-${a.nivel}"><span class="alerta-icon">${a.icone}</span><div class="alerta-body"><div class="alerta-titulo">${a.titulo}</div><div class="alerta-desc">${a.desc}</div><div class="alerta-dim">📊 Diagnóstico: ${a.dimensao}</div></div></div>`).join('')}</div>
+  </div>`;
 }
 
 // ══ DASHBOARD ══
