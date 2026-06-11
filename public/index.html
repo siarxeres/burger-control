@@ -728,7 +728,7 @@ tbody tr:hover td{background:var(--surface2)}
           <div class="dash-kpi-grid" id="dash-metrics"></div>
           <div class="dash-ctas" id="dash-ctas"></div>
           <div class="dash-section" id="dash-section-graficos">
-            <div class="dash-section-title">Receitas, Despesas e Lucro — 12 meses</div>
+            <div class="dash-section-title">Receitas, Despesas e Lucro</div>
             <div class="dash-chart-card">
               <canvas id="dash-chart-12m"></canvas>
             </div>
@@ -2368,11 +2368,15 @@ function renderGrafico12m(){
   // Destroy previous instance
   if(window._dashChart12m){ window._dashChart12m.destroy(); window._dashChart12m = null; }
 
-  // Build last-12-months axis
+  // Build axis: from account creation month up to today, capped at 12
   const hoje = new Date();
+  const hojeAno = hoje.getFullYear(), hojeMs = hoje.getMonth();
+  const criadoDate = currentProfile?.created_at ? new Date(currentProfile.created_at) : new Date(hojeAno, hojeMs - 11, 1);
+  const totalMeses = (hojeAno - criadoDate.getFullYear()) * 12 + (hojeMs - criadoDate.getMonth()) + 1;
+  const nMeses = Math.min(Math.max(totalMeses, 1), 12);
   const meses = [];
-  for(let i = 11; i >= 0; i--){
-    const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+  for(let i = nMeses - 1; i >= 0; i--){
+    const d = new Date(hojeAno, hojeMs - i, 1);
     meses.push({ year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}) });
   }
 
@@ -2382,8 +2386,8 @@ function renderGrafico12m(){
     return new Date(v);
   };
 
-  const recPorMes  = new Array(12).fill(0);
-  const despPorMes = new Array(12).fill(0);
+  const recPorMes  = new Array(nMeses).fill(0);
+  const despPorMes = new Array(nMeses).fill(0);
 
   (receitas||[]).forEach(r => {
     if(!r.data) return;
