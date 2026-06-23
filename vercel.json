@@ -8,6 +8,8 @@
     { "src": "/pricing.html", "dest": "/pricing.html" },
     { "src": "/admin", "dest": "/admin.html" },
     { "src": "/admin.html", "dest": "/admin.html" },
+    { "src": "/obrigado", "dest": "/obrigado.html" },
+    { "src": "/obrigado.html", "dest": "/obrigado.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

@@ -1219,6 +1219,7 @@ let currentUser = null;
 let currentProfile = null;
 let currentPlano = null;
 let emRecuperacaoSenha = false;
+let _realtimePlanoChannel = null;
 
 function showTrialBanner(){
   if(isAdmin()) return;
@@ -1378,7 +1379,7 @@ async function doLogin(){
       await loadCentros();
       await loadDespesas();
       await loadReceitas();
-      if(!onboarding) initApp();
+      if(!onboarding){ initApp(); setupRealtimePlano(); }
     }
   } catch(e) {
     errEl.textContent = 'Erro de conexão: ' + e.message;
@@ -1409,10 +1410,26 @@ async function doSignup(){
 }
 
 async function doLogout(){
+  if(_realtimePlanoChannel){ sb.removeChannel(_realtimePlanoChannel); _realtimePlanoChannel = null; }
   await sb.auth.signOut();
   currentUser = null; currentProfile = null; despesas = [];
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
+}
+
+function setupRealtimePlano(){
+  if(_realtimePlanoChannel || !currentUser) return;
+  _realtimePlanoChannel = sb.channel('profile-plano-' + currentUser.id)
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'profiles', filter:`id=eq.${currentUser.id}` },
+      async (payload) => {
+        const novoPlano = payload.new?.plano;
+        if(!novoPlano || novoPlano === (currentProfile?.plano || 'gratis')) return;
+        currentProfile = { ...currentProfile, ...payload.new };
+        await loadPlanos();
+        initApp();
+        toast(`🎉 Plano ${novoPlano} ativado! Bem-vindo.`);
+      })
+    .subscribe();
 }
 
 function traduzirErro(msg){
