@@ -361,7 +361,7 @@ body{
   transition:border-color .15s;margin-bottom:20px;
 }
 .field-input:focus{border-color:var(--accent)}
-.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.method-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px}
 .method-btn{
   display:flex;flex-direction:column;align-items:center;gap:4px;
   padding:12px 8px;border:.5px solid var(--border2);border-radius:10px;
@@ -687,7 +687,8 @@ body{
         <button class="method-btn" data-method="boleto" onclick="selecionarMetodo('boleto',this)">
           <span class="method-icon">&#128190;</span>Boleto
         </button>
-        <button class="method-btn" data-method="cartao" onclick="selecionarMetodo('cartao',this)">
+        <!-- cartão temporariamente desativado: checkout não coleta dados do cartão -->
+        <button class="method-btn" data-method="cartao" onclick="selecionarMetodo('cartao',this)" style="display:none">
           <span class="method-icon">&#128179;</span>Cart&atilde;o
         </button>
       </div>
