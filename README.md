@@ -18,7 +18,7 @@ SaaS de gestão financeira inteligente para pequenas empresas. Originado no segm
 | Banco de dados | Supabase (PostgreSQL) |
 | Autenticação | Supabase Auth (email + senha) |
 | Hospedagem | Vercel |
-| Pagamento | Asaas (PIX, boleto, cartão) |
+| Pagamento | Asaas (PIX, boleto — cartão desativado na UI até implementação completa) |
 | IA | Anthropic Claude Sonnet (via `/api/claude.js`) |
 | PWA | Service Worker (`sw.js`) + `manifest.json` |
 | Estilo | CSS puro no HTML, dark mode via `prefers-color-scheme` |
@@ -59,6 +59,7 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 - `/beta` → `public/beta.html` — landing do programa beta com formulário
 - `/pricing` → `public/pricing.html` — planos e preços
 - `/admin` → `public/admin.html` — painel administrativo (acesso: https://minhafirma.app/admin — login próprio)
+- `/obrigado` → `public/obrigado.html` — página de confirmação pós-pagamento (destino do link de retorno do Asaas)
 
 ### Telas internas da SPA (`public/index.html`)
 
@@ -114,9 +115,11 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 ### Upgrade de plano
 1. Recurso bloqueado dispara `alertPlano()` com CTA de upgrade
 2. `/pricing` → escolhe plano + ciclo (mensal/anual)
-3. Escolhe método (PIX, boleto, cartão) → frontend envia para `/api/asaas`
+3. Escolhe método (PIX ou Boleto — cartão desativado na UI) → frontend envia para `/api/asaas`
 4. Asaas cria customer + assinatura, retorna `paymentLink`
-5. Pagamento confirmado → webhook `/api/webhook-asaas` atualiza `profiles.plano`
+5. Cliente paga no link do Asaas → redirecionado para `/obrigado`
+6. Webhook `/api/webhook-asaas` recebe `PAYMENT_CONFIRMED` → atualiza `profiles.plano`
+7. App detecta a mudança via Supabase Realtime (`postgres_changes` em `profiles`) → chama `loadPlanos()` + `initApp()` + exibe toast; sem reload manual
 
 ---
 
@@ -158,6 +161,7 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 - ✅ **`asaas_customer_id` — elo robusto Asaas↔perfil (09/06/2026)** — resolvida a fragilidade do email como elo único (se o cliente trocasse o email, pagamentos futuros não achariam o perfil). Três partes: (1) coluna `asaas_customer_id TEXT` criada na tabela `profiles` do Supabase (`ALTER TABLE`, aplicada manualmente — schema não versionado); (2) `api/asaas.js` salva o `customerId` (`cus_...`) no perfil após criar a assinatura, dentro de `try/catch` que não interrompe o fluxo; (3) `api/webhook-asaas.js` localiza o perfil primeiro por `asaas_customer_id` (lido de `payload.payment.customer`) e usa o email como fallback — lógica de email intacta como reserva. Mudança aditiva e segura por construção. Commit `ff702f0`. **Validação final pendente:** confirmar no 1º pagamento real que a Peça 2 grava o ID e a Peça 3 o usa — não forçado, aguardando ciclo natural.
 - ✅ **Dashboard redesenhado — visual "vitrine" (10/06/2026)** — redesenho visual completo do dashboard (`#page-dashboard`) no estilo cards com respiro, mantendo a identidade (laranja `#d85a30`), responsivo e com dark mode. Lógica de dados intacta — só o visual mudou. Mudanças: saudação dinâmica no topo; KPIs como cards (ícone + rótulo + valor + subtexto); alertas agora colapsáveis (linha-resumo "N diagnósticos precisam da sua atenção" que expande); barras por CC arredondadas; ações rápidas como lista de cards; últimos lançamentos como lista com respiro. Removidos 2 itens redundantes das ações rápidas ("Lançar despesa ou receita" — duplicava o botão do topbar; "Ver resumo completo" — duplicava a aba Centros de Custo) e o botão "+ Lançar" duplicado no header. Banner de destaque "Diagnóstico 360°" desativado (tabela `destaques`, `ativo = false`) até a funcionalidade existir. CSS isolado com prefixo `dash-*` (zero impacto em outras telas). Desenvolvido na branch `redesign-dashboard` com preview na Vercel, validado no desktop e mobile, merge na `main` commit `47cd7cf`.
 - ✅ **Dashboard — cards de Receitas, Despesas e CC expansíveis (10/06/2026)** — segunda rodada de melhorias nos KPIs do dashboard, na branch `dashboard-cards-receitas-despesas`, merge na `main` commit `5ff0db2`. Mudanças: (1) banner de perfil deixou de repetir o valor do resultado (que já está no KPI) — mantém só a mensagem de ação, ajustado por perfil (financeiro/fiscal/crescimento); (2) card "Resultado do Mês" enxuto — só o valor, sem o subtexto Rec/Desp; (3) dois cards novos expansíveis: Receitas (total + detalhe por categoria ao expandir) e Despesas (total + detalhe por categoria); (4) card "Maior CC" também tornado expansível — recolhido mostra o maior CC, expandido mostra o ranking de todos os CCs do mês (reaproveita o mesmo `byCC`/`despMes` do bloco de barras; trata o caso de CC único com a mensagem "Apenas um CC este mês"). Todos os cards filtram apenas o mês corrente (`despMes`/`recMes`, mesma base dos demais KPIs — confirmado por auditoria de código). Receitas agrupam pelo campo `categoria` (obrigatório no lançamento; "canal" pode ser vazio em registros antigos). Expansão cresce em altura (1 coluna), com `align-items:start` no grid para não esticar vizinhos. 11 classes novas `dash-kpi-*`. Ordem final: Resultado · Receitas · Despesas · Maior CC · Extraídos pela IA · Pendentes. Validado no desktop e mobile.
+- ✅ **Funil de venda — 3 fechamentos de furo (23/06/2026)** — branch `funil-venda`, merge na `main`. (1) Cartão de crédito ocultado no checkout de `/pricing`: o modal não coletava dados do cartão, então o Asaas rejeitaria a assinatura silenciosamente; botão com `display:none` (fácil de reativar), grid ajustado de 3 para 2 colunas, PIX e Boleto intactos, backend (`api/asaas.js`) não tocado. (2) Página `/obrigado` criada (`public/obrigado.html`) + rota no `vercel.json`: destino do link de retorno do Asaas após pagamento — design consistente com `/pricing` (mesmas fontes, tokens CSS, animações). Pré-requisito manual: configurar a URL de retorno no painel do Asaas apontando para `https://minhafirma.app/obrigado`. (3) Supabase Realtime em `profiles.plano` (`index.html`): `setupRealtimePlano()` cria um canal `postgres_changes` filtrado por `id` do usuário logado; ao receber `UPDATE` com plano diferente, chama `loadPlanos()` + `initApp()` + toast de boas-vindas, sem reload manual. Canal destruído no logout. Pré-requisito manual: habilitar Realtime na tabela `profiles` no painel do Supabase (`alter publication supabase_realtime add table profiles`).
 - ✅ **Dashboard — card Lucratividade + gráfico histórico (11/06/2026)** — na branch `dashboard-graficos`, commit `8ec6783`. Mudanças: (1) card "Extraídos pela IA" substituído por Lucratividade (margem líquida = (recMes − despMes) / recMes × 100, reusando as variáveis já existentes; edge case tratado: receita zero exibe "—" / "Sem receitas no mês", nunca NaN); ordem final dos KPIs: Resultado · Receitas · Despesas · Maior CC · Lucratividade · Pendentes. (2) Bloco novo de gráfico histórico abaixo dos cards (Chart.js v4 via CDN): receitas e despesas em barras, lucro em linha; leitura apenas (consulta de receitas/despesas agregadas por mês, sem escrita). (3) Régua de meses dinâmica: o eixo parte do mês de criação da conta (`currentProfile.created_at`) até o mês atual, inclusive, com teto de 12 meses e fallback seguro (11 meses atrás) se o perfil não carregar — elimina os meses zerados anteriores ao cadastro. Ajustes de exibição: altura fixa (320px desktop / 260px mobile via `maintainAspectRatio:false`), linha de lucro reta (`tension:0`) e eixo Y com folga para negativos (`grace:'10%'`). CSS isolado com prefixo `dash-*`. Validado no desktop e mobile. Sem mudança de schema (só leitura).
 
 ---
