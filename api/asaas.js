@@ -56,7 +56,11 @@ export default async function handler(req, res) {
         nextDueDate,
         cycle,
         description: descricao || `Plano ${planoId} - Minha Firma`,
-        externalReference: `${planoId}|${email}`
+        externalReference: `${planoId}|${email}`,
+        callback: {
+          successUrl: 'https://minhafirma.app/obrigado',
+          autoRedirect: true
+        }
       })
     });
     const sub = await subResp.json();
