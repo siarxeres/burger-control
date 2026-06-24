@@ -2944,11 +2944,11 @@ function updateFooter(){
   const resultado = totalRecMes - totalDespMes;
   if(sfResultado) sfResultado.style.display='block';
   document.getElementById('sf-period').textContent = mesLabel;
-  document.getElementById('sf-resultado-label').textContent = resultado>=0?'✅ Resultado do mês':'⚠️ Resultado do mês';
-  amountEl.innerHTML = `<div style="font-size:11px;font-weight:500;color:inherit;opacity:.8;margin-bottom:4px"><span>📥 Rec: ${fmt(totalRecMes)}</span><br><span>📤 Desp: ${fmt(totalDespMes)}</span></div><div style="font-size:19px;font-weight:700;letter-spacing:-.3px">${resultado>=0?'+':''}${fmt(resultado)}</div>`;
-  amountEl.style.color = resultado>=0?'var(--green)':'var(--red)';
-  sfResultado.style.borderColor = resultado>=0?'var(--green-border)':'rgba(163,45,45,.3)';
-  sfResultado.style.background = resultado>=0?'var(--green-bg)':'var(--red-bg)';
+  document.getElementById('sf-resultado-label').textContent = totalRecMes===0?'📊 Resultado do mês':(resultado>=0?'✅ Resultado do mês':'⚠️ Resultado do mês');
+  amountEl.innerHTML = totalRecMes===0?`<div style="font-size:19px;font-weight:700;letter-spacing:-.3px">${fmt(totalDespMes)} em despesas</div><div style="font-size:11px;opacity:.7;margin-top:4px">Falta lançar receitas</div>`:`<div style="font-size:11px;font-weight:500;color:inherit;opacity:.8;margin-bottom:4px"><span>📥 Rec: ${fmt(totalRecMes)}</span><br><span>📤 Desp: ${fmt(totalDespMes)}</span></div><div style="font-size:19px;font-weight:700;letter-spacing:-.3px">${resultado>=0?'+':''}${fmt(resultado)}</div>`;
+  amountEl.style.color = totalRecMes===0?'':(resultado>=0?'var(--green)':'var(--red)');
+  sfResultado.style.borderColor = totalRecMes===0?'':(resultado>=0?'var(--green-border)':'rgba(163,45,45,.3)');
+  sfResultado.style.background = totalRecMes===0?'':(resultado>=0?'var(--green-bg)':'var(--red-bg)');
   const isGratisPlano = !isAdmin() && currentProfile?.plano === 'gratis';
   const linkDRE = isGratisPlano
     ? `<a href="/pricing.html" style="display:block;margin-top:8px;font-size:11px;font-weight:600;color:var(--accent);text-decoration:none;opacity:.9">⬆ Ver planos para DRE completo →</a>`
