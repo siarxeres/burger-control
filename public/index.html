@@ -619,7 +619,7 @@ tbody tr:hover td{background:var(--surface2)}
         <div class="nav-sec">Análise</div>
         <div class="nav-item" onclick="showPage('centros',this)" id="nav-centros">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
-          Centros de Custo
+          Meus gastos
         </div>
         <div class="nav-item" onclick="showPage('relatorio',this)" id="nav-relatorio">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
@@ -627,7 +627,7 @@ tbody tr:hover td{background:var(--surface2)}
         </div>
         <div class="nav-item" onclick="showPage('dre',this)" id="nav-dre">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          DRE
+          Resumo do mês
         </div>
         <div class="nav-item" onclick="showPage('dasn',this)" id="nav-dasn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -655,7 +655,7 @@ tbody tr:hover td{background:var(--surface2)}
           </div>
           <div class="nav-item" onclick="showPage('pessoal-dre',this)" id="nav-pessoal-dre">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            DRE Pessoal
+            Resumo pessoal
           </div>
         </div>
       </nav>
@@ -734,7 +734,7 @@ tbody tr:hover td{background:var(--surface2)}
             </div>
           </div>
           <div class="dash-section">
-            <div class="dash-section-title">Despesas por Centro de Custo</div>
+            <div class="dash-section-title">Pra onde foi o meu dinheiro</div>
             <div class="dash-bars-card"><div id="dash-bars"></div></div>
           </div>
           <div class="dash-section">
@@ -921,7 +921,7 @@ tbody tr:hover td{background:var(--surface2)}
             <button class="btn" onclick="gerarRelatorioPro('anomalias')">🔍 Anomalias</button>
             <button class="btn" onclick="gerarRelatorioPro('tendencias')">📈 Tendências</button>
             <button class="btn" onclick="gerarRelatorioPro('economia')">💡 Economia</button>
-            <button class="btn" onclick="gerarRelatorioPro('dre')">📄 DRE via IA</button>
+            <button class="btn" onclick="gerarRelatorioPro('dre')">📄 Resumo com IA</button>
           </div>
           <div class="report-loading" id="report-loading"><div class="spinner"></div>Gerando análise...</div>
           <div class="report-out" id="report-out"></div>
@@ -2113,7 +2113,7 @@ function gerarAlertas(){
   // ── ALERTA PRÓ-LABORE ──
   const proLaboreDoMes = despMes.filter(d => d.categoria === 'Pró-labore');
   if(proLaboreDoMes.length === 0 && despesas.length > 0){
-    alertas.push({nivel:'red', icone:'⚠️', titulo:'Pró-labore não lançado este mês!', desc:'Você ainda não registrou o pró-labore do sócio. Lembre-se: o pró-labore deve ser separado das finanças pessoais.', dimensao:'Financeiro'});
+    alertas.push({nivel:'red', icone:'⚠️', titulo:'Você ainda não registrou seu salário este mês', desc:'Você ainda não registrou quanto tirou pra você este mês. Lembre-se: o dinheiro que você tira da empresa deve ser separado das suas finanças pessoais.', dimensao:'Financeiro'});
   }
 
   // 1. Resultado negativo → Financeiro
@@ -2269,7 +2269,7 @@ function updateDashboard(){
     </div>
     <div class="dash-kpi expandable" id="dash-kpi-cc" onclick="document.getElementById('dash-kpi-cc').classList.toggle('open')">
       <div class="dash-kpi-icon">🏷️</div>
-      <div class="dash-kpi-label dash-kpi-label-row">Maior CC<span class="dash-kpi-arrow">›</span></div>
+      <div class="dash-kpi-label dash-kpi-label-row">Maior gasto<span class="dash-kpi-arrow">›</span></div>
       <div class="dash-kpi-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div>
       <div class="dash-kpi-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div>
       <div class="dash-kpi-detail">${sorted.length>1?sorted.map(([cc,val])=>`<div class="dash-kpi-row"><span class="dash-kpi-row-label">${cc}</span><span class="dash-kpi-row-val">${fmt(val)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--muted);padding:2px 0">Apenas um CC este mês</div>'}</div>
@@ -2292,7 +2292,7 @@ function updateDashboard(){
     const temProLabore=despMes2.some(d=>d.categoria==='Pró-labore');
     const pendentes2=despesas.filter(d=>d.status==='Pendente').length;
     const ctas=[];
-    if(!temProLabore&&despesas.length>0) ctas.push({icon:'💼',label:'Lançar pró-labore de '+meses2[hoje.getMonth()],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+    if(!temProLabore&&despesas.length>0) ctas.push({icon:'💼',label:'Lançar seu salário de '+meses2[hoje.getMonth()],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
     if(totalRec2===0) ctas.push({icon:'💰',label:'Lançar receitas do mês',sub:'Nenhuma receita registrada ainda',cls:'',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
     if(pendentes2>0) ctas.push({icon:'⏳',label:pendentes2+' lançamento'+(pendentes2>1?'s':'')+' pendente'+(pendentes2>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
     ctasEl.innerHTML='<div class="dash-section-title">Ações rápidas</div>'+ctas.map(c=>'<div class="cta-action-item '+c.cls+'" onclick="'+c.action+'"><span class="cta-action-icon">'+c.icon+'</span><div class="cta-action-body"><div class="cta-action-label">'+c.label+'</div>'+(c.sub?'<div class="cta-action-sub">'+c.sub+'</div>':'')+'</div><span class="cta-action-arrow">›</span></div>').join('');
@@ -2360,15 +2360,15 @@ function updateDashboard(){
     let ctas2 = [];
     if(perfilType === 'fiscal'){
       if(!temDAS) ctas2.push({icon:'📋',label:'Registrar pagamento do DAS',sub:'Nenhum DAS lançado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
-      if(!temProLabore2 && despesas.length>0) ctas2.push({icon:'💼',label:'Lançar pró-labore de '+meses3[m2],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+      if(!temProLabore2 && despesas.length>0) ctas2.push({icon:'💼',label:'Lançar seu salário de '+meses3[m2],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
       if(pendentes3>0) ctas2.push({icon:'⏳',label:pendentes3+' lançamento'+(pendentes3>1?'s':'')+' pendente'+(pendentes3>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
       ctas2.push({icon:'📄',label:'Ver declaração anual',sub:'DASN e obrigações fiscais',cls:'',action:"showPage('dasn',document.getElementById('nav-dasn'))"});
     } else if(perfilType === 'crescimento'){
       ctas2.push({icon:'💰',label:'Lançar receitas do mês',sub:totalRec2>0?`${fmt(totalRec2)} registrados`:'Nenhuma receita ainda',cls:totalRec2===0?'warn':'',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
       ctas2.push({icon:'📈',label:'Ver relatórios e tendências',sub:'Análise de crescimento por IA',cls:'',action:"showPage('relatorio',document.getElementById('nav-relatorio'))"});
-      ctas2.push({icon:'📊',label:'Ver DRE completo',sub:'Resultado detalhado do período',cls:'',action:"showPage('dre',document.getElementById('nav-dre'))"});
+      ctas2.push({icon:'📊',label:'Ver resumo completo',sub:'Resultado detalhado do período',cls:'',action:"showPage('dre',document.getElementById('nav-dre'))"});
     } else {
-      if(!temProLabore2 && despesas.length>0) ctas2.push({icon:'💼',label:'Lançar pró-labore de '+meses3[m2],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
+      if(!temProLabore2 && despesas.length>0) ctas2.push({icon:'💼',label:'Lançar seu salário de '+meses3[m2],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
       if(totalRec2===0) ctas2.push({icon:'💰',label:'Lançar receitas do mês',sub:'Nenhuma receita registrada ainda',cls:'warn',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
       if(pendentes3>0) ctas2.push({icon:'⏳',label:pendentes3+' lançamento'+(pendentes3>1?'s':'')+' pendente'+(pendentes3>1?'s':''),sub:'Aguardando aprovação',cls:'warn',action:"showPage('despesas',document.getElementById('nav-despesas'))"});
     }
@@ -2951,8 +2951,8 @@ function updateFooter(){
   sfResultado.style.background = totalRecMes===0?'':(resultado>=0?'var(--green-bg)':'var(--red-bg)');
   const isGratisPlano = !isAdmin() && currentProfile?.plano === 'gratis';
   const linkDRE = isGratisPlano
-    ? `<a href="/pricing.html" style="display:block;margin-top:8px;font-size:11px;font-weight:600;color:var(--accent);text-decoration:none;opacity:.9">⬆ Ver planos para DRE completo →</a>`
-    : `<a href="#" onclick="showPage('dre',document.getElementById('nav-dre'));return false;" style="display:block;margin-top:8px;font-size:11px;font-weight:600;color:inherit;text-decoration:none;opacity:.8">📄 Ver DRE completo →</a>`;
+    ? `<a href="/pricing.html" style="display:block;margin-top:8px;font-size:11px;font-weight:600;color:var(--accent);text-decoration:none;opacity:.9">⬆ Ver planos para o resumo completo →</a>`
+    : `<a href="#" onclick="showPage('dre',document.getElementById('nav-dre'));return false;" style="display:block;margin-top:8px;font-size:11px;font-weight:600;color:inherit;text-decoration:none;opacity:.8">📄 Ver resumo completo →</a>`;
   const linkEl = document.getElementById('sf-resultado-link');
   if(linkEl) linkEl.innerHTML = linkDRE;
   // Mostrar uso do plano no sidebar
