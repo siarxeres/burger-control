@@ -3654,8 +3654,8 @@ function openModalReceita(editId = null){
   document.getElementById('modal-title').textContent = 'Nova Receita';document.getElementById('modal').classList.add('show');
   document.getElementById('modal-body').innerHTML = `
     <div class="form-grid" style="grid-template-columns:1fr 1fr">
-      <div class="form-group full"><label class="form-label">Descrição <span style="color:var(--accent)">*</span></label><input type="text" class="form-control" id="mr-desc" placeholder="Ex: Vendas do dia, iFood, Evento..."></div>
-      <div class="form-group"><label class="form-label">Categoria <span style="color:var(--accent)">*</span></label>
+      <div class="form-group full"><label class="form-label">Descrição</label><input type="text" class="form-control" id="mr-desc" placeholder="Ex: Vendas do dia, iFood, Evento..."></div>
+      <div class="form-group"><label class="form-label">Categoria</label>
         <select class="form-control" id="mr-cat">
           <option value="">Selecionar...</option>
           <option>Venda de Produtos</option>
@@ -3668,7 +3668,7 @@ function openModalReceita(editId = null){
           <option>Exportação / Atacado</option>
           <option>Outras Receitas</option>
       </select></div>
-<div class="form-group"><label class="form-label">Tipo de Receita *</label>
+<div class="form-group"><label class="form-label">Tipo de Receita</label>
 <select class="form-control" id="mr-tipo">
 <option value="">Selecionar...</option>
 <option value="comercio">Comércio</option>
@@ -3705,8 +3705,6 @@ function openModalReceita(editId = null){
   const valorRaw = document.getElementById('mr-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
   const valor = parseFloat(valorRaw);
   const data = document.getElementById('mr-data').value;
-  if(!descricao){toast('⚠ Preencha a descrição.');return;}
-  if(!categoria){toast('⚠ Selecione a categoria.');return;}
   if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
   if(!data){toast('⚠ Informe a data.');return;}
 
@@ -3718,8 +3716,10 @@ function openModalReceita(editId = null){
   }
   // Verificações de plano
   if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
+  const descricaoFinal = descricao || 'Receita';
+  const categoriaFinal = categoria || 'Não categorizado';
   const item = {
-    user_id: currentUser.id, descricao, categoria,
+    user_id: currentUser.id, descricao: descricaoFinal, categoria: categoriaFinal,
     canal: document.getElementById('mr-canal').value,
     valor, data,
     forma_pagamento: document.getElementById('mr-pagto').value,
