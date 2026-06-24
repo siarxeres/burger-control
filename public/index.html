@@ -2253,7 +2253,7 @@ function updateDashboard(){
     <div class="dash-kpi">
       <div class="dash-kpi-icon">📊</div>
       <div class="dash-kpi-label">Resultado do Mês</div>
-      <div class="dash-kpi-value" style="color:${positivo?'var(--green)':'var(--accent)'}">${positivo?'+':''}${fmt(resultado)}</div>
+      ${totalRec>0?`<div class="dash-kpi-value" style="color:${positivo?'var(--green)':'var(--accent)'}">${positivo?'+':''}${fmt(resultado)}</div>`:`<div class="dash-kpi-value">${fmt(totalDesp)} em despesas</div><div class="dash-kpi-sub">Falta lançar receitas pra saber se sobrou</div>`}
     </div>
     <div class="dash-kpi expandable" id="dash-kpi-rec" onclick="document.getElementById('dash-kpi-rec').classList.toggle('open')">
       <div class="dash-kpi-icon">📥</div>
