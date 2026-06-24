@@ -3608,12 +3608,16 @@ function renderReceitas(){
     const d=new Date(r.data); const n=new Date();
     return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear();
   }).reduce((s,r)=>s+r.valor,0);
+  const totalDespMes = despesas.filter(d=>{
+    const dt=new Date(d.data); const n=new Date();
+    return dt.getMonth()===n.getMonth()&&dt.getFullYear()===n.getFullYear()&&d.status!=='Rejeitado';
+  }).reduce((s,d)=>s+d.valor,0);
 
   document.getElementById('rec-metrics').innerHTML=`
     <div class="metric"><div class="metric-label">Total de Receitas</div><div class="metric-value green">${fmt(total)}</div><div class="metric-sub">${receitas.length} lançamento(s)</div></div>
     <div class="metric"><div class="metric-label">Mês Atual</div><div class="metric-value green">${fmt(totalMes)}</div><div class="metric-sub">receitas no mês</div></div>
     <div class="metric"><div class="metric-label">Ticket Médio</div><div class="metric-value">${receitas.length?fmt(total/receitas.length):fmt(0)}</div><div class="metric-sub">por lançamento</div></div>
-    <div class="metric"><div class="metric-label">Resultado</div><div class="metric-value ${total>=despesas.reduce((s,d)=>s+d.valor,0)?'green':'accent'}">${fmt(total-despesas.reduce((s,d)=>s+d.valor,0))}</div><div class="metric-sub">receitas − despesas</div></div>`;
+    <div class="metric"><div class="metric-label">Resultado</div><div class="metric-value ${totalMes>=totalDespMes?'green':'accent'}">${fmt(totalMes-totalDespMes)}</div><div class="metric-sub">receitas − despesas</div></div>`;
 
   const tbody=document.getElementById('rec-tbody'), tr=document.getElementById('rec-total');
   if(!list.length){
