@@ -783,7 +783,7 @@ tbody tr:hover td{background:var(--surface2)}
             <div class="form-grid">
               <div class="form-group"><label class="form-label">Fornecedor <span>*</span></label><input type="text" class="form-control" id="f-fornecedor" placeholder="Razão social ou nome fantasia"></div>
               <div class="form-group"><label class="form-label">CNPJ / CPF</label><input type="text" class="form-control" id="f-cnpj" placeholder="00.000.000/0000-00"></div>
-              <div class="form-group"><label class="form-label">Centro de Custo <span>*</span></label>
+              <div class="form-group"><label class="form-label">Tipo de gasto <span>*</span></label>
                 <select class="form-control" id="f-cc" onchange="atualizarCategoriasPorCC()"><option value="">Selecionar...</option></select></div>
               <div class="form-group"><label class="form-label">Categoria</label>
                 <select class="form-control" id="f-cat"><option value="">Selecionar...</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select></div>
@@ -854,7 +854,7 @@ tbody tr:hover td{background:var(--surface2)}
                     <th>Descrição</th>
                     <th>Tipo</th>
                     <th>Data</th>
-                    <th>Centro de Custo</th>
+                    <th>Tipo de gasto</th>
                     <th>Categoria</th>
                     <th style="text-align:right">Valor</th>
                   </tr></thead>
@@ -882,7 +882,7 @@ tbody tr:hover td{background:var(--surface2)}
             <button class="btn btn-sm" onclick="exportCSV()">⬇ CSV</button>
           </div>
           <div class="table-wrap" style="overflow-x:auto">
-            <table><thead><tr><th>Fornecedor</th><th>CC</th><th>Categoria</th><th>Tipo</th><th>Pagamento</th><th>Data</th><th>Status</th><th>Usuário</th><th style="text-align:right">Valor</th><th></th></tr></thead>
+            <table><thead><tr><th>Fornecedor</th><th>Tipo de gasto</th><th>Categoria</th><th>Tipo</th><th>Pagamento</th><th>Data</th><th>Status</th><th>Usuário</th><th style="text-align:right">Valor</th><th></th></tr></thead>
             <tbody id="desp-tbody"></tbody></table>
           </div>
           <div id="desp-total" style="display:none;text-align:right;padding:10px 4px;font-size:13px;font-weight:700"></div>
@@ -892,7 +892,7 @@ tbody tr:hover td{background:var(--surface2)}
         <div class="page" id="page-centros">
           <div class="cc-grid" id="cc-grid"></div>
           <div class="sec-title">Detalhamento por Categoria</div>
-          <div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Centro de Custo</th><th>Qtd</th><th style="text-align:right">Total</th><th style="text-align:right">%</th></tr></thead><tbody id="cc-tbody"></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Tipo de gasto</th><th>Qtd</th><th style="text-align:right">Total</th><th style="text-align:right">%</th></tr></thead><tbody id="cc-tbody"></tbody></table></div>
         </div>
 
         <!-- RELATÓRIOS -->
@@ -971,7 +971,7 @@ tbody tr:hover td{background:var(--surface2)}
                 <button class="btn btn-sm" onclick="setDrePeriodo('mes')">Mês atual</button>
                 <button class="btn btn-sm" onclick="setDrePeriodo('trimestre')">Trimestre</button>
                 <button class="btn btn-sm" onclick="setDrePeriodo('ano')">Ano</button>
-                <button class="btn btn-primary btn-sm" onclick="renderDRE()">▶ Gerar DRE</button>
+                <button class="btn btn-primary btn-sm" onclick="renderDRE()">▶ Gerar resumo</button>
               </div>
             </div>
           </div>
@@ -1014,7 +1014,7 @@ tbody tr:hover td{background:var(--surface2)}
 
           <!-- Tabs CC / Categoria -->
           <div class="tabs" style="margin-bottom:18px">
-            <div class="tab active" onclick="switchOrcTab('cc',this)" id="orc-tab-cc">📦 Por Centro de Custo</div>
+            <div class="tab active" onclick="switchOrcTab('cc',this)" id="orc-tab-cc">📦 Por tipo de gasto</div>
             <div class="tab" onclick="switchOrcTab('categoria',this)" id="orc-tab-cat">🏷️ Por Categoria</div>
           </div>
 
@@ -1847,7 +1847,7 @@ function showPage(id, navEl){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(navEl) navEl.classList.add('active');
-  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Centros de Custo',relatorio:'Relatórios IA',dre:'DRE — Demonstrativo de Resultado',dasn:'Declaração Anual',orcamento:'Orçado vs Realizado','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'DRE Pessoal'};
+  const titles={dashboard:'Dashboard',lancar:'Lançar Despesa',despesas:'Despesas',receitas:'Receitas',centros:'Meus gastos',relatorio:'Relatórios IA',dre:'Resumo do mês',dasn:'Declaração Anual',orcamento:'Orçado vs Realizado','pessoal-dashboard':'Resumo Pessoal','pessoal-lancar':'Lançar — Pessoal','pessoal-extrato':'Extrato Pessoal','pessoal-dre':'Resumo pessoal'};
   document.getElementById('page-title').textContent = titles[id]||'';
   closeSidebar();
   if(id==='dashboard') updateDashboard();
@@ -2272,7 +2272,7 @@ function updateDashboard(){
       <div class="dash-kpi-label dash-kpi-label-row">Maior gasto<span class="dash-kpi-arrow">›</span></div>
       <div class="dash-kpi-value" style="font-size:18px">${sorted[0]?sorted[0][0]:'—'}</div>
       <div class="dash-kpi-sub">${sorted[0]?fmt(sorted[0][1]):'—'}</div>
-      <div class="dash-kpi-detail">${sorted.length>1?sorted.map(([cc,val])=>`<div class="dash-kpi-row"><span class="dash-kpi-row-label">${cc}</span><span class="dash-kpi-row-val">${fmt(val)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--muted);padding:2px 0">Apenas um CC este mês</div>'}</div>
+      <div class="dash-kpi-detail">${sorted.length>1?sorted.map(([cc,val])=>`<div class="dash-kpi-row"><span class="dash-kpi-row-label">${cc}</span><span class="dash-kpi-row-val">${fmt(val)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--muted);padding:2px 0">Apenas um tipo de gasto este mês</div>'}</div>
     </div>
     <div class="dash-kpi"><div class="dash-kpi-icon">📈</div><div class="dash-kpi-label">Lucratividade</div>${totalRec>0?`<div class="dash-kpi-value" style="color:${(totalRec-totalDesp)/totalRec*100>=0?'var(--green)':'var(--accent)'}">${((totalRec-totalDesp)/totalRec*100).toFixed(1)}%</div><div class="dash-kpi-sub">margem líquida</div>`:`<div class="dash-kpi-value">—</div><div class="dash-kpi-sub">Sem receitas no mês</div>`}</div>
     <div class="dash-kpi"><div class="dash-kpi-icon">⏳</div><div class="dash-kpi-label">Pendentes</div><div class="dash-kpi-value" style="${pend>0?'color:var(--yellow)':''}">${pend}</div><div class="dash-kpi-sub">aguardando aprovação</div></div>`;
@@ -2366,7 +2366,7 @@ function updateDashboard(){
     } else if(perfilType === 'crescimento'){
       ctas2.push({icon:'💰',label:'Lançar receitas do mês',sub:totalRec2>0?`${fmt(totalRec2)} registrados`:'Nenhuma receita ainda',cls:totalRec2===0?'warn':'',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
       ctas2.push({icon:'📈',label:'Ver relatórios e tendências',sub:'Análise de crescimento por IA',cls:'',action:"showPage('relatorio',document.getElementById('nav-relatorio'))"});
-      ctas2.push({icon:'📊',label:'Ver resumo completo',sub:'Resultado detalhado do período',cls:'',action:"showPage('dre',document.getElementById('nav-dre'))"});
+      ctas2.push({icon:'📊',label:'Ver resumo completo',sub:'Resumo detalhado do período',cls:'',action:"showPage('dre',document.getElementById('nav-dre'))"});
     } else {
       if(!temProLabore2 && despesas.length>0) ctas2.push({icon:'💼',label:'Lançar seu salário de '+meses3[m2],sub:'Não registrado este mês',cls:'warn',action:"showPage('lancar',document.getElementById('nav-lancar'))"});
       if(totalRec2===0) ctas2.push({icon:'💰',label:'Lançar receitas do mês',sub:'Nenhuma receita registrada ainda',cls:'warn',action:"showPage('receitas',document.getElementById('nav-receitas'))"});
@@ -2655,7 +2655,7 @@ function openModalVisualizacao(d, podEditar){
     <div id="modal-view">
       <table style="width:100%;font-size:13px;margin-bottom:14px">
         <tr><td style="color:var(--muted);padding:5px 0;width:40%">Lançado por</td><td style="font-weight:600">${d.profiles?.full_name||'—'}</td></tr>
-        <tr><td style="color:var(--muted);padding:5px 0">Centro de Custo</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td></tr>
+        <tr><td style="color:var(--muted);padding:5px 0">Tipo de gasto</td><td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td></tr>
         <tr><td style="color:var(--muted);padding:5px 0">Categoria</td><td>${d.categoria}</td></tr>
         <tr><td style="color:var(--muted);padding:5px 0">CNPJ/CPF</td><td>${d.cnpj||'—'}</td></tr>
         <tr><td style="color:var(--muted);padding:5px 0">Tipo</td><td>${d.tipo}</td></tr>
@@ -2680,7 +2680,7 @@ function openModalVisualizacao(d, podEditar){
           <input type="text" class="form-control" id="ed-fornecedor" value="${(d.fornecedor||'').replace(/"/g,'&quot;')}"></div>
         <div class="form-group"><label class="form-label">CNPJ/CPF</label>
           <input type="text" class="form-control" id="ed-cnpj" value="${(d.cnpj||'').replace(/"/g,'&quot;')}"></div>
-        <div class="form-group"><label class="form-label">Centro de Custo <span style="color:var(--accent)">*</span></label>
+        <div class="form-group"><label class="form-label">Tipo de gasto <span style="color:var(--accent)">*</span></label>
           <select class="form-control" id="ed-cc" onchange="atualizarCatsEdicao(this.value)"><option value="">Selecionar...</option>${ccOpts}</select></div>
         <div class="form-group"><label class="form-label">Categoria</label>
           <select class="form-control" id="ed-cat">
@@ -3543,7 +3543,7 @@ function renderDREPessoal(){
     <div class="card" style="overflow:hidden">
       <div style="padding:16px 20px;border-bottom:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div>
-          <div style="font-size:16px;font-weight:700">DRE Pessoal</div>
+          <div style="font-size:16px;font-weight:700">Resumo pessoal</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">Período: ${fmtDate(ini)} a ${fmtDate(fim)}</div>
         </div>
         <button class="btn btn-sm" onclick="exportDREPessoal('${ini}','${fim}')">⬇ Exportar</button>
@@ -3593,7 +3593,7 @@ function exportDREPessoal(ini,fim){
   const csv=rows.map(r=>r.map(v=>`"${v}"`).join(';')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download=`DRE_pessoal_${ini}_${fim}.csv`; a.click();
-  toast('✅ DRE pessoal exportado!');
+  toast('✅ Resumo pessoal exportado!');
 }
 
 // ══ CENTROS DE CUSTO — ADMIN ══
@@ -3889,7 +3889,7 @@ function renderDRE(){
     <div class="card" style="overflow:hidden">
       <div style="padding:16px 20px;border-bottom:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div>
-          <div style="font-size:16px;font-weight:700">DRE — Demonstrativo de Resultado</div>
+          <div style="font-size:16px;font-weight:700">Resumo financeiro</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">Período: ${periodo}</div>
         </div>
         <button class="btn btn-sm" onclick="exportDRE('${ini}','${fim}')">⬇ Exportar CSV</button>
@@ -3964,7 +3964,7 @@ function renderDRE(){
           </tr>`}
         </tbody>
       </table>
-      ${recTotal===0&&despesas.length===0?`<div class="empty" style="padding:30px"><div class="empty-icon">📊</div><div class="empty-title">Sem dados no período</div>Lance receitas e despesas para gerar o DRE.</div>`:''}
+      ${recTotal===0&&despesas.length===0?`<div class="empty" style="padding:30px"><div class="empty-icon">📊</div><div class="empty-title">Sem dados no período</div>Lance receitas e despesas para gerar o resumo.</div>`:''}
     </div>
 
     ${!isAdmin() && checkTrialExpirado() ? '' : `
@@ -3982,7 +3982,7 @@ function renderDRE(){
       <div class="metric"><div class="metric-label">Receita Total</div><div class="metric-value green">${fmt(recTotal)}</div></div>
       <div class="metric"><div class="metric-label">Ponto de Equilíbrio</div>${!isAdmin() && checkTrialExpirado() ? '<div class="metric-value" style="font-size:13px;color:var(--accent);cursor:pointer" onclick="alertPlano(\'Ponto de Equilíbrio\')">🔒 Upgrade Pro</div>' : `<div class="metric-value" style="${cor(recTotal-pe)}">${fmt(pe)}</div><div class="metric-sub">${peAtingidoPct.toFixed(1)}% atingido</div>`}</div>
       <div class="metric"><div class="metric-label">Meta Diária</div><div class="metric-value" style="font-size:18px;${metaDiaria>0?'color:var(--accent)':'color:var(--green)'}">${metaDiaria>0?fmt(metaDiaria):'✅ OK'}</div><div class="metric-sub">${diasRestantes} dias restantes</div></div>
-      <div class="metric"><div class="metric-label">Resultado Líquido</div><div class="metric-value" style="${cor(liquido)}">${fmt(liquido)}</div><div class="metric-sub">${recTotal>0?(liquido/recTotal*100).toFixed(1)+'% da receita':'—'}</div></div>
+      <div class="metric"><div class="metric-label">Quanto sobrou</div><div class="metric-value" style="${cor(liquido)}">${fmt(liquido)}</div><div class="metric-sub">${recTotal>0?(liquido/recTotal*100).toFixed(1)+'% da receita':'—'}</div></div>
     </div>`;
 }
 
@@ -4026,7 +4026,7 @@ function exportDRE(ini, fim){
   const csv = rows.map(r=>r.map(v=>`"${v}"`).join(';')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download=`DRE_${ini}_${fim}.csv`; a.click();
-  toast('✅ DRE exportado!');
+  toast('✅ Resumo exportado!');
 }
 
 // ══ ORÇADO VS REALIZADO ══
@@ -4204,11 +4204,11 @@ function openModalOrcamento(ref='', valorAtual=0, orcId=null){
   document.getElementById('modal-title').textContent = ref ? `Orçamento — ${ref}` : '+ Definir Orçamento';
   document.getElementById('modal-body').innerHTML = `
     <div style="background:var(--surface2);border-radius:var(--rs);padding:10px 13px;margin-bottom:16px;font-size:12px;color:var(--muted)">
-      Período: <strong style="color:var(--text)">${periodo==='mensal'?meses[mes]+'/'+ano:ano} · ${tipo==='cc'?'Centro de Custo':'Categoria'}</strong>
+      Período: <strong style="color:var(--text)">${periodo==='mensal'?meses[mes]+'/'+ano:ano} · ${tipo==='cc'?'Tipo de gasto':'Categoria'}</strong>
     </div>
     <div class="form-grid" style="grid-template-columns:1fr 1fr">
       <div class="form-group full">
-        <label class="form-label">${tipo==='cc'?'Centro de Custo':'Categoria'} <span style="color:var(--accent)">*</span></label>
+        <label class="form-label">${tipo==='cc'?'Tipo de gasto':'Categoria'} <span style="color:var(--accent)">*</span></label>
         <select class="form-control" id="orc-ref">
           <option value="">Selecionar...</option>
           ${opcoesRef.map(r=>`<option value="${r}" ${r===ref?'selected':''}>${r}</option>`).join('')}
