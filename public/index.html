@@ -983,6 +983,14 @@ tbody tr:hover td{background:var(--surface2)}
         <div class="page" id="page-dasn"></div>
         <!-- ORÇADO VS REALIZADO -->
         <div class="page" id="page-orcamento">
+          <div id="orc-boas-vindas" style="display:none;background:var(--accent-bg);border:.5px solid rgba(216,90,48,.25);border-radius:var(--r);padding:20px 24px;margin-bottom:20px">
+            <div style="font-size:15px;font-weight:700;color:var(--accent);margin-bottom:6px">Comece montando seu orçamento</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">É assim que o app descobre quanto você precisa faturar por dia pra não ter prejuízo.</div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" onclick="openModalOrcamento()">Montar meu orçamento</button>
+              <a href="#" onclick="showPage('dashboard',document.getElementById('nav-dashboard'));return false;" style="font-size:12px;color:var(--muted);text-decoration:none">Explorar o app primeiro →</a>
+            </div>
+          </div>
           <div class="card" style="padding:16px;margin-bottom:20px">
             <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
               <div class="form-group" style="margin:0">
@@ -1379,7 +1387,7 @@ async function doLogin(){
       await loadCentros();
       await loadDespesas();
       await loadReceitas();
-      if(!onboarding){ initApp(); setupRealtimePlano(); }
+      if(!onboarding){ initApp(); setupRealtimePlano(); if(!(await temOrcamento())){ redirecionouParaOrcamento = true; showPage('orcamento', document.getElementById('nav-orcamento')); } }
     }
   } catch(e) {
     errEl.textContent = 'Erro de conexão: ' + e.message;
@@ -1520,7 +1528,7 @@ sb.auth.onAuthStateChange((event, session) => {
     await loadCentros();
     await loadDespesas();
     await loadReceitas();
-    if(!onboarding) initApp();
+    if(!onboarding){ initApp(); if(!(await temOrcamento())){ redirecionouParaOrcamento = true; showPage('orcamento', document.getElementById('nav-orcamento')); } }
   }
 })();
 
@@ -1708,6 +1716,7 @@ async function obFinalizar(){
   }
   document.getElementById('onboarding-screen').style.display = 'none';
   initApp();
+  if(!(await temOrcamento())){ redirecionouParaOrcamento = true; showPage('orcamento', document.getElementById('nav-orcamento')); }
 }
 
 function initApp(){
@@ -1728,9 +1737,8 @@ function initApp(){
   // Gate DRE: oculto para plano grátis
   const navDre = document.getElementById('nav-dre');
   if(navDre) navDre.style.display = (!isAdmin() && currentProfile?.plano === 'gratis') ? 'none' : '';
-  // Gate Orçado vs Realizado: exclusivo Enterprise
   const navOrcamento = document.getElementById('nav-orcamento');
-  if(navOrcamento) navOrcamento.style.display = (isAdmin() || currentProfile?.plano === 'enterprise') ? '' : 'none';
+  if(navOrcamento) navOrcamento.style.display = '';
   // Gate DASN: esconde item de nav se plano não tem tem_dasn
   const navDasn = document.getElementById('nav-dasn');
   if(navDasn) navDasn.style.display = podeDASN() ? '' : 'none';
@@ -4032,6 +4040,14 @@ function exportDRE(ini, fim){
 // ══ ORÇADO VS REALIZADO ══
 let orcamentos = [];
 let orcTabAtual = 'cc';
+let redirecionouParaOrcamento = false;
+
+async function temOrcamento(){
+  if(!currentUser) return true;
+  const { data, error } = await sb.from('orcamentos').select('id').eq('user_id', currentUser.id).limit(1);
+  if(error){ console.error('[temOrcamento] erro na consulta:', error); return true; }
+  return !!(data && data.length > 0);
+}
 
 async function loadOrcamentos(){
   const { data } = await sb.from('orcamentos').select('*').eq('user_id', currentUser.id);
@@ -4051,14 +4067,6 @@ function switchOrcTab(tab, el){
 }
 
 async function initOrcamento(){
-  if(!isAdmin()){
-    const plano = currentProfile?.plano || 'gratis';
-    if(plano !== 'enterprise'){
-      alertPlano('Orçado vs Realizado — disponível apenas no plano Enterprise');
-      showPage('dashboard', document.getElementById('nav-dashboard'));
-      return;
-    }
-  }
   // Preencher anos
   const anoSel = document.getElementById('orc-ano');
   const anoAtual = new Date().getFullYear();
@@ -4072,6 +4080,9 @@ async function initOrcamento(){
   // Mês atual
   document.getElementById('orc-mes').value = new Date().getMonth() + 1;
   await loadOrcamentos();
+  const bvBanner = document.getElementById('orc-boas-vindas');
+  if(bvBanner) bvBanner.style.display = (redirecionouParaOrcamento && orcamentos.length === 0) ? 'block' : 'none';
+  redirecionouParaOrcamento = false;
   renderOrcamento();
 }
 
