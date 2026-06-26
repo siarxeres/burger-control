@@ -788,7 +788,7 @@ tbody tr:hover td{background:var(--surface2)}
               <div class="form-group"><label class="form-label">Categoria</label>
                 <select class="form-control" id="f-cat"><option value="">Selecionar...</option><option>Insumos / Ingredientes</option><option>Embalagens</option><option>Serviços</option><option>Equipamentos</option><option>Manutenção</option><option>Energia / Água / Gás</option><option>Folha de Pagamento</option><option>Aluguel</option><option>Marketing / Publicidade</option><option>Outros</option></select></div>
               <div class="form-group"><label class="form-label">Valor Total <span>*</span></label><input type="text" class="form-control" id="f-valor" placeholder="R$ 0,00"></div>
-              <div class="form-group"><label class="form-label">Data <span>*</span></label><input type="date" class="form-control" id="f-data"></div>
+              <div class="form-group"><label class="form-label">Data <span>*</span></label><input type="date" class="form-control" id="f-data" onchange="atualizarRecorrenciaPreview()"></div>
               <div class="form-group"><label class="form-label">Nº Documento</label><input type="text" class="form-control" id="f-ndoc" placeholder="Número do cupom / NF"></div>
               <div class="form-group"><label class="form-label">Tipo</label>
                 <select class="form-control" id="f-tipo"><option>Cupom Fiscal</option><option>NF-e</option><option>NFC-e</option><option>SAT</option><option>Recibo</option><option>Outro</option></select></div>
@@ -805,8 +805,10 @@ tbody tr:hover td{background:var(--surface2)}
                   <option value="anual">Anual</option>
                 </select></div>
               <div class="form-group" id="f-recorrencia-fim-group" style="display:none">
-                <label class="form-label">Repetir até <span style="color:var(--accent)">*</span></label>
-                <input type="date" class="form-control" id="f-recorrencia-fim">
+                <label class="form-label">Repetir por <span id="f-recorrencia-unidade">meses</span></label>
+                <input type="number" class="form-control" id="f-recorrencia-qtd" min="1" max="60" style="width:80px" oninput="atualizarRecorrenciaPreview()">
+                <input type="hidden" id="f-recorrencia-fim">
+                <div id="f-recorrencia-preview" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
               </div>
               <div class="form-group full"><label class="form-label">Observações</label><input type="text" class="form-control" id="f-obs" placeholder="Opcional"></div>
             </div>
@@ -1964,21 +1966,53 @@ function toggleRecorrencia(){
   const grupo = document.getElementById('f-recorrencia-fim-group');
   grupo.style.display = val ? 'flex' : 'none';
   if(val){
-    // Sugerir data fim: 12 meses à frente
-    const hoje = new Date();
-    const fim = new Date(hoje.getFullYear()+1, hoje.getMonth(), hoje.getDate());
-    document.getElementById('f-recorrencia-fim').value = fim.toISOString().split('T')[0];
+    const unidades = { mensal:'meses', semanal:'semanas', quinzenal:'quinzenas', anual:'anos' };
+    document.getElementById('f-recorrencia-unidade').textContent = unidades[val] || 'períodos';
+    if(!document.getElementById('f-recorrencia-qtd').value)
+      document.getElementById('f-recorrencia-qtd').value = 12;
+    atualizarRecorrenciaPreview();
   }
 }
 
+function atualizarRecorrenciaPreview(){
+  const freq  = document.getElementById('f-recorrente').value;
+  const qtd   = parseInt(document.getElementById('f-recorrencia-qtd').value);
+  const dataStr = document.getElementById('f-data').value;
+  const preview = document.getElementById('f-recorrencia-preview');
+  if(!freq || !qtd || qtd < 1 || !dataStr){
+    preview.textContent = '';
+    document.getElementById('f-recorrencia-fim').value = '';
+    return;
+  }
+  // Parse local (sem virar UTC) para evitar off-by-one de fuso
+  const [y, m, d] = dataStr.split('-').map(Number);
+  const inicio = new Date(y, m - 1, d);
+  // fim = inicio + (qtd-1) períodos
+  // Garante: 1 pai + (qtd-1) filhos = qtd despesas totais
+  const n = qtd - 1;
+  let fim;
+  if(freq === 'mensal')         fim = new Date(y, m - 1 + n, d);
+  else if(freq === 'semanal')   fim = new Date(inicio.getTime() + n * 7  * 24 * 60 * 60 * 1000);
+  else if(freq === 'quinzenal') fim = new Date(inicio.getTime() + n * 15 * 24 * 60 * 60 * 1000);
+  else if(freq === 'anual')     fim = new Date(y + n, m - 1, d);
+  // Serializa em YYYY-MM-DD local (sem .toISOString que vira UTC e pode trocar o dia)
+  const pad = v => String(v).padStart(2, '0');
+  document.getElementById('f-recorrencia-fim').value =
+    `${fim.getFullYear()}-${pad(fim.getMonth()+1)}-${pad(fim.getDate())}`;
+  const fmtMes = dt => dt.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+  const txt = qtd === 1 ? 'Será criada 1 despesa' : `Serão criadas ${qtd} despesas`;
+  preview.textContent = `${txt}, de ${fmtMes(inicio)} a ${fmtMes(fim)}.`;
+}
+
 function clearForm(){
-  ['f-fornecedor','f-cnpj','f-cc','f-cat','f-valor','f-data','f-ndoc','f-obs','f-pagto','f-recorrencia-fim'].forEach(id=>{
+  ['f-fornecedor','f-cnpj','f-cc','f-cat','f-valor','f-data','f-ndoc','f-obs','f-pagto','f-recorrencia-fim','f-recorrencia-qtd'].forEach(id=>{
     const el=document.getElementById(id); if(!el) return; if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
   });
   document.getElementById('f-tipo').selectedIndex=0;
   document.getElementById('f-status').selectedIndex=0;
   document.getElementById('f-recorrente').selectedIndex=0;
   document.getElementById('f-recorrencia-fim-group').style.display='none';
+  document.getElementById('f-recorrencia-preview').textContent='';
   document.getElementById('ai-box').classList.remove('show'); document.getElementById('progress').classList.remove('show');
   const img=document.getElementById('preview-img'); img.classList.remove('show'); img.src='';
   document.getElementById('file-input').value='';
