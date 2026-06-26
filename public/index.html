@@ -4044,7 +4044,8 @@ let redirecionouParaOrcamento = false;
 
 async function temOrcamento(){
   if(!currentUser) return true;
-  const { data } = await sb.from('orcamentos').select('id').eq('user_id', currentUser.id).limit(1);
+  const { data, error } = await sb.from('orcamentos').select('id').eq('user_id', currentUser.id).limit(1);
+  if(error){ console.error('[temOrcamento] erro na consulta:', error); return true; }
   return !!(data && data.length > 0);
 }
 
