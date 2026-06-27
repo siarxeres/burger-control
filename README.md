@@ -98,8 +98,7 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 ### Lançar despesa (manual)
 1. "+ Lançar" no topbar ou navega para Lançar Despesa → aba Preencher manualmente
 2. Informa fornecedor, CNPJ, centro de custo, categoria, valor, data, tipo, forma de pagamento
-3. Opcionalmente marca como recorrente (mensal/quinzenal/semanal/anual)
-4. Salva → insere na tabela `despesas`
+3. Salva → insere na tabela `despesas`
 
 ### Lançar despesa via scan IA
 1. Aba Escanear documento → upload/foto do cupom fiscal
