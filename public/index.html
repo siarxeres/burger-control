@@ -4213,8 +4213,6 @@ async function salvarOrcamento(orcId){
   const valor = parseFloat(valorRaw);
   if(!ref){toast('⚠ Selecione a referência.');return;}
   if(isNaN(valor)||valor<=0){toast('⚠ Informe um valor válido.');return;}
-  // Verificações de plano
-  if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
 
   const periodo = document.getElementById('orc-periodo').value;
   const mes = parseInt(document.getElementById('orc-mes').value);
@@ -4225,6 +4223,8 @@ async function salvarOrcamento(orcId){
   const recQtd   = recAtivo ? Math.min(Math.max(parseInt(document.getElementById('orc-rec-qtd').value)||1, 1), 12) : 1;
 
   if(recAtivo && recQtd > 1){
+    // Cota verificada apenas para criação (INSERTs), nunca para edição
+    if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
     let m = mes, a = ano, criados = 0, pulados = 0;
     for(let i = 0; i < recQtd; i++){
       const jaExiste = orcamentos.some(o =>
@@ -4263,11 +4263,14 @@ async function salvarOrcamento(orcId){
   };
 
   if(orcId && orcId !== 'null'){
+    // UPDATE: editar orçamento existente nunca consome cota
     const { error } = await sb.from('orcamentos').update(item).eq('id', orcId);
     if(error){toast('❌ Erro: '+error.message);return;}
     const idx = orcamentos.findIndex(o=>o.id===orcId);
     if(idx>=0) orcamentos[idx] = {...orcamentos[idx], ...item};
   } else {
+    // INSERT: cota verificada apenas aqui
+    if(!podeLancar()){ alertPlano(`Limite de ${currentPlano?.max_lancamentos} lançamentos/mês atingido`); return; }
     const { data, error } = await sb.from('orcamentos').insert(item).select().single();
     if(error){toast('❌ Erro: '+error.message);return;}
     orcamentos.push(data);
