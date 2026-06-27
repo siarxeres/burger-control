@@ -796,18 +796,6 @@ tbody tr:hover td{background:var(--surface2)}
                 <select class="form-control" id="f-pagto"><option value="">—</option><option>Dinheiro</option><option>Cartão de Débito</option><option>Cartão de Crédito</option><option>PIX</option><option>Boleto</option><option>Transferência</option></select></div>
               <div class="form-group"><label class="form-label">Status</label>
                 <select class="form-control" id="f-status"><option>Aprovado</option><option>Pendente</option><option>Rejeitado</option></select></div>
-              <div class="form-group"><label class="form-label">Recorrente?</label>
-                <select class="form-control" id="f-recorrente" onchange="toggleRecorrencia()">
-                  <option value="">Não</option>
-                  <option value="mensal">Mensal</option>
-                  <option value="quinzenal">Quinzenal</option>
-                  <option value="semanal">Semanal</option>
-                  <option value="anual">Anual</option>
-                </select></div>
-              <div class="form-group" id="f-recorrencia-fim-group" style="display:none">
-                <label class="form-label">Repetir até <span style="color:var(--accent)">*</span></label>
-                <input type="date" class="form-control" id="f-recorrencia-fim">
-              </div>
               <div class="form-group full"><label class="form-label">Observações</label><input type="text" class="form-control" id="f-obs" placeholder="Opcional"></div>
             </div>
             <div style="display:flex;gap:8px;justify-content:flex-end">
@@ -1959,26 +1947,12 @@ function atualizarCategoriasPorCC(){
     cats.map(c => `<option value="${c}" ${c===valorAtual?'selected':''}>${c}</option>`).join('');
 }
 
-function toggleRecorrencia(){
-  const val = document.getElementById('f-recorrente').value;
-  const grupo = document.getElementById('f-recorrencia-fim-group');
-  grupo.style.display = val ? 'flex' : 'none';
-  if(val){
-    // Sugerir data fim: 12 meses à frente
-    const hoje = new Date();
-    const fim = new Date(hoje.getFullYear()+1, hoje.getMonth(), hoje.getDate());
-    document.getElementById('f-recorrencia-fim').value = fim.toISOString().split('T')[0];
-  }
-}
-
 function clearForm(){
-  ['f-fornecedor','f-cnpj','f-cc','f-cat','f-valor','f-data','f-ndoc','f-obs','f-pagto','f-recorrencia-fim'].forEach(id=>{
+  ['f-fornecedor','f-cnpj','f-cc','f-cat','f-valor','f-data','f-ndoc','f-obs','f-pagto'].forEach(id=>{
     const el=document.getElementById(id); if(!el) return; if(el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
   });
   document.getElementById('f-tipo').selectedIndex=0;
   document.getElementById('f-status').selectedIndex=0;
-  document.getElementById('f-recorrente').selectedIndex=0;
-  document.getElementById('f-recorrencia-fim-group').style.display='none';
   document.getElementById('ai-box').classList.remove('show'); document.getElementById('progress').classList.remove('show');
   const img=document.getElementById('preview-img'); img.classList.remove('show'); img.src='';
   document.getElementById('file-input').value='';
@@ -2014,35 +1988,12 @@ async function salvarDespesa(){
     pagto: document.getElementById('f-pagto').value, status: document.getElementById('f-status').value,
     obs: document.getElementById('f-obs').value.trim(),
     ia: document.getElementById('ai-box').classList.contains('show'),
-    recorrente: !!document.getElementById('f-recorrente').value,
-    frequencia: document.getElementById('f-recorrente').value || null,
-    recorrencia_fim: document.getElementById('f-recorrencia-fim').value || null,
   };
 
   const { data: saved, error } = await sb.from('despesas').insert(item).select('*').single();
   if(saved) saved.profiles = { full_name: currentProfile?.full_name || '—' };
   if(error){ toast('❌ Erro ao salvar: '+error.message); return; }
   despesas.unshift(saved);
-
-  // Criar lançamentos futuros se recorrente
-  if(item.recorrente && item.frequencia && item.recorrencia_fim){
-    const futuros = gerarDatasRecorrentes(data, item.recorrencia_fim, item.frequencia);
-    if(futuros.length > 0){
-      const itemsSerie = futuros.map(d => ({
-        ...item,
-        data: d,
-        recorrencia_pai: saved.id,
-        status: 'Pendente', // futuros ficam pendentes
-      }));
-      const { data: savedSerie } = await sb.from('despesas').insert(itemsSerie).select('*');
-      if(savedSerie) savedSerie.forEach(s => { s.profiles = { full_name: currentProfile?.full_name || '—' }; despesas.unshift(s); });
-      toast(`✅ Lançamento salvo! +${futuros.length} recorrências criadas.`);
-    } else {
-      toast('✅ Lançamento salvo!');
-    }
-  } else {
-    toast('✅ Lançamento salvo!');
-  }
 
   // ── PRÓ-LABORE: lançar automaticamente nas receitas pessoais ──
   if(item.categoria === 'Pró-labore'){
@@ -2075,26 +2026,6 @@ async function salvarDespesa(){
   clearForm();
   showPage('dashboard', document.getElementById('nav-dashboard'));
   updateFooter();
-}
-
-function gerarDatasRecorrentes(dataInicio, dataFim, frequencia){
-  const datas = [];
-  let atual = new Date(dataInicio);
-  const fim = new Date(dataFim);
-
-  while(true){
-    // Avançar para próxima data
-    if(frequencia === 'mensal') atual = new Date(atual.getFullYear(), atual.getMonth()+1, atual.getDate());
-    else if(frequencia === 'quinzenal') atual = new Date(atual.getTime() + 15*24*60*60*1000);
-    else if(frequencia === 'semanal') atual = new Date(atual.getTime() + 7*24*60*60*1000);
-    else if(frequencia === 'anual') atual = new Date(atual.getFullYear()+1, atual.getMonth(), atual.getDate());
-    else break;
-
-    if(atual > fim) break;
-    datas.push(atual.toISOString().split('T')[0]);
-    if(datas.length >= 60) break; // limite de segurança
-  }
-  return datas;
 }
 
 // ══ ALERTAS INTELIGENTES ══
@@ -2572,7 +2503,7 @@ function renderDespesas(){
       <td><div style="font-weight:600">${d.fornecedor}</div>${d.cnpj?`<div style="font-size:11px;color:var(--hint)">${d.cnpj}</div>`:''}</td>
       <td><span class="badge" style="background:${CC_COLORS[d.cc]||'#888'}20;color:${CC_COLORS[d.cc]||'#888'}">${d.cc}</span></td>
       <td style="color:var(--muted)">${d.categoria}</td>
-      <td><span class="badge badge-gray">${d.tipo}</span>${d.ia?' <span class="badge badge-ai">IA</span>':''}${d.recorrente?' <span class="badge" style="background:#e6f1fb;color:#185fa5">🔄</span>':''}</td>
+      <td><span class="badge badge-gray">${d.tipo}</span>${d.ia?' <span class="badge badge-ai">IA</span>':''}</td>
       <td style="color:var(--muted)">${d.pagto||'—'}</td>
       <td style="color:var(--muted)">${fmtDate(d.data)}</td>
       <td><span class="badge" style="${STATUS_STYLE[d.status]||''}">${d.status}</span></td>
