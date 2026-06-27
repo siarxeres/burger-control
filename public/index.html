@@ -1014,7 +1014,7 @@ tbody tr:hover td{background:var(--surface2)}
                 <select class="form-control" id="orc-ano" style="width:100px"></select>
               </div>
               <div style="display:flex;gap:8px">
-                <button class="btn btn-sm" onclick="showPage('orcamento',document.getElementById('nav-orcamento'))">🔄 Atualizar</button>
+                <button class="btn btn-sm" onclick="loadOrcamentos().then(renderOrcamento)">🔄 Atualizar</button>
                 <button class="btn btn-primary btn-sm" onclick="openModalOrcamento()">+ Definir Orçamento</button>
               </div>
             </div>
