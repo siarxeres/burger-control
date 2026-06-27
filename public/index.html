@@ -1014,7 +1014,7 @@ tbody tr:hover td{background:var(--surface2)}
                 <select class="form-control" id="orc-ano" style="width:100px"></select>
               </div>
               <div style="display:flex;gap:8px">
-                <button class="btn btn-sm" onclick="showPage('orcamento',document.getElementById('nav-orcamento'))">🔄 Atualizar</button>
+                <button class="btn btn-sm" onclick="loadOrcamentos().then(renderOrcamento)">🔄 Atualizar</button>
                 <button class="btn btn-primary btn-sm" onclick="openModalOrcamento()">+ Definir Orçamento</button>
               </div>
             </div>
@@ -4231,6 +4231,21 @@ function openModalOrcamento(ref='', valorAtual=0, orcId=null){
           value="${valorAtual>0?valorAtual.toLocaleString('pt-BR',{minimumFractionDigits:2}):''}">
       </div>
     </div>
+    ${periodo === 'mensal' && !orcId ? `
+    <div class="form-group full" style="border-top:.5px solid var(--border);padding-top:14px;margin-top:4px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0">
+        <input type="checkbox" id="orc-rec-ativo" onchange="toggleOrcRec()">
+        <span style="font-size:13px;font-weight:600;color:var(--text)">Repetir mensalmente</span>
+      </label>
+      <div id="orc-rec-detalhe" style="display:none;margin-top:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="number" class="form-control" id="orc-rec-qtd" min="1" max="12"
+                 style="width:72px" value="12" oninput="atualizarOrcPreview()">
+          <span style="font-size:13px;color:var(--muted)">meses consecutivos</span>
+        </div>
+        <div id="orc-rec-preview" style="font-size:12px;color:var(--muted);margin-top:6px"></div>
+      </div>
+    </div>` : ''}
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
       ${orcId?`<button class="btn btn-danger btn-sm" onclick="excluirOrcamento(${orcId})">🗑 Excluir</button>`:''}
       <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
@@ -4238,6 +4253,27 @@ function openModalOrcamento(ref='', valorAtual=0, orcId=null){
     </div>`;
   document.getElementById('modal').classList.add('show');
   setTimeout(()=>document.getElementById('orc-valor')?.focus(),100);
+}
+
+function toggleOrcRec(){
+  const ativo = document.getElementById('orc-rec-ativo').checked;
+  document.getElementById('orc-rec-detalhe').style.display = ativo ? 'block' : 'none';
+  if(ativo) atualizarOrcPreview();
+}
+
+function atualizarOrcPreview(){
+  const qtd = parseInt(document.getElementById('orc-rec-qtd').value);
+  const preview = document.getElementById('orc-rec-preview');
+  if(!qtd || qtd < 1){ preview.textContent = ''; return; }
+  const mIni = parseInt(document.getElementById('orc-mes').value);
+  const aIni = parseInt(document.getElementById('orc-ano').value);
+  // fim = início + (qtd-1) meses → N=total, não N+1
+  const offset = mIni + qtd - 2;
+  const aFim   = aIni + Math.floor(offset / 12);
+  const mFim   = (offset % 12) + 1;
+  const fmt = (m, a) => new Date(a, m-1, 1).toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+  const txt = qtd === 1 ? 'Será criado 1 item orçado' : `Serão criados ${qtd} itens orçados`;
+  preview.textContent = `${txt}, de ${fmt(mIni, aIni)} a ${fmt(mFim, aFim)}.`;
 }
 
 async function salvarOrcamento(orcId){
@@ -4253,6 +4289,39 @@ async function salvarOrcamento(orcId){
   const mes = parseInt(document.getElementById('orc-mes').value);
   const ano = parseInt(document.getElementById('orc-ano').value);
 
+  // Recorrência mensal (só disponível para novos orçamentos mensais)
+  const recAtivo = document.getElementById('orc-rec-ativo')?.checked;
+  const recQtd   = recAtivo ? Math.min(Math.max(parseInt(document.getElementById('orc-rec-qtd').value)||1, 1), 12) : 1;
+
+  if(recAtivo && recQtd > 1){
+    let m = mes, a = ano, criados = 0, pulados = 0;
+    for(let i = 0; i < recQtd; i++){
+      const jaExiste = orcamentos.some(o =>
+        o.tipo === orcTabAtual && o.referencia === ref &&
+        o.periodo === 'mensal' && o.mes === m && o.ano === a
+      );
+      if(!jaExiste){
+        const { data: novo, error } = await sb.from('orcamentos').insert({
+          user_id: currentUser.id, tipo: orcTabAtual, referencia: ref,
+          periodo: 'mensal', mes: m, ano: a,
+          valor_orcado: valor, updated_at: new Date().toISOString(),
+        }).select().single();
+        if(!error && novo){ orcamentos.push(novo); criados++; }
+      } else {
+        pulados++;
+      }
+      m++; if(m > 12){ m = 1; a++; }
+    }
+    closeModal();
+    const msg = pulados > 0
+      ? `✅ ${criados} meses criados. ${pulados} já tinham orçamento (mantidos).`
+      : `✅ ${criados} meses criados!`;
+    toast(msg);
+    renderOrcamento();
+    return;
+  }
+
+  // Caso sem recorrência — comportamento original intacto
   const item = {
     user_id: currentUser.id,
     tipo: orcTabAtual,
