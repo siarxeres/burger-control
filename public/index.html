@@ -1018,7 +1018,7 @@ tbody tr:hover td{background:var(--surface2)}
           <div class="metrics" id="orc-metrics"></div>
 
           <!-- Tabela -->
-          <div class="table-wrap">
+          <div class="table-wrap" style="overflow-x:auto">
             <table>
               <thead><tr>
                 <th>Referência</th>
@@ -4115,7 +4115,7 @@ function renderOrcamento(){
         <div style="font-size:10px;color:var(--hint);margin-top:2px">${r.pct.toFixed(0)}% do orçado</div>` : '<span style="color:var(--hint);font-size:11px">sem orçamento</span>'}
       </td>
       <td>
-        <button class="btn btn-xs" onclick="openModalOrcamento('${r.ref}',${r.orcVal},${r.orcId||'null'})">
+        <button class="btn btn-xs" onclick="openModalOrcamento('${r.ref}',${r.orcVal},${r.orcId ? "'" + r.orcId + "'" : 'null'})">
           ${r.orcId ? '✏️' : '+ Orçar'}
         </button>
       </td>
@@ -4178,9 +4178,9 @@ function openModalOrcamento(ref='', valorAtual=0, orcId=null){
       </div>
     </div>` : ''}
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
-      ${orcId?`<button class="btn btn-danger btn-sm" onclick="excluirOrcamento(${orcId})">🗑 Excluir</button>`:''}
+      ${orcId?`<button class="btn btn-danger btn-sm" onclick="excluirOrcamento('${orcId}')">🗑 Excluir</button>`:''}
       <button class="btn btn-sm" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="salvarOrcamento(${orcId||'null'})">💾 Salvar</button>
+      <button class="btn btn-primary" onclick="salvarOrcamento(${orcId ? "'" + orcId + "'" : 'null'})">💾 Salvar</button>
     </div>`;
   document.getElementById('modal').classList.add('show');
   setTimeout(()=>document.getElementById('orc-valor')?.focus(),100);
