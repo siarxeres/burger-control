@@ -2194,6 +2194,14 @@ function updateDashboard(){
       <div class="dash-kpi-label">Resultado do Mês</div>
       ${totalRec>0?`<div class="dash-kpi-value" style="color:${positivo?'var(--green)':'var(--accent)'}">${positivo?'+':''}${fmt(resultado)}</div>`:`<div class="dash-kpi-value">${fmt(totalDesp)} em despesas</div><div class="dash-kpi-sub">Falta lançar receitas pra saber se sobrou</div>`}
     </div>
+    <div class="dash-kpi">
+      <div class="dash-kpi-icon">💵</div>
+      <div class="dash-kpi-label">Fluxo de Caixa</div>
+      <div class="dash-kpi-sub" style="margin-bottom:8px">este mês</div>
+      <div class="dash-kpi-row"><span class="dash-kpi-row-label">↓ Entrou</span><span class="dash-kpi-row-val" style="color:var(--green)">${fmt(totalRec)}</span></div>
+      <div class="dash-kpi-row"><span class="dash-kpi-row-label">↑ Saiu</span><span class="dash-kpi-row-val" style="color:var(--red)">${fmt(totalDesp)}</span></div>
+      <div class="dash-kpi-row" style="border-top:.5px solid var(--border);margin-top:4px;padding-top:6px"><span class="dash-kpi-row-label" style="font-weight:700;color:inherit">Saldo</span><span class="dash-kpi-row-val" style="font-size:13px;color:${resultado>=0?'var(--green)':'var(--red)'}">${resultado>=0?'+':''}${fmt(resultado)}</span></div>
+    </div>
     <div class="dash-kpi expandable" id="dash-kpi-rec" onclick="document.getElementById('dash-kpi-rec').classList.toggle('open')">
       <div class="dash-kpi-icon">📥</div>
       <div class="dash-kpi-label dash-kpi-label-row">Receitas do Mês<span class="dash-kpi-arrow">›</span></div>
