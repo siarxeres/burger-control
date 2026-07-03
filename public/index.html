@@ -4141,6 +4141,7 @@ function openModalOrcamento(ref='', valorAtual=0, orcId=null){
   const ano = parseInt(document.getElementById('orc-ano').value);
   const tipo = orcTabAtual;
   const meses = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const orcObj = orcId ? orcamentos.find(o => o.id === orcId) : null;
 
   // Opções de referência (CCs ou categorias)
   let opcoesRef = [];
@@ -4164,10 +4165,39 @@ function openModalOrcamento(ref='', valorAtual=0, orcId=null){
           ${opcoesRef.map(r=>`<option value="${r}" ${r===ref?'selected':''}>${r}</option>`).join('')}
         </select>
       </div>
+      <div class="form-group full" style="border-top:.5px solid var(--border);padding-top:12px;margin-top:-4px">
+        <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Memória de cálculo · opcional</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Qtd. por dia</label>
+        <input type="number" class="form-control" id="orc-qtd-dia" step="any" min="0" placeholder="0"
+          value="${orcObj?.qtd_dia ?? ''}" oninput="calcOrcMemoria()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Valor unitário (R$)</label>
+        <input type="number" class="form-control" id="orc-valor-unit" step="any" min="0" placeholder="0,00"
+          value="${orcObj?.valor_unitario ?? ''}" oninput="calcOrcMemoria()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Total do dia</label>
+        <input type="text" class="form-control" id="orc-total-dia" readonly placeholder="—"
+          style="background:var(--surface2);color:var(--muted);cursor:default"
+          value="${orcObj?.qtd_dia && orcObj?.valor_unitario ? (orcObj.qtd_dia * orcObj.valor_unitario).toLocaleString('pt-BR',{minimumFractionDigits:2}) : ''}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Dias trabalhados no mês</label>
+        <input type="number" class="form-control" id="orc-dias-trab" step="1" min="0" max="31" placeholder="0"
+          value="${orcObj?.dias_trabalhados ?? ''}" oninput="calcOrcMemoria()">
+      </div>
       <div class="form-group full">
         <label class="form-label">Valor Orçado <span style="color:var(--accent)">*</span></label>
         <input type="text" class="form-control" id="orc-valor" placeholder="R$ 0,00"
           value="${valorAtual>0?valorAtual.toLocaleString('pt-BR',{minimumFractionDigits:2}):''}">
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Observações</label>
+        <textarea class="form-control" id="orc-obs" rows="2" placeholder="Anotações sobre este orçamento (opcional)"
+          style="resize:vertical">${orcObj?.observacoes ?? ''}</textarea>
       </div>
     </div>
     ${periodo === 'mensal' && !orcId ? `
@@ -4215,6 +4245,19 @@ function atualizarOrcPreview(){
   preview.textContent = `${txt}, de ${fmt(mIni, aIni)} a ${fmt(mFim, aFim)}.`;
 }
 
+function calcOrcMemoria(){
+  const qtd  = parseFloat(document.getElementById('orc-qtd-dia')?.value) || 0;
+  const unit = parseFloat(document.getElementById('orc-valor-unit')?.value) || 0;
+  const dias = parseInt(document.getElementById('orc-dias-trab')?.value) || 0;
+  const totalDia = qtd * unit;
+  const tdEl = document.getElementById('orc-total-dia');
+  if(tdEl) tdEl.value = totalDia > 0 ? totalDia.toLocaleString('pt-BR',{minimumFractionDigits:2}) : '';
+  if(totalDia > 0 && dias > 0){
+    const vEl = document.getElementById('orc-valor');
+    if(vEl) vEl.value = (totalDia * dias).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  }
+}
+
 async function salvarOrcamento(orcId){
   const ref = document.getElementById('orc-ref').value;
   const valorRaw = document.getElementById('orc-valor').value.replace(/[R$\s.]/g,'').replace(',','.');
@@ -4225,6 +4268,10 @@ async function salvarOrcamento(orcId){
   const periodo = document.getElementById('orc-periodo').value;
   const mes = parseInt(document.getElementById('orc-mes').value);
   const ano = parseInt(document.getElementById('orc-ano').value);
+  const qtdDia    = parseFloat(document.getElementById('orc-qtd-dia')?.value) || null;
+  const valorUnit = parseFloat(document.getElementById('orc-valor-unit')?.value) || null;
+  const diasTrab  = parseInt(document.getElementById('orc-dias-trab')?.value) || null;
+  const obs       = document.getElementById('orc-obs')?.value.trim() || null;
 
   // Recorrência mensal (só disponível para novos orçamentos mensais)
   const recAtivo = document.getElementById('orc-rec-ativo')?.checked;
@@ -4244,6 +4291,7 @@ async function salvarOrcamento(orcId){
           user_id: currentUser.id, tipo: orcTabAtual, referencia: ref,
           periodo: 'mensal', mes: m, ano: a,
           valor_orcado: valor, updated_at: new Date().toISOString(),
+          qtd_dia: qtdDia, valor_unitario: valorUnit, dias_trabalhados: diasTrab, observacoes: obs,
         }).select().single();
         if(!error && novo){ orcamentos.push(novo); criados++; }
       } else {
@@ -4268,6 +4316,7 @@ async function salvarOrcamento(orcId){
     periodo, mes: periodo==='mensal'?mes:null, ano,
     valor_orcado: valor,
     updated_at: new Date().toISOString(),
+    qtd_dia: qtdDia, valor_unitario: valorUnit, dias_trabalhados: diasTrab, observacoes: obs,
   };
 
   if(orcId && orcId !== 'null'){
