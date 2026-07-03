@@ -4073,7 +4073,12 @@ function renderOrcamento(){
     const diff = orcVal - realVal; // positivo = dentro do orçamento
     const pct = orcVal > 0 ? (realVal/orcVal*100) : null;
     return { ref, orcVal, realVal, diff, pct, orcId: orc?.id };
-  }).sort((a,b) => b.realVal - a.realVal);
+  }).sort((a,b) => {
+    if(a.orcVal === 0 && b.orcVal === 0) return b.realVal - a.realVal;
+    if(a.orcVal === 0) return 1;
+    if(b.orcVal === 0) return -1;
+    return b.orcVal - a.orcVal;
+  });
 
   // Métricas
   const totalOrc = rows.reduce((s,r)=>s+r.orcVal,0);
