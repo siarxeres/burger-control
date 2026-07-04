@@ -328,6 +328,9 @@
         <div class="nav-item" onclick="showPage('centros',this)">
           <span class="icon">🏷️</span> Centros de Custo
         </div>
+        <div class="nav-item" onclick="showPage('categorias',this)">
+          <span class="icon">📂</span> Categorias
+        </div>
       </div>
       <div class="nav-section">
         <div class="nav-label">SISTEMA</div>
@@ -402,6 +405,18 @@
           <button class="btn btn-primary" onclick="abrirModalCC()">+ Novo Centro</button>
         </div>
         <div class="cc-grid" id="centros-list"><div class="loading">Carregando...</div></div>
+      </div>
+
+      <!-- CATEGORIAS -->
+      <div class="page" id="page-categorias">
+        <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <h2>Categorias</h2>
+            <p>Gerencie as categorias de despesa e sua natureza contábil</p>
+          </div>
+          <button class="btn btn-primary" onclick="abrirModalCategoria()">+ Nova Categoria</button>
+        </div>
+        <div class="cc-grid" id="categorias-list"><div class="loading">Carregando...</div></div>
       </div>
 
       <!-- CONFIGURAÇÕES -->
@@ -479,6 +494,46 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="fecharModal('modal-cc')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarCC()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CATEGORIA -->
+<div class="modal-overlay" id="modal-categoria">
+  <div class="modal">
+    <h3 id="modal-categoria-titulo">Nova Categoria</h3>
+    <input type="hidden" id="cat-id">
+    <div class="form-row">
+      <div>
+        <label>Nome</label>
+        <input type="text" id="cat-nome" placeholder="Ex: Insumos / Ingredientes">
+      </div>
+      <div>
+        <label>Centro de custo</label>
+        <select id="cat-cc"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Natureza</label>
+        <select id="cat-natureza">
+          <option value="cmv">CMV</option>
+          <option value="fixo">Custo Fixo</option>
+          <option value="variavel">Custo Variável</option>
+          <option value="imposto">Imposto</option>
+        </select>
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="cat-ativo">
+          <option value="true">Ativo</option>
+          <option value="false">Inativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-categoria')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCategoria()">Salvar</button>
     </div>
   </div>
 </div>
@@ -676,6 +731,7 @@ function showPage(id, el){
   if(el) el.classList.add('active');
   if(id === 'usuarios') carregarUsuarios();
   if(id === 'centros') carregarCentros();
+  if(id === 'categorias') carregarCategorias();
   if(id === 'planos') carregarPlanos();
 }
 
@@ -1000,6 +1056,102 @@ async function deletarCC(id, nome){
   await sb.from('centros_custo').delete().eq('id', id);
   toast('🗑️ Centro removido.');
   carregarCentros();
+}
+
+// ═══ CATEGORIAS ═══
+let todosCentrosCat = [];
+const NATUREZA_LABELS = { cmv: 'CMV', fixo: 'Custo Fixo', variavel: 'Custo Variável', imposto: 'Imposto' };
+
+async function carregarCategorias(){
+  document.getElementById('categorias-list').innerHTML = '<div class="loading">Carregando...</div>';
+  const [{ data: cats }, { data: centros }] = await Promise.all([
+    sb.from('categorias').select('*').order('ordem'),
+    sb.from('centros_custo').select('*').order('ordem')
+  ]);
+  todosCentrosCat = centros || [];
+  const categorias = cats || [];
+  if(!categorias.length){ document.getElementById('categorias-list').innerHTML = '<div class="loading">Nenhuma categoria cadastrada.</div>'; return; }
+  const ccMap = {};
+  todosCentrosCat.forEach(c => ccMap[c.id] = c.nome);
+  document.getElementById('categorias-list').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>CATEGORIA</th>
+        <th>CENTRO DE CUSTO</th>
+        <th>NATUREZA</th>
+        <th>STATUS</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        ${categorias.map(c => `
+          <tr>
+            <td style="font-weight:600">${c.nome}</td>
+            <td>${ccMap[c.centro_custo_id] || '—'}</td>
+            <td>${NATUREZA_LABELS[c.natureza] || c.natureza}</td>
+            <td><span style="font-size:12px;font-weight:700;color:${c.ativo?'var(--green)':'var(--red)'}">${c.ativo?'Ativo':'Inativo'}</span></td>
+            <td style="display:flex;gap:6px">
+              <button class="btn btn-sm btn-ghost" onclick="editarCategoria('${c.id}','${c.nome}',${c.centro_custo_id},'${c.natureza}',${!!c.ativo})">✏️</button>
+              <button class="btn btn-sm btn-ghost" onclick="atualizarCategoriaAdmin('${c.id}','ativo',${!c.ativo})">${c.ativo?'Desativar':'Ativar'}</button>
+              <button class="btn btn-sm btn-danger" onclick="deletarCategoria('${c.id}','${c.nome}')">🗑️</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function atualizarCategoriaAdmin(id, campo, valor){
+  const updates = { [campo]: valor };
+  const { error } = await sb.from('categorias').update(updates).eq('id', id);
+  if(error){ toast('❌ Erro: '+error.message); return; }
+  toast('✅ Categoria atualizada!');
+  carregarCategorias();
+}
+
+function popularSelectCC(selectedId){
+  const sel = document.getElementById('cat-cc');
+  sel.innerHTML = todosCentrosCat.map(c => `<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.nome}</option>`).join('');
+}
+
+function abrirModalCategoria(){
+  document.getElementById('modal-categoria-titulo').textContent = 'Nova Categoria';
+  document.getElementById('cat-id').value = '';
+  document.getElementById('cat-nome').value = '';
+  popularSelectCC(null);
+  document.getElementById('cat-natureza').value = 'cmv';
+  document.getElementById('cat-ativo').value = 'true';
+  document.getElementById('modal-categoria').classList.add('show');
+}
+
+function editarCategoria(id, nome, centroCustoId, natureza, ativo){
+  document.getElementById('modal-categoria-titulo').textContent = 'Editar Categoria';
+  document.getElementById('cat-id').value = id;
+  document.getElementById('cat-nome').value = nome;
+  popularSelectCC(centroCustoId);
+  document.getElementById('cat-natureza').value = natureza;
+  document.getElementById('cat-ativo').value = ativo ? 'true' : 'false';
+  document.getElementById('modal-categoria').classList.add('show');
+}
+
+async function salvarCategoria(){
+  const id = document.getElementById('cat-id').value;
+  const dados = {
+    nome: document.getElementById('cat-nome').value,
+    centro_custo_id: Number(document.getElementById('cat-cc').value),
+    natureza: document.getElementById('cat-natureza').value,
+    ativo: document.getElementById('cat-ativo').value === 'true',
+  };
+  if(id){ await sb.from('categorias').update(dados).eq('id', id); }
+  else { await sb.from('categorias').insert({ ...dados, personalizado: false, ordem: 99 }); }
+  fecharModal('modal-categoria');
+  toast('✅ Categoria salva!');
+  carregarCategorias();
+}
+
+async function deletarCategoria(id, nome){
+  if(!confirm(`Deletar "${nome}"? Isso pode afetar lançamentos existentes.`)) return;
+  await sb.from('categorias').delete().eq('id', id);
+  toast('🗑️ Categoria removida.');
+  carregarCategorias();
 }
 
 // ═══ CONFIGURAÇÕES ═══
