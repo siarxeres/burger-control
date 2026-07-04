@@ -3845,29 +3845,29 @@ function renderDRE(){
         <thead><tr style="background:var(--surface2)">
           <th style="text-align:left;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">Descrição</th>
           <th style="text-align:right;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">Valor (R$)</th>
-          <th style="text-align:right;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">% Receita</th>
+          <th style="text-align:right;padding:9px 11px;font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.05em">% do que entrou</th>
         </tr></thead>
         <tbody>
-          ${fmtLinha('1. RECEITAS TOTAIS', recTotal, null, true, false, false)}
+          ${fmtLinha('1. Tudo que entrou', recTotal, null, true, false, false)}
           ${Object.entries(recPorCat).map(([cat,val])=>fmtLinha(cat, val, null, false, true, false)).join('')}
 
-          ${fmtLinha('2. CUSTOS DE PRODUÇÃO (CMV)', cmv, 'Insumos, Embalagens', true, false, true)}
+          ${fmtLinha('2. Quanto custou o que você vendeu', cmv, 'Insumos, Embalagens', true, false, true)}
 
-          ${fmtLinha('3. MARGEM DE CONTRIBUIÇÃO', margem, `${margemPct.toFixed(1)}% da receita`, true, false, true)}
+          ${fmtLinha('3. O que sobrou pra pagar as contas', margem, `${margemPct.toFixed(1)}% da receita`, true, false, true)}
 
-          ${fmtLinha('4. DESPESAS TOTAIS', fixas + operacional, 'Fixas + Variáveis', true, false, true)}
-          ${fmtLinha('4.1 Despesas Fixas', fixas, 'Aluguel, Folha, Energia', false, true, false)}
-          ${fmtLinha('4.2 Despesas Variáveis', operacional, 'Serviços, Manutenção, Marketing etc.', false, true, false)}
+          ${fmtLinha('4. Contas do mês', fixas + operacional, 'Fixas + Variáveis', true, false, true)}
+          ${fmtLinha('4.1 Contas que não mudam', fixas, 'Aluguel, Folha, Energia', false, true, false)}
+          ${fmtLinha('4.2 Contas que variam', operacional, 'Serviços, Manutenção, Marketing etc.', false, true, false)}
 
-          ${fmtLinha('5. RESULTADO OPERACIONAL (EBITDA)', ebitda, 'Antes dos impostos', true, false, true)}
+          ${fmtLinha('5. Resultado antes dos impostos', ebitda, null, true, false, true)}
 
           ${fmtLinha('6. IMPOSTOS', impostos, null, true, false, true)}
 
-          ${fmtLinha('7. RESULTADO LÍQUIDO', liquido, liquido>=0?'✅ Operação lucrativa':'⚠️ Operação deficitária', true, false, true)}
+          ${fmtLinha('7. Quanto sobrou de verdade', liquido, liquido>=0?'✅ Operação lucrativa':'⚠️ Operação deficitária', true, false, true)}
 
           <tr style="border-top:2px solid var(--border2);background:${peAtingidoPct>=100?'rgba(59,109,17,0.06)':'rgba(216,90,48,0.04)'}">
             <td style="padding:12px 11px;font-weight:700;color:var(--text)">
-              8. PONTO DE EQUILÍBRIO
+              8. Quanto precisa vender pra não ter prejuízo
               <div style="font-size:11px;font-weight:400;color:var(--muted);margin-top:3px">
                 Faturamento mínimo para cobrir todos os custos
               </div>
@@ -3896,12 +3896,12 @@ function renderDRE(){
           </tr>
           ${recTotal < pe ? `
           <tr style="background:${peAtingidoPct>=100?'rgba(59,109,17,0.06)':'rgba(216,90,48,0.04)'}">
-            <td style="padding:8px 11px 8px 28px;color:var(--muted);font-size:13px">Faturamento faltante</td>
+            <td style="padding:8px 11px 8px 28px;color:var(--muted);font-size:13px">Quanto falta faturar</td>
             <td style="text-align:right;padding:8px 11px;font-weight:600;color:var(--accent)">${fmt(recFaltante)}</td>
             <td style="text-align:right;padding:8px 11px;font-size:12px;color:var(--muted)">—</td>
           </tr>` : ''}
           <tr style="background:${peAtingidoPct>=100?'rgba(59,109,17,0.06)':'rgba(216,90,48,0.04)'}">
-            <td style="padding:8px 11px 8px 28px;color:var(--muted);font-size:13px">Meta diária necessária</td>
+            <td style="padding:8px 11px 8px 28px;color:var(--muted);font-size:13px">Quanto vender por dia</td>
             <td style="text-align:right;padding:8px 11px;font-weight:600;color:var(--text)">${metaDiaria>0?fmt(metaDiaria):'✅ Meta atingida'}</td>
             <td style="text-align:right;padding:8px 11px;font-size:12px;color:var(--muted)">${diasRestantes} dias restantes</td>
           </tr>
@@ -3927,8 +3927,8 @@ function renderDRE(){
 
     <div class="metrics" style="margin-top:16px">
       <div class="metric"><div class="metric-label">Receita Total</div><div class="metric-value green">${fmt(recTotal)}</div></div>
-      <div class="metric"><div class="metric-label">Ponto de Equilíbrio</div>${!isAdmin() && checkTrialExpirado() ? '<div class="metric-value" style="font-size:13px;color:var(--accent);cursor:pointer" onclick="alertPlano(\'Ponto de Equilíbrio\')">🔒 Upgrade Pro</div>' : `<div class="metric-value" style="${cor(recTotal-pe)}">${fmt(pe)}</div><div class="metric-sub">${peAtingidoPct.toFixed(1)}% atingido</div>`}</div>
-      <div class="metric"><div class="metric-label">Meta Diária</div><div class="metric-value" style="font-size:18px;${metaDiaria>0?'color:var(--accent)':'color:var(--green)'}">${metaDiaria>0?fmt(metaDiaria):'✅ OK'}</div><div class="metric-sub">${diasRestantes} dias restantes</div></div>
+      <div class="metric"><div class="metric-label">Quanto vender pra não ter prejuízo</div>${!isAdmin() && checkTrialExpirado() ? '<div class="metric-value" style="font-size:13px;color:var(--accent);cursor:pointer" onclick="alertPlano(\'Ponto de Equilíbrio\')">🔒 Upgrade Pro</div>' : `<div class="metric-value" style="${cor(recTotal-pe)}">${fmt(pe)}</div><div class="metric-sub">${peAtingidoPct.toFixed(1)}% atingido</div>`}</div>
+      <div class="metric"><div class="metric-label">Quanto vender por dia</div><div class="metric-value" style="font-size:18px;${metaDiaria>0?'color:var(--accent)':'color:var(--green)'}">${metaDiaria>0?fmt(metaDiaria):'✅ OK'}</div><div class="metric-sub">${diasRestantes} dias restantes</div></div>
       <div class="metric"><div class="metric-label">Quanto sobrou</div><div class="metric-value" style="${cor(liquido)}">${fmt(liquido)}</div><div class="metric-sub">${recTotal>0?(liquido/recTotal*100).toFixed(1)+'% da receita':'—'}</div></div>
     </div>`;
 }
