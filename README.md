@@ -19,7 +19,7 @@ SaaS de gestão financeira inteligente para pequenas empresas. Originado no segm
 | Autenticação | Supabase Auth (email + senha) |
 | Hospedagem | Vercel |
 | Pagamento | Asaas (PIX, boleto — cartão desativado na UI até implementação completa) |
-| IA | Anthropic Claude Sonnet (via `/api/claude.js`) |
+| IA | Anthropic Claude Sonnet (via `/api/claude.js`) · Claude Haiku para insight do Resumo do Mês (via `/api/gerar-insight-mes.js`) |
 | PWA | Service Worker (`sw.js`) + `manifest.json` |
 | Estilo | CSS puro no HTML, dark mode via `prefers-color-scheme` |
 | Gráficos | Chart.js v4 (via CDN) — gráfico histórico do dashboard |
@@ -119,6 +119,14 @@ Geridos pelo admin. Trial de 30 dias no plano Grátis (acesso total durante a ja
 5. Cliente paga no link do Asaas → redirecionado para `/obrigado`
 6. Webhook `/api/webhook-asaas` recebe `PAYMENT_CONFIRMED` → atualiza `profiles.plano`
 7. App detecta a mudança via Supabase Realtime (`postgres_changes` em `profiles`) → chama `loadPlanos()` + `initApp()` + exibe toast; sem reload manual
+
+### Insight de IA no Resumo do Mês (dashboard)
+1. `updateDashboard()` já calcula receita total, despesa total, resultado, despesa por categoria e resultado do mês anterior — só isso é enviado, nunca lançamento individual nem nome de cliente/fornecedor
+2. `carregarInsightMes()` chama `/api/gerar-insight-mes` com esses agregados
+3. A function verifica cache em `insights_mensais` (Supabase, só acessível via `SUPABASE_SERVICE_KEY`); se já existe insight para aquele mês/usuário e o mês ainda não fechou, reusa; só gera de novo quando não existe cache ou quando o mês fechou e o insight salvo ainda era da versão "em aberto"
+4. Quando gera, chama a Claude (Haiku) pedindo 2–3 frases em tom "professor, não fiscal", sem jargão contábil, e salva o texto em cache
+5. Texto aparece em `#dash-insight`, abaixo dos cards de Resultado do Mês/Lucratividade; se a chamada falhar ou demorar mais de 10s, o card some silenciosamente (sem travar a tela ou mostrar erro)
+6. Pré-requisito de deploy: rodar `supabase/insights_mensais.sql` no SQL Editor do Supabase (cria a tabela de cache) antes do primeiro uso em produção
 
 ---
 
