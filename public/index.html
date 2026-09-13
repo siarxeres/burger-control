@@ -726,6 +726,7 @@ tbody tr:hover td{background:var(--surface2)}
           <div id="dash-perfil-destaque"></div>
           <div class="dash-alertas" id="dash-alertas"></div>
           <div class="dash-kpi-grid" id="dash-metrics"></div>
+          <div id="dash-insight" style="display:none;background:var(--surface2);border:.5px solid var(--border);border-radius:8px;padding:14px 16px;margin-top:12px;font-size:13px;color:var(--text);line-height:1.6"></div>
           <div class="dash-ctas" id="dash-ctas"></div>
           <div class="dash-section" id="dash-section-graficos">
             <div class="dash-section-title">Receitas, Despesas e Lucro</div>
@@ -2180,6 +2181,16 @@ function updateDashboard(){
   const resultado = totalRec - totalDesp;
   const positivo = resultado >= 0;
 
+  // Mês anterior, só para o comparativo do insight de IA
+  const mesAnteriorIns = mesAtual === 0 ? 11 : mesAtual - 1;
+  const anoAnteriorIns = mesAtual === 0 ? anoAtual - 1 : anoAtual;
+  const despMesAntIns = despesas.filter(d => { const dt = parseDateLocal(d.data); return dt.getMonth() === mesAnteriorIns && dt.getFullYear() === anoAnteriorIns && d.status !== 'Rejeitado'; });
+  const recMesAntIns = receitas.filter(r => { const dt = parseDateLocal(r.data); return dt.getMonth() === mesAnteriorIns && dt.getFullYear() === anoAnteriorIns; });
+  const houveMesAnterior = despMesAntIns.length > 0 || recMesAntIns.length > 0;
+  const resultadoMesAnteriorIns = houveMesAnterior
+    ? recMesAntIns.reduce((s,r) => s + r.valor, 0) - despMesAntIns.reduce((s,d) => s + d.valor, 0)
+    : null;
+
   const byCC={}; despMes.forEach(d=>{ byCC[d.cc]=(byCC[d.cc]||0)+d.valor; });
   const sorted=Object.entries(byCC).sort((a,b)=>b[1]-a[1]);
   const byCat={}; despMes.forEach(d=>{ const k=d.categoria||'Outros'; byCat[k]=(byCat[k]||0)+d.valor; });
@@ -2323,6 +2334,41 @@ function updateDashboard(){
   }
   renderGrafico12m();
   gerarAlertas();
+  carregarInsightMes(mesAtual + 1, anoAtual, totalRec, totalDesp, resultado, byCat, resultadoMesAnteriorIns);
+}
+
+// ══ INSIGHT DE IA (Resumo do Mês) ══
+// Só interpreta os agregados já calculados acima — nunca lançamentos individuais.
+// Falha silenciosa: se a chamada falhar ou demorar, o card simplesmente não aparece.
+async function carregarInsightMes(mes, ano, receitaTotal, despesaTotal, resultado, despesaPorCategoria, resultadoMesAnterior){
+  const el = document.getElementById('dash-insight');
+  if(!el || !currentUser) return;
+  el.style.display = 'none';
+  el.innerHTML = '';
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try{
+    const resp = await fetch('/api/gerar-insight-mes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        userId: currentUser.id, mes, ano,
+        receitaTotal, despesaTotal, resultado,
+        despesaPorCategoria, resultadoMesAnterior,
+      }),
+    });
+    if(!resp.ok) return;
+    const data = await resp.json();
+    if(!data.texto) return;
+    el.innerHTML = `<strong>💡 O que a IA vê no seu mês</strong><br>${data.texto}`;
+    el.style.display = 'block';
+  }catch(err){
+    // silencioso — na dúvida, não atrapalha a tela
+  }finally{
+    clearTimeout(timeout);
+  }
 }
 
 function renderGrafico12m(){
